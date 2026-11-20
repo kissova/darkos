@@ -1,0 +1,165 @@
+// HMOOD__TG@i_8_f
+ 
+
+#pragma once
+
+ 
+ 
+ 
+ 
+#include "../SDK.hpp"
+
+namespace SDK
+{
+ 
+ 
+ 
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_SequencePlayer_06F8D9E54D6A670C97160781AAC21798_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_9E88F58F4AB6EE52BA9A69BFC886550A_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_BlendListByBool_EC58EF22440F5629E656CCACAAC6425B_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_SequencePlayer_C489CE0542F69637F4FF2A8E70E7FF28_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_ApplyAdditive_6BCD08EB410E000767F30D81197CD228_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_RotateRootBone_3379463249DB5026719BCDA500803EDE_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_1873132544FC0C24E6E9D78009A10781_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_BlendListByBool_09469ACD4053F9462C5C3FA079746818_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_BlendListByEnumAdvance_2F85DDD4439D6AC83CDEFCAA8ADCC6E0_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_AnimInstanceContainer_58BEE2C343A11CD805F0CEAEB2669FDE_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_9C7680144809F374A3ECDEB605A6DFA5_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_276B8A6E4849011CC43D74BE513D5D67_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_1CA6B8D5497E74E6F43CAEB6DDEFBBC5_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_0711472B4AB410F69CEB17B8D446FE84_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_52B6FA714412F66DBF7662B5B3C9F68D_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_FE062345416B64A640EA20B26FCCADD2_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_AnimInstanceContainer_28A00FFE4AD18CFA8F7A4EABD34054C3_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_A1EFD8F1495CE7BAD195DDB44A756B68_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_895296D24A9F7A856166378E952F6B69_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_BlendSpacePlayer_848561B04A016AA68BCBBE8EFFA343FD_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_4B9202814EAEE5E8C6F84BBCA2B779F3_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_SequencePlayer_5DD0B0D24ED85ACF9D4CB39EE7DC6F51_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_76B99DC84072BA3C0786C29E9E29BB65_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_SequencePlayer_FFF262E84F13F43A0FDF44A2F37CA696_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_EvaluateGraphExposedInputs_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_AnimGraphNode_TransitionResult_61316C7E46619171838C3F963F405D2A_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_AnimNotify_PlayFallSound_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_AnimNotify_SpawnLFootprint_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_AnimNotify_SpawnRFootprint_Params
+{
+};
+
+ 
+struct UCH_Base_AnimBP_MainCity_TPP_C_ExecuteUbergraph_CH_Base_AnimBP_MainCity_TPP_Params
+{
+	int                                                EntryPoint;                                                
+};
+
+}
+

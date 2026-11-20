@@ -1,0 +1,13 @@
+// HMOOD__TG@i_8_f
+ 
+
+#pragma once
+
+ 
+ 
+ 
+ 
+namespace SDK
+{
+}
+

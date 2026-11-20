@@ -1,0 +1,29 @@
+// HMOOD__TG@i_8_f
+ 
+
+#pragma once
+
+ 
+ 
+ 
+ 
+namespace SDK
+{
+ 
+ 
+ 
+
+ 
+enum class EPxProfilerCapability : uint8_t
+{
+	EPxProfilerCapability__PrintSizeChange = 0,
+	EPxProfilerCapability__PrintCountChange = 1,
+	EPxProfilerCapability__AsyncInnerData = 2,
+	EPxProfilerCapability__Count   = 3,
+	EPxProfilerCapability__EPxProfilerCapability_MAX = 4
+};
+
+
+
+}
+

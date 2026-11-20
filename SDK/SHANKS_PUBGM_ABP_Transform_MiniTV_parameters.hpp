@@ -1,0 +1,130 @@
+// HMOOD__TG@i_8_f
+ 
+
+#pragma once
+
+ 
+ 
+ 
+ 
+#include "../SDK.hpp"
+
+namespace SDK
+{
+ 
+ 
+ 
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_A6A6B59445A47D5422694A914F8E5C78_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_7D5A6C2040F63107E549D0B1DF378424_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_DDEBC5974DF4F3699C0679945890537D_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_FA594CA34CBC9C42A6E69FA8745F557D_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_7F1FBFFB47979AF90A80D68AEAD0FAD4_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_A561C51E4A4F43C0DF3DF482E5CD13EB_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_4AE760824BD6017B891F9B9406DE7A28_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_SequencePlayer_FE6EAEF84DDE4FD80ECD48950A8E3505_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_F4BA0C0048749CF23EAD25A7E526522A_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_SequencePlayer_2DF76C5B486E4CBCFF76528BEC8EC694_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_SequencePlayer_5659CC3E44CBC29E51C86E91AC437612_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_945732AB4D14124001B5A1BA5E44564E_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_SequencePlayer_9090A73B44EDC2B417C8D6B3ECE24926_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_BlendSpacePlayer_69B91A6443D64CADF3F57680FF0811F0_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_17992ABD43AE90C6C2B8DB98581A1252_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_SequencePlayer_8856571D431A3F33B942A3BBB43DFC78_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_SequencePlayer_A966479A422137DBB17B59BA1453A4F5_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_BlendListByBool_39EE0F6B4117FE338C9FF089A783C117_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_ModifyBone_FFEA601148F0CEF76AD0878171C47A5F_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_D52967AE43174A92130032A375F2B388_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_EvaluateGraphExposedInputs_ExecuteUbergraph_ABP_Transform_MiniTV_AnimGraphNode_TransitionResult_CDBB51A0489CC99483DCB8B3DAC2D417_Params
+{
+};
+
+ 
+struct UABP_Transform_MiniTV_C_ExecuteUbergraph_ABP_Transform_MiniTV_Params
+{
+	int                                                EntryPoint;                                                
+};
+
+}
+
