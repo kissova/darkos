@@ -12,7 +12,7 @@ $(TWEAK_NAME)_FILES = \
 	Esp.mm \
 	Menu.mm \
 	Dumped_Offsets.cpp \
-	HeeNoScreenShotView.mm \
+	HeeNoScreenShotView.m \
 	ESP/PubgLoad.mm \
 	ESP/HideFunsion.m \
 	ESP/ini_rw.cpp \
