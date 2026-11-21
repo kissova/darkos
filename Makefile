@@ -7,6 +7,8 @@ include $(THEOS)/makefiles/common.mk
 
 TWEAK_NAME = darkos
 
+SDK_CPP_FILES = $(wildcard SDK/*.cpp)
+
 $(TWEAK_NAME)_FILES = \
 	Engine.mm \
 	Esp.mm \
@@ -21,10 +23,12 @@ $(TWEAK_NAME)_FILES = \
 	ESP/imgui/imgui_draw.cpp \
 	ESP/imgui/imgui_tables.cpp \
 	ESP/imgui/imgui_widgets.cpp \
-	ESP/imgui/imgui_impl_metal.mm
+	ESP/imgui/imgui_impl_metal.mm \
+	$(SDK_CPP_FILES)
 
 $(TWEAK_NAME)_CFLAGS = -fobjc-arc -w -I. -IESP -IESP/imgui -ISDK
 $(TWEAK_NAME)_CCFLAGS = -std=c++17 -fobjc-arc -w -I. -IESP -IESP/imgui -ISDK
+$(TWEAK_NAME)_LDFLAGS = -Wl,-w
 $(TWEAK_NAME)_FRAMEWORKS = UIKit Foundation CoreGraphics Metal MetalKit QuartzCore Security
 
 include $(THEOS_MAKE_PATH)/tweak.mk
