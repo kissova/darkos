@@ -608,9 +608,9 @@ ASTExtraPlayerController *g_PlayerController;
 #define 粉色 FLinearColor(1.00f, 0.39f, 0.78f, 1.0f) 
 #define 蓝色 FLinearColor(0, 2, 2.f, 0.f) 
  
-UGameplayStatics* iosde = (UGameplayStatics*)UGameplayStatics::StaticClass();
+static UGameplayStatics* iosde = nullptr;
 
-#define W2S(w, s) iosde->ProjectWorldToScreen(localPlayerController, w, true, s)
+#define W2S(w, s) (iosde ? iosde->ProjectWorldToScreen(localPlayerController, w, true, s) : false)
 
 
 // HMOOD__TG@i_8_f
@@ -2240,6 +2240,9 @@ void  *RTL_language(){
             UObject::GUObjectArray = (FUObjectArray *)(obbbbl());
             if (!UObject::GUObjectArray) sleep(1);
         }
+
+        // iosde dəyişənini burada təyin edirik
+        iosde = (UGameplayStatics*)UGameplayStatics::StaticClass();
 
         dispatch_async(dispatch_get_main_queue(), ^{
             [self load1];
