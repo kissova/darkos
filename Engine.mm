@@ -44,7 +44,7 @@
 #define ImClamp(X, MIN, MAX) ((X) < (MIN) ? (MIN) : ((X) > (MAX) ? (MAX) : (X)))
 #define kWidth  [UIScreen mainScreen].bounds.size.width
 #define kHeight [UIScreen mainScreen].bounds.size.height
-#define timer(sec) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, sec * NSEC_PER_SEC), dispatch_s_main_queue(), ^
+#define timer(sec) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, sec * NSEC_PER_SEC), dispatch_get_main_queue(), ^
 
 #define ICON_FA_EXCLAMATION_TRIANGLE "\xef\x81\xb1"
 
@@ -1720,7 +1720,7 @@ localPlayer->AddControllerPitchInput(clampDelta(Yaptr.Pitch / smooth, maxStep));
                                                         }
 
 
-if (IsLaunch = true)
+if (IsLaunch)
             {
                    if (Enable  && IsLogin || 坐标追 && IsLogin) { 
                     auto WeaponManagerComponent = localPlayer->WeaponManagerComponent;
@@ -2229,31 +2229,28 @@ void  *RTL_language(){
 // HMOOD__TG@i_8_f
 + (void)load
 {
-        FName::GNames = GetGNames();
-    while (!FName::GNames) {
-        FName::GNames = GetGNames();
-          sleep(1);
-    }
-    
-    
-    UObject::GUObjectArray = (FUObjectArray *) (obbbbl());
-    
-    while (!UObject::GUObjectArray) {
-    UObject::GUObjectArray = (FUObjectArray *) (obbbbl());
-          sleep(1);
-    }
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)),
+                   dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
+        while (!FName::GNames) {
+            FName::GNames = GetGNames();
+            if (!FName::GNames) sleep(1);
+        }
 
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5* NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+        while (!UObject::GUObjectArray) {
+            UObject::GUObjectArray = (FUObjectArray *)(obbbbl());
+            if (!UObject::GUObjectArray) sleep(1);
+        }
 
-
-[self load1];
-        
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [self load1];
+        });
     });
 }
 // HMOOD__TG@i_8_f
 + (void)load1
 {
-    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)), dispatch_get_main_queue(), ^{
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(5 * NSEC_PER_SEC)),
+                   dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0), ^{
         RTL_language();
     });
 }
