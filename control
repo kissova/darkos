@@ -1,0 +1,8 @@
+Package: com.kissova.darkos
+Name: darkos
+Version: 1.0.0
+Architecture: iphoneos-arm64
+Description: DARK IOS overlay tweak for PUBG Mobile
+Maintainer: kissova
+Author: kissova
+Section: Tweaks
