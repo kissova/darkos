@@ -585,7 +585,7 @@ ImVec2 DrawCyberHealthCard(ASTExtraPlayerCharacter* p, ImDrawList* draw, ImVec2 
         std::string label=bot?"BOT":"PLAYER";
         if(!bot) {
             const auto& name=p->PlayerName;
-            const int count=name.GetLength();
+            const int count = name.IsValid() ? static_cast<int>(std::wcslen(name.c_str())) : 0;
              
             if(name.GetData() && count>0 && count<256) {
                 CFStringRef value=CFStringCreateWithCharacters(kCFAllocatorDefault,(const UniChar*)name.GetData(),count);
@@ -640,7 +640,7 @@ void DrawPlayerName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
     screenPos.X *= espProjectionScale.x;
     screenPos.Y *= espProjectionScale.y;
 
-    std::wstring wnm = p->PlayerName.ToWString();
+    std::wstring wnm = p->PlayerName.IsValid() ? std::wstring(p->PlayerName.c_str()) : L"";
     std::string playerName(wnm.begin(), wnm.end());
     if (playerName.empty())
         playerName = "BOT";
@@ -1222,7 +1222,7 @@ if (IsStyle == 0)
             if (isBot) {
                 nameStr = "\xef\x95\x84";
             } else {
-                std::wstring wnm = p->PlayerName.ToWString();
+                std::wstring wnm = p->PlayerName.IsValid() ? std::wstring(p->PlayerName.c_str()) : L"";
                 nameStr = std::string(wnm.begin(), wnm.end());
                 if (nameStr.empty()) nameStr = "?";
             }
