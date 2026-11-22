@@ -147,27 +147,43 @@ extern ImFont* mainFont;
 bool MenDeal;
 ImFont* cyberMenuFont = nullptr;
 
+static ImFont* SafeMenuFont() {
+    if (ImGui::GetCurrentContext() && ImGui::GetIO().Fonts && !ImGui::GetIO().Fonts->Fonts.empty()) {
+        ImFont* f = ImGui::GetFont();
+        if (f) return f;
+        return ImGui::GetIO().Fonts->Fonts[0];
+    }
+    return nullptr;
+}
+
 // HMOOD__TG@i_8_f
 UIImage* GetMenuBadgeImage() {
     static UIImage* badge = nil;
     static dispatch_once_t once;
     dispatch_once(&once, ^{
+        if (!kCyberDetailedBrand) return;
         NSData* data = [[NSData alloc] initWithBase64EncodedString:
             [NSString stringWithUTF8String:kCyberDetailedBrand] options:0];
         UIImage* source = data ? [UIImage imageWithData:data] : nil;
         if (!source.CGImage) return;
         CGImageRef crop = CGImageCreateWithImageInRect(source.CGImage, CGRectMake(44, 134, 448, 448));
         if (!crop) return;
+        if (CGImageGetWidth(crop) == 0 || CGImageGetHeight(crop) == 0) {
+            CGImageRelease(crop);
+            return;
+        }
         UIImage* circle = [UIImage imageWithCGImage:crop];
         UIGraphicsImageRendererFormat* format = [UIGraphicsImageRendererFormat defaultFormat];
         format.scale = 1.f;
         format.opaque = NO;
         UIGraphicsImageRenderer* renderer = [[UIGraphicsImageRenderer alloc] initWithSize:CGSizeMake(448, 448) format:format];
-        badge = [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
-            (void)context;
-            [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 448, 448)] addClip];
-            [circle drawInRect:CGRectMake(0, 0, 448, 448)];
-        }];
+        if (renderer) {
+            badge = [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
+                (void)context;
+                [[UIBezierPath bezierPathWithOvalInRect:CGRectMake(0, 0, 448, 448)] addClip];
+                [circle drawInRect:CGRectMake(0, 0, 448, 448)];
+            }];
+        }
         CGImageRelease(crop);
     });
     return badge;
@@ -180,6 +196,7 @@ typedef int (*ptrace_ptr_t)(int, pid_t, caddr_t, int);
 #define PT_DENY_ATTACH 31
 static void pg_deny_debugger(void) {
     void* handle = dlopen(0, RTLD_GLOBAL | RTLD_NOW);
+    if (!handle) return;
     ptrace_ptr_t pt = (ptrace_ptr_t)dlsym(handle, "ptrace");
     if (pt)
         pt(PT_DENY_ATTACH, 0, 0, 0);
@@ -203,6 +220,7 @@ static void pg_deny_debugger(void) {
  
 namespace ImGui {
     inline void MergeIconsWithLatestFont(float font_size, bool FontDataOwnedByAtlas = false) {
+        if (!GetIO().Fonts || GetIO().Fonts->Fonts.empty()) return;
         static const ImWchar icons_ranges[] = {ICON_MIN_FA, ICON_MAX_FA, 0};
         ImFontConfig icons_config;
         icons_config.MergeMode = true;
@@ -214,6 +232,7 @@ namespace ImGui {
 }
 
 static int CyberMenuFontFace(NSString* path, NSString* postScriptName) {
+    if (!path || !postScriptName) return -1;
     NSData* data = [NSData dataWithContentsOfFile:path options:NSDataReadingMappedIfSafe error:nullptr];
     const unsigned char* bytes = (const unsigned char*)data.bytes;
     const size_t length = data.length;
@@ -270,6 +289,7 @@ static int CyberMenuFontFace(NSString* path, NSString* postScriptName) {
 }
 
 void InitializeMenuFonts(ImGuiIO& io) {
+    if (!io.Fonts) return;
     ImFontConfig font_cfg;
 
     NSString* FontPath = @"/System/Library/Fonts/Core/AvenirNext.ttc";
@@ -278,8 +298,14 @@ void InitializeMenuFonts(ImGuiIO& io) {
     constexpr float menuFontBakeSize = 48.f;
     font_cfg.OversampleH = 2;
     font_cfg.OversampleV = 2;
-    mainFont = io.Fonts->AddFontFromFileTTF(FontPath.UTF8String, menuFontBakeSize, &font_cfg,
-                                            io.Fonts->GetGlyphRangesVietnamese());
+    mainFont = nullptr;
+    if ([[NSFileManager defaultManager] fileExistsAtPath:FontPath]) {
+        mainFont = io.Fonts->AddFontFromFileTTF(FontPath.UTF8String, menuFontBakeSize, &font_cfg,
+                                                io.Fonts->GetGlyphRangesVietnamese());
+    }
+    if (!mainFont) {
+        mainFont = io.Fonts->AddFontDefault();
+    }
     if (mainFont)
         mainFont->Scale = 13.f / menuFontBakeSize;
 
@@ -338,6 +364,7 @@ void InitializeMenuFonts(ImGuiIO& io) {
 
 
 void ApplyImGuiStyle() {
+    if (!ImGui::GetCurrentContext()) return;
     ImGuiStyle& s = ImGui::GetStyle();
     s.WindowPadding = {0, 0};
     s.WindowRounding = 12.f;
@@ -617,56 +644,66 @@ namespace MenuLocale {
             UIGraphicsImageRenderer* renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
             const float padding = result.padding;
             const CGFloat contentWidth = result.content.x, contentHeight = result.content.y;
-            UIImage* bitmap = [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
+            UIImage* bitmap = renderer ? [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
                 (void)context;
                 [text drawWithRect:CGRectMake(padding - bounds.origin.x, padding - bounds.origin.y,
                                              contentWidth, contentHeight)
                            options:options context:nil];
-            }];
+            }] : nil;
             CGImageRef source = bitmap.CGImage;
             static id<MTLDevice> device = MTLCreateSystemDefaultDevice();
             if (source && device) {
                 const size_t width = CGImageGetWidth(source), height = CGImageGetHeight(source);
-                std::vector<uint8_t> rgba(width * height * 4);
-                CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-                CGContextRef context = space ? CGBitmapContextCreate(rgba.data(), width, height, 8, width * 4,
-                    space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big) : nullptr;
-                if (context) {
-                    CGContextDrawImage(context, CGRectMake(0, 0, width, height), source);
-                    CGContextFlush(context);
-                    for (size_t i = 0; i < width * height; ++i)
-                        rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = 255;
-                    MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                        width:width height:height mipmapped:NO];
-                    descriptor.usage = MTLTextureUsageShaderRead;
-                    descriptor.storageMode = MTLStorageModeShared;
-                    result.texture = [device newTextureWithDescriptor:descriptor];
-                    [result.texture replaceRegion:MTLRegionMake2D(0, 0, width, height) mipmapLevel:0
-                                         withBytes:rgba.data() bytesPerRow:width * 4];
-                    CGContextRelease(context);
+                if (width > 0 && height > 0 && width <= 8192 && height <= 8192) {
+                    std::vector<uint8_t> rgba(width * height * 4, 0);
+                    CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
+                    CGContextRef context = space ? CGBitmapContextCreate(rgba.data(), width, height, 8, width * 4,
+                        space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big) : nullptr;
+                    if (context) {
+                        CGContextDrawImage(context, CGRectMake(0, 0, width, height), source);
+                        CGContextFlush(context);
+                        for (size_t i = 0; i < width * height; ++i)
+                            rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = 255;
+                        MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                            width:width height:height mipmapped:NO];
+                        descriptor.usage = MTLTextureUsageShaderRead;
+                        descriptor.storageMode = MTLStorageModeShared;
+                        result.texture = [device newTextureWithDescriptor:descriptor];
+                        if (result.texture) {
+                            [result.texture replaceRegion:MTLRegionMake2D(0, 0, width, height) mipmapLevel:0
+                                                 withBytes:rgba.data() bytesPerRow:width * 4];
+                        }
+                        CGContextRelease(context);
+                    }
+                    if (space) CGColorSpaceRelease(space);
                 }
-                if (space) CGColorSpaceRelease(space);
             }
         }
         return cache.emplace(cacheKey, std::move(result)).first->second;
     }
     static ImVec2 measure(const char* value, float fontSize, float wrap = 0.f) {
         const char* label = tr(value);
-        if (!native(label)) return ImGui::GetFont()->CalcTextSizeA(fontSize, FLT_MAX, wrap, label);
+        if (!native(label)) {
+            ImFont* f = SafeMenuFont();
+            return f ? f->CalcTextSizeA(fontSize, FLT_MAX, wrap, label) : ImVec2(0.f, 0.f);
+        }
         return image(label, fontSize, wrap).content;
     }
     static void draw(ImDrawList* list, const char* value, ImVec2 position, float fontSize, ImU32 color,
                       float maxWidth = 0.f, bool rightAlign = false, float wrap = 0.f) {
+        if (!list) return;
         const char* label = tr(value);
         if (!native(label)) {
+            ImFont* f = SafeMenuFont();
+            if (!f) return;
             const float width = measure(label, fontSize).x;
-            if (maxWidth > 0.f && width > maxWidth) fontSize *= maxWidth / width;
-            list->AddText(ImGui::GetFont(), fontSize, position, color, label);
+            if (maxWidth > 0.f && width > maxWidth && width > 0.f) fontSize *= maxWidth / width;
+            list->AddText(f, fontSize, position, color, label);
             return;
         }
         const TextImage& text = image(label, fontSize, wrap);
         if (!text.texture) return;
-        const float factor = maxWidth > 0.f && text.content.x > maxWidth ? maxWidth / text.content.x : 1.f;
+        const float factor = (maxWidth > 0.f && text.content.x > maxWidth && text.content.x > 0.f) ? maxWidth / text.content.x : 1.f;
         if (rightAlign && maxWidth > 0.f) position.x += maxWidth - text.content.x * factor;
         const float padding = text.padding * factor;
         list->AddImage((__bridge ImTextureID)text.texture,
@@ -695,7 +732,7 @@ namespace MenuLocale {
         const ImVec2 position = ImGui::GetCursorScreenPos();
         const float fs = ImGui::GetFontSize(), height = ImGui::GetFrameHeight() * 1.2f;
         const float width = ImMax(190.f, measure(value, fs).x + 20.f);
-        const std::string id = "##locale_select_" + std::string(value);
+        const std::string id = "##locale_select_" + std::string(value ? value : "");
         const bool pressed = ImGui::Selectable(id.c_str(), selected, 0, ImVec2(width, height));
         draw(ImGui::GetWindowDrawList(), value, ImVec2(position.x + 5.f, position.y + (height - measure(value, fs).y) * .5f),
              fs, ImGui::GetColorU32(ImGuiCol_Text), width - 10.f, rtl());
@@ -709,6 +746,7 @@ namespace MenuLocale {
              ImGui::GetFontSize(), ImGui::GetColorU32(ImGuiCol_Text), width, rtl());
     }
     static bool checkbox(const char* value, bool* state) {
+        if (!state) return false;
         if (!native(tr(value))) return ImGui::Checkbox(value, state);
         ImGui::PushID(value);
         ImGui::BeginGroup();
@@ -727,6 +765,7 @@ namespace MenuLocale {
         return changed;
     }
     static bool sliderFloat(const char* label, float* value, float low, float high, const char* format = "%.3f") {
+        if (!value) return false;
         if (!native(tr(label))) return ImGui::SliderFloat(label, value, low, high, format);
         ImGui::PushID(label);
         ImGui::BeginGroup();
@@ -739,6 +778,7 @@ namespace MenuLocale {
         return changed;
     }
     static bool sliderInt(const char* label, int* value, int low, int high) {
+        if (!value) return false;
         if (!native(tr(label))) return ImGui::SliderInt(label, value, low, high);
         ImGui::PushID(label);
         ImGui::BeginGroup();
@@ -751,6 +791,7 @@ namespace MenuLocale {
         return changed;
     }
     static bool colorEdit(const char* label, float* value) {
+        if (!value) return false;
         if (!native(tr(label))) return ImGui::ColorEdit4(label, value);
         ImGui::PushID(label);
         ImGui::BeginGroup();
@@ -771,6 +812,7 @@ namespace MenuLocale {
         return changed;
     }
     static bool combo(const char* label, int* value, const char* const* choices, int count) {
+        if (!value || !choices || count <= 0) return false;
         if (language == 0) return ImGui::Combo(label, value, choices, count);
         ImGui::PushID(label);
         ImGui::BeginGroup();
@@ -797,10 +839,10 @@ namespace MenuLocale {
     static bool button(const char* label, ImVec2 size) {
         if (!native(tr(label))) return ImGui::Button(label, size);
         const ImVec2 position = ImGui::GetCursorScreenPos();
-        const std::string id = "##locale_button_" + std::string(label);
+        const std::string id = "##locale_button_" + std::string(label ? label : "");
         const bool pressed = ImGui::Button(id.c_str(), size);
         const ImVec2 textSize = measure(label, ImGui::GetFontSize());
-        const float factor = textSize.x > size.x - 12.f ? (size.x - 12.f) / textSize.x : 1.f;
+        const float factor = (textSize.x > size.x - 12.f && textSize.x > 0.f) ? (size.x - 12.f) / textSize.x : 1.f;
         draw(ImGui::GetWindowDrawList(), label,
              ImVec2(position.x + (size.x - textSize.x * factor) * .5f,
                     position.y + (size.y - textSize.y * factor) * .5f),
@@ -840,23 +882,27 @@ namespace CyberMenu {
             return {w * scale * stretchX, h * scale * stretchY};
         }
         void rect(float x, float y, float w, float h, ImU32 color, float radius = 0.f) const {
+            if (!dl) return;
             dl->AddRectFilled(p(x, y), p(x + w, y + h), color, radius * scale);
         }
         void line(float x, float y, float xx, float yy, ImU32 color, float width = 1.f) const {
+            if (!dl) return;
             dl->AddLine(p(x, y), p(xx, yy), color, width * scale);
         }
         void text(float x, float y, const char* label, float height = 20.f, ImU32 color = White,
                   float maxWidth = 0.f) const {
+            if (!dl || !label) return;
             float fs = height * scale;
             if (MenuLocale::native(MenuLocale::tr(label))) {
                 MenuLocale::draw(dl, label, p(x, y), fs, color,
                                   maxWidth > 0.f ? maxWidth * scale * stretchX : 0.f, MenuLocale::rtl());
                 return;
             }
-            ImFont* font = ImGui::GetFont();
+            ImFont* font = SafeMenuFont();
+            if (!font) return;
             if (maxWidth > 0.f) {
                 float width = font->CalcTextSizeA(fs, FLT_MAX, 0.f, label).x;
-                if (width > maxWidth * scale * stretchX)
+                if (width > maxWidth * scale * stretchX && width > 0.f)
                     fs *= maxWidth * scale * stretchX / width;
             }
             dl->AddText(font, fs, p(x, y), color, label);
@@ -919,9 +965,10 @@ namespace CyberMenu {
     };
 
     static void fadeContent(ImDrawList* draw, int first, float opacity) {
-        if (opacity >= 1.f)
+        if (!draw || opacity >= 1.f)
             return;
-        for (int i = first; i < draw->VtxBuffer.Size; ++i) {
+        const int clampedFirst = ImClamp(first, 0, draw->VtxBuffer.Size);
+        for (int i = clampedFirst; i < draw->VtxBuffer.Size; ++i) {
             ImU32& color = draw->VtxBuffer[i].col;
             const ImU32 alpha = (color & IM_COL32_A_MASK) >> IM_COL32_A_SHIFT;
             color = (color & ~IM_COL32_A_MASK) | ((ImU32)(alpha * opacity + .5f) << IM_COL32_A_SHIFT);
@@ -942,6 +989,7 @@ namespace CyberMenu {
     static Reference& artwork(int index) {
         static Reference textures[3] = {};
         static bool attempted[3] = {};
+        if (index < 0 || index >= 3) return textures[0];
         Reference& result = textures[index];
         if (attempted[index])
             return result;
@@ -949,6 +997,7 @@ namespace CyberMenu {
         @autoreleasepool {
             const char* bytes[] = {kCyberDetailedFrame, kCyberDetailedBrand, kCyberDetailedBrand};
             const CGRect crops[] = {CGRectMake(8, 8, 1528, 978), CGRectMake(60, 156, 2060, 403), CGRectMake(0, 0, 448, 448)};
+            if (!bytes[index]) return result;
             NSString* encoded = [[NSString alloc] initWithUTF8String:bytes[index]];
             NSData* data = [[NSData alloc] initWithBase64EncodedString:encoded options:0];
             UIImage* decoded = index == 2 ? GetMenuBadgeImage() : (data ? [UIImage imageWithData:data] : nil);
@@ -961,7 +1010,11 @@ namespace CyberMenu {
                 return result;
             }
             const size_t width = CGImageGetWidth(image), height = CGImageGetHeight(image);
-            std::vector<uint8_t> rgba(width * height * 4);
+            if (width == 0 || height == 0 || width > 8192 || height > 8192) {
+                CGImageRelease(image);
+                return result;
+            }
+            std::vector<uint8_t> rgba(width * height * 4, 0);
             CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
             CGContextRef context =
                 space ? CGBitmapContextCreate(rgba.data(), width, height, 8, width * 4, space,
@@ -1013,12 +1066,14 @@ namespace CyberMenu {
     static Reference& navigationTexture(int tab, bool selected) {
         static Reference faces[5][2] = {};
         static bool attempted[5][2] = {};
+        if (tab < 0 || tab >= 5) return faces[0][0];
         const int state = selected ? 1 : 0;
         Reference& face = faces[tab][state];
         if (attempted[tab][state])
             return face;
         attempted[tab][state] = true;
         @autoreleasepool {
+            if (!kCyberNavigation9230) return face;
             NSString* encoded = [[NSString alloc] initWithUTF8String:kCyberNavigation9230];
             NSData* data = [[NSData alloc] initWithBase64EncodedString:encoded options:0];
             UIImage* source = data ? [UIImage imageWithData:data] : nil;
@@ -1030,13 +1085,17 @@ namespace CyberMenu {
                     CGImageRelease(own);
                 return face;
             }
+            const size_t width = CGImageGetWidth(own), height = CGImageGetHeight(own);
+            if (width == 0 || height == 0 || width > 8192 || height > 8192) {
+                CGImageRelease(own);
+                return face;
+            }
             MTKTextureLoader* loader = [[MTKTextureLoader alloc] initWithDevice:device];
             NSDictionary* options = @{
                 MTKTextureLoaderOptionSRGB : @NO,
                 MTKTextureLoaderOptionOrigin : MTKTextureLoaderOriginTopLeft,
                 MTKTextureLoaderOptionTextureUsage : @(MTLTextureUsageShaderRead)
             };
-            const size_t width = CGImageGetWidth(own), height = CGImageGetHeight(own);
             face.w = (float)width;
             face.h = (float)height;
             const bool nativeState = (tab == 3) == selected;
@@ -1045,7 +1104,7 @@ namespace CyberMenu {
             else {
                 CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
                 auto pixels = [&](CGImageRef image, std::vector<uint8_t>& buffer) -> bool {
-                    buffer.resize(width * height * 4);
+                    buffer.assign(width * height * 4, 0);
                     CGContextRef context =
                         space
                             ? CGBitmapContextCreate(buffer.data(), width, height, 8, width * 4, space,
@@ -1113,6 +1172,7 @@ namespace CyberMenu {
 
     static bool hit(const Canvas& c, const char* id, float x, float y, float w, float h,
                     bool available = true, const char* reason = nullptr) {
+        if (!id) return false;
         ImGui::SetCursorScreenPos(c.p(x, y));
         ImGui::BeginDisabled(!available);
         bool clicked = ImGui::InvisibleButton(id, c.size(w, h));
@@ -1169,7 +1229,7 @@ namespace CyberMenu {
     };
 
     static void icon(const Canvas& c, int kind, float x, float y, float size, ImU32 color = Red) {
-        if (kind < 0)
+        if (!c.dl || kind < 0)
             return;
         static const char* const symbols[] = {ICON_FA_USER,
                                               ICON_FA_CROSSHAIRS,
@@ -1210,11 +1270,12 @@ namespace CyberMenu {
                                               ICON_FA_CHECK_CIRCLE,
                                               ICON_FA_DATABASE,
                                               ICON_FA_MEMORY};
-        if (kind >= IM_ARRAYSIZE(symbols))
+        if (kind >= IM_ARRAYSIZE(symbols) || !symbols[kind])
             return;
         const unsigned char* utf8 = (const unsigned char*)symbols[kind];
         const ImWchar code = (ImWchar)(((utf8[0] & 15) << 12) | ((utf8[1] & 63) << 6) | (utf8[2] & 63));
-        ImFont* font = ImGui::GetFont();
+        ImFont* font = SafeMenuFont();
+        if (!font) return;
         const ImFontGlyph* glyph = font->FindGlyphNoFallback(code);
         if (!glyph) {
              
@@ -1237,6 +1298,7 @@ namespace CyberMenu {
 
 
     static void panel(const Canvas& c, float x, float y, float w, float h, ImU32 accent = Red) {
+        if (!c.dl) return;
         c.dl->AddRectFilledMultiColor(c.p(x, y), c.p(x + w, y + h), IM_COL32(16, 8, 13, 255),
                                       IM_COL32(12, 8, 12, 255), IM_COL32(8, 9, 12, 255),
                                       IM_COL32(8, 9, 12, 255));
@@ -1271,18 +1333,21 @@ namespace CyberMenu {
         return items;
     }
     static void notifyFeature(const char* label, int glyph, bool enabled) {
+        if (!ImGui::GetCurrentContext()) return;
         auto& items = notices();
         if (items.size() >= 8)
             items.erase(items.begin());
-        items.push_back({label, glyph, enabled, ImGui::GetTime(), -1.f});
+        items.push_back({label ? label : "", glyph, enabled, ImGui::GetTime(), -1.f});
     }
     static bool featureCheckbox(const char* label, bool* value, int glyph) {
+        if (!value) return false;
         const bool changed = MenuLocale::checkbox(label, value);
         if (changed)
             notifyFeature(label, glyph, *value);
         return changed;
     }
     static void renderNotices() {
+        if (!ImGui::GetCurrentContext()) return;
         auto& items = notices();
         const double now = ImGui::GetTime();
         for (auto i = items.begin(); i != items.end();) {
@@ -1301,8 +1366,13 @@ namespace CyberMenu {
         const float height = 44.f * scale, spacing = 8.f * scale;
         const float top =
             ImMin((items.back().glyph == Globe ? 40.f : 62.f) * scale, ImMax(8.f * scale, io.DisplaySize.y - 4 * (height + spacing) - 8.f * scale));
-        ImGui::PushFont(cyberMenuFont ? cyberMenuFont : ImGui::GetFont());
+        ImFont* activeFont = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
+        if (activeFont) ImGui::PushFont(activeFont);
         ImDrawList* draw = ImGui::GetForegroundDrawList();
+        if (!draw) {
+            if (activeFont) ImGui::PopFont();
+            return;
+        }
         draw->PushClipRect(ImVec2(0, 0), io.DisplaySize, true);
         for (size_t i = 0; i < items.size() && i < 4; ++i) {
             FeatureNotice& n = items[i];
@@ -1333,7 +1403,7 @@ namespace CyberMenu {
             fadeContent(draw, first, fade);
         }
         draw->PopClipRect();
-        ImGui::PopFont();
+        if (activeFont) ImGui::PopFont();
     }
 
 // HMOOD__TG@i_8_f
@@ -1371,8 +1441,7 @@ namespace CyberMenu {
     static bool toggle(const Canvas& c, const char* label, const char* id, bool* value, float x, float y,
                        float w, int glyph, bool available = true,
                        const char* reason = "Not available in the current project") {
-         
-         
+        if (!c.dl || !value) return false;
         bool changed = hit(c, id, x, y, w, 36, available, available ? nullptr : reason);
         const bool pressed = available && ImGui::IsItemActive();
         const bool hovered = available && ImGui::IsItemHovered();
@@ -1384,7 +1453,7 @@ namespace CyberMenu {
         icon(c, glyph, x + 3, y + 6, 23, available ? Red : IM_COL32(104, 20, 38, 255));
         const float switchX = x + w - 52;
         c.text(x + 37, y + 4, label, 23, fg, w - 96);
-        const ImGuiID key = ImGui::GetID(id);
+        const ImGuiID key = ImGui::GetID(id ? id : label);
         const float position = switchPosition(key, *value, c.animationTime) * c.switchReveal;
         const float light = available ? position : 0.f;
         const float cy = y + 18.5f;
@@ -1420,29 +1489,33 @@ namespace CyberMenu {
     static bool slider(const Canvas& c, const char* id, const char* label, float* value, float low,
                        float high, float x, float y, float w, int glyph, bool available = true,
                        const char* disabledReason = "Not available, or controlled by the selected preset") {
+        if (!c.dl || !value) return false;
+        if (!std::isfinite(*value)) *value = low;
+        const float span = high - low;
+        const bool hasSpan = std::isfinite(span) && fabsf(span) > 1e-6f;
         panel(c, x, y, w, 37);
         icon(c, glyph, x + 10, y + 9, 19, available ? Red : IM_COL32(103, 23, 40, 255));
         c.text(x + 37, y + 9, label, glyph == Percent ? 12.5f : 17.f, available ? White : Muted, 77);
         const float tx = x + 124, tw = w - 142, cy = y + 19;
-        float t = ImClamp((*value - low) / (high - low), 0.f, 1.f);
+        float t = hasSpan ? ImClamp((*value - low) / span, 0.f, 1.f) : 0.f;
         const float knob = tx + tw * t;
         hit(c, id, tx - 8, y, tw + 16, 37, available,
             available ? nullptr : disabledReason);
-        ImGuiID key = ImGui::GetID(id);
+        ImGuiID key = ImGui::GetID(id ? id : label);
         ImGuiStorage* storage = ImGui::GetStateStorage();
-        if (ImGui::IsItemActivated()) {
+        if (ImGui::IsItemActivated() && storage) {
             float dx = ImGui::GetIO().MousePos.x - c.p(knob, cy).x;
             storage->SetFloat(key, std::fabs(dx) <= 14 * c.scale ? dx : 0.f);
         }
-        if (available && ImGui::IsItemActive() && ImGui::GetIO().MouseDown[0]) {
-            float pos = (ImGui::GetIO().MousePos.x - storage->GetFloat(key) - c.p(tx, cy).x) /
-                        (tw * c.scale * c.stretchX);
-            float next = low + (high - low) * ImClamp(pos, 0.f, 1.f);
-            if (next != *value) {
+        if (available && ImGui::IsItemActive() && ImGui::GetIO().MouseDown[0] && hasSpan && storage) {
+            const float denom = tw * c.scale * c.stretchX;
+            float pos = fabsf(denom) > 1e-6f ? (ImGui::GetIO().MousePos.x - storage->GetFloat(key) - c.p(tx, cy).x) / denom : 0.f;
+            float next = low + span * ImClamp(pos, 0.f, 1.f);
+            if (std::isfinite(next) && next != *value) {
                 *value = next;
                 ImGui::MarkItemEdited(key);
             }
-            t = ImClamp((*value - low) / (high - low), 0.f, 1.f);
+            t = ImClamp((*value - low) / span, 0.f, 1.f);
             char hint[256];
             snprintf(hint, sizeof(hint), "%s: %.1f", MenuLocale::tr(label), *value);
             MenuLocale::tooltip(hint);
@@ -1457,6 +1530,7 @@ namespace CyberMenu {
 
     static bool combo(const Canvas& c, const char* id, int* current, const char* const* items, int count,
                       float x, float y, float w, float h = 32.f) {
+        if (!c.dl || !current || !items || count <= 0 || !id) return false;
         c.rect(x, y, w, h, IM_COL32(18, 12, 18, 255), 3);
         c.dl->AddRect(c.p(x, y), c.p(x + w, y + h), IM_COL32(74, 23, 39, 255), 3 * c.scale, 0,
                       1.5f * c.scale);
@@ -1484,6 +1558,7 @@ namespace CyberMenu {
 
 
     static void frame(const Canvas& c) {
+        if (!c.dl) return;
         c.rect(39, 30, 956, 597, IM_COL32(7, 8, 11, 255), 9);
         Reference& chrome = highQualityFrame();
         if (chrome.texture)
@@ -1496,18 +1571,20 @@ namespace CyberMenu {
             c.line(245, 145, 245, 612, Red, 5);
         }
         Reference& brand = artwork(1);
-        if (brand.texture) {
+        if (brand.texture && brand.w > 0.f) {
             const float width = 610.f, height = width * brand.h / brand.w;
             c.dl->AddImage((__bridge ImTextureID)brand.texture, c.p(220, 27), c.p(220 + width, 27 + height),
                            {0, 0}, {1, 1}, IM_COL32(225, 227, 232, 255));
         } else {
+            ImFont* f = SafeMenuFont();
             const float titleSize = 44.f;
-            const float textWidth = ImGui::GetFont()->CalcTextSizeA(titleSize, FLT_MAX, 0, "HMOOD VIP").x;
+            const float textWidth = f ? f->CalcTextSizeA(titleSize, FLT_MAX, 0, "HMOOD VIP").x : 0.f;
             c.text(540.f - textWidth * .5f, 60, "HMOOD VIP", titleSize, White);
         }
     }
 
     static bool closeButton(const Canvas& c) {
+        if (!c.dl) return false;
         const bool clicked = hit(c, "##cyber_close", 899, 38, 44, 44, true, "Close menu");
         const bool hovered = ImGui::IsItemHovered();
         c.rect(906, 44, 30, 29, hovered ? IM_COL32(107, 6, 25, 245) : IM_COL32(55, 5, 15, 235), 3);
@@ -1526,6 +1603,7 @@ namespace CyberMenu {
     }
 
     static void navigation(const Canvas& c, int& page) {
+        if (!c.dl) return;
         if (!highQualityFrame().texture)
             c.rect(52, 151, 185, 453, IM_COL32(8, 10, 13, 255));
         const float dstY[] = {159, 247, 335, 423, 511};
@@ -1575,13 +1653,16 @@ namespace CyberMenu {
     static const Stats& stats() {
         static Stats st;
         static double last = -10;
+        if (!ImGui::GetCurrentContext()) return st;
         if (ImGui::GetTime() - last < 1.0)
             return st;
         last = ImGui::GetTime();
         struct utsname si;
+        memset(&si, 0, sizeof(si));
         uname(&si);
-        st.device = si.machine;
-        st.ios = [UIDevice currentDevice].systemVersion.UTF8String;
+        st.device = si.machine[0] ? si.machine : "iPhone";
+        NSString* sysVer = [UIDevice currentDevice].systemVersion;
+        st.ios = sysVer ? sysVer.UTF8String : "";
         [UIDevice currentDevice].batteryMonitoringEnabled = YES;
         st.battery = [UIDevice currentDevice].batteryLevel;
         st.fps = ImGui::GetIO().Framerate;
@@ -1594,7 +1675,7 @@ namespace CyberMenu {
         vm_statistics64_data_t vm = {};
         count = HOST_VM_INFO64_COUNT;
         vm_size_t page = 0;
-        if (host_page_size(host, &page) == KERN_SUCCESS &&
+        if (host_page_size(host, &page) == KERN_SUCCESS && page > 0 &&
             host_statistics64(host, HOST_VM_INFO64, (host_info64_t)&vm, &count) == KERN_SUCCESS)
             st.freeGB = (vm.free_count + vm.inactive_count) * (double)page / (1024. * 1024. * 1024.);
         mach_port_deallocate(mach_task_self(), host);
@@ -1607,8 +1688,10 @@ namespace CyberMenu {
             df.dateFormat = @"yyyy/MM/dd";
         }
         NSDate* now = [NSDate date];
-        st.time = [tf stringFromDate:now].UTF8String;
-        st.date = [df stringFromDate:now].UTF8String;
+        NSString* tStr = now ? [tf stringFromDate:now] : nil;
+        NSString* dStr = now ? [df stringFromDate:now] : nil;
+        st.time = tStr ? tStr.UTF8String : "--:--";
+        st.date = dStr ? dStr.UTF8String : "----/--/--";
         return st;
     }
 
@@ -1621,9 +1704,10 @@ namespace CyberMenu {
      
     static ImVec2 rimPoint(float x, float y, float w, float h, float radius, float distance) {
         constexpr float pi = 3.14159265f;
-        const float r = ImMin(radius, ImMin(w, h) * .5f);
-        const float horizontal = w - 2.f * r, vertical = h - 2.f * r, arc = pi * r * .5f;
+        const float r = ImMax(0.001f, ImMin(radius, ImMin(w, h) * .5f));
+        const float horizontal = ImMax(0.f, w - 2.f * r), vertical = ImMax(0.f, h - 2.f * r), arc = pi * r * .5f;
         const float perimeter = 2.f * (horizontal + vertical) + 4.f * arc;
+        if (perimeter <= 1e-5f) return {x, y};
         float d = std::fmod(distance, perimeter);
         if (d < 0.f)
             d += perimeter;
@@ -1659,8 +1743,11 @@ namespace CyberMenu {
     }
 
     static void movingRim(const Canvas& c, float x, float y, float w, float h, float radius, ImU32 tint) {
+        if (!c.dl) return;
         constexpr float pi = 3.14159265f;
-        const float perimeter = 2.f * (w + h - 4.f * radius) + 2.f * pi * radius;
+        const float r = ImMin(radius, ImMin(w, h) * .5f);
+        const float perimeter = 2.f * (w + h - 4.f * r) + 2.f * pi * r;
+        if (perimeter <= 1e-5f) return;
         const float phase = (float)std::fmod(c.animationTime * .32 + (x + y * .37f) * .003, 1.0);
         const float head = phase * perimeter;
         const float trail = ImMin(76.f, perimeter * .14f);
@@ -1668,8 +1755,8 @@ namespace CyberMenu {
                   blue = (tint >> IM_COL32_B_SHIFT) & 255;
         for (int i = 0; i < 18; ++i) {
             const float t = (i + 1.f) / 18.f;
-            const ImVec2 a = rimPoint(x, y, w, h, radius, head - trail + i * trail / 18.f);
-            const ImVec2 b = rimPoint(x, y, w, h, radius, head - trail + (i + 1.f) * trail / 18.f);
+            const ImVec2 a = rimPoint(x, y, w, h, r, head - trail + i * trail / 18.f);
+            const ImVec2 b = rimPoint(x, y, w, h, r, head - trail + (i + 1.f) * trail / 18.f);
             const float intensity = t * t;
             c.line(a.x, a.y, b.x, b.y, IM_COL32(red, green, blue, (int)(24 * intensity)), 3.5f);
             c.line(a.x, a.y, b.x, b.y, IM_COL32(red, green, blue, (int)(210 * intensity)), .9f);
@@ -1679,7 +1766,7 @@ namespace CyberMenu {
      
      
     static void headerSweep(const Canvas& c, float age) {
-        if (age < 0.f || age >= .17f)
+        if (!c.dl || age < 0.f || age >= .17f)
             return;
         const float t = ImClamp(age / .20f, 0.f, 1.f);
         const float progress = 1.f - (1.f - t) * (1.f - t) * (1.f - t);
@@ -1704,6 +1791,7 @@ namespace CyberMenu {
      
     static void homeText(const Canvas& c, float x, float y, const char* text, float nominalSize, ImU32 color,
                          float maxWidth = 0.f, float visibleCap = 0.f, bool centered = false) {
+        if (!c.dl || !text) return;
         if (MenuLocale::native(MenuLocale::tr(text))) {
             const float fs = (visibleCap > 0.f ? visibleCap / .76f : nominalSize) * c.scale;
             ImVec2 position = c.p(x, y);
@@ -1713,7 +1801,8 @@ namespace CyberMenu {
             MenuLocale::draw(c.dl, text, position, fs, color, room, MenuLocale::rtl() && !centered);
             return;
         }
-        ImFont* font = cyberMenuFont ? cyberMenuFont : ImGui::GetFont();
+        ImFont* font = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
+        if (!font) return;
         const ImFontGlyph* capital = font->FindGlyphNoFallback('H');
         if (!capital || capital->Y1 <= capital->Y0) {
             c.text(x, y, text, nominalSize, color, maxWidth);
@@ -1723,7 +1812,7 @@ namespace CyberMenu {
         const float ratio = cap * c.scale / (capital->Y1 - capital->Y0);
         const float fontSize = font->FontSize * ratio;
         const float naturalWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0, text).x;
-        const float horizontal = maxWidth > 0 && naturalWidth > 0
+        const float horizontal = (maxWidth > 0 && naturalWidth > 0)
                                      ? ImMin(1.f, maxWidth * c.scale * c.stretchX / naturalWidth)
                                      : 1.f;
         ImVec2 origin = c.p(x, y);
@@ -1741,6 +1830,7 @@ namespace CyberMenu {
      
      
     static void homePanel(const Canvas& c, float x, float y, float w, float h) {
+        if (!c.dl) return;
         const float r = 4.5f;
         c.rect(x, y, w, h, IM_COL32(10, 8, 12, 255), r);
         c.dl->AddRectFilledMultiColor(c.p(x + 3, y + 3), c.p(x + w - 3, y + h - 3), IM_COL32(18, 8, 13, 255),
@@ -1777,6 +1867,7 @@ namespace CyberMenu {
     }
 
     static void homeAction(const Canvas& c, float x, float y, float w, float h) {
+        if (!c.dl) return;
         const float r = 3.f;
         c.rect(x, y, w, h, IM_COL32(26, 8, 14, 255), r);
         c.dl->AddRectFilledMultiColor(c.p(x + 2, y + 2), c.p(x + w - 2, y + h - 2), IM_COL32(43, 9, 17, 255),
@@ -1796,6 +1887,7 @@ namespace CyberMenu {
 
     static void statusTile(const Canvas& c, float x, float y, float w, const char* title, const char* value,
                            ImU32 accent, int glyph) {
+        if (!c.dl) return;
         const bool status = glyph < 0, active = accent == Green;
         const float r = 4.f;
         const ImU32 rim = status ? IM_COL32(58, 164, 100, 225) : IM_COL32(17, 43, 59, 220);
@@ -1837,13 +1929,15 @@ namespace CyberMenu {
     static void openChannel() {
         dispatch_async(dispatch_get_main_queue(), ^{
             NSURL* url = [NSURL URLWithString:@"https://t.me/hmoodhack"];
-            [[UIApplication sharedApplication] openURL:url options:@{} completionHandler:nil];
+            UIApplication* app = [UIApplication sharedApplication];
+            if (url && app) {
+                [app openURL:url options:@{} completionHandler:nil];
+            }
         });
     }
 
     static void home(const Canvas& canvas) {
-         
-         
+        if (!canvas.dl) return;
         Canvas c = canvas;
         c.origin = canvas.p(261, 158);
         c.scale = canvas.scale * (419.f / 373.f);
@@ -1851,7 +1945,7 @@ namespace CyberMenu {
         c.stretchY = 1.f;
         const Stats& st = stats();
         char fps[32];
-        snprintf(fps, sizeof(fps), "%.0f FPS", st.fps);
+        snprintf(fps, sizeof(fps), "%.0f FPS", std::isfinite(st.fps) ? st.fps : 0.f);
         homePanel(c, 12, 15, 328, 219);
         homePanel(c, 355, 15, 240, 219);
          
@@ -1926,16 +2020,16 @@ namespace CyberMenu {
         center(304, 319, "--", 10.5f, HomeCyan);
         center(304, 342, st.date.c_str(), 10.5f, Muted);
         char battery[24];
-        if (st.battery >= 0)
+        if (std::isfinite(st.battery) && st.battery >= 0)
             snprintf(battery, sizeof(battery), "%.0f%%", st.battery * 100);
         else
             snprintf(battery, sizeof(battery), "--");
-        const float charge = ImClamp(st.battery, 0.f, 1.f);
+        const float charge = ImClamp(std::isfinite(st.battery) ? st.battery : 0.f, 0.f, 1.f);
         const ImU32 batteryColor = charge <= .2f ? Red : charge <= .4f ? IM_COL32(200, 177, 72, 255) : Green;
         c.dl->AddRect(c.p(419, 273), c.p(443, 283), IM_COL32(132, 138, 141, 255), 2 * c.scale, 0,
                       1.1f * c.scale);
         c.rect(443, 276, 2, 4, IM_COL32(132, 138, 141, 255), .5f);
-        if (st.battery >= 0)
+        if (std::isfinite(st.battery) && st.battery >= 0)
             for (int i = 0; i < 5; ++i) {
                 const float portion = ImClamp(charge * 5 - i, 0.f, 1.f);
                 if (portion > 0)
@@ -1944,7 +2038,7 @@ namespace CyberMenu {
         homeText(c, 450, 271, battery, 11, Green, 51);
         homeText(c, 507, 271, fps, 11.5f, HomeCyan, 78);
         char ram[40];
-        if (st.freeGB >= 0)
+        if (std::isfinite(st.freeGB) && st.freeGB >= 0)
             snprintf(ram, sizeof(ram), "%s: %.2f GB", MenuLocale::tr("RAM"), st.freeGB);
         else
             snprintf(ram, sizeof(ram), "%s: --", MenuLocale::tr("RAM"));
@@ -1952,7 +2046,8 @@ namespace CyberMenu {
         c.rect(421, 335, 156, 8, IM_COL32(9, 28, 36, 255), 2);
         c.dl->AddRect(c.p(421, 335), c.p(577, 343), IM_COL32(15, 37, 45, 155), 2 * c.scale, 0, .6f * c.scale);
         const float freeFraction =
-            st.totalGB > 0 && st.freeGB >= 0 ? ImClamp(st.freeGB / st.totalGB, 0.f, 1.f) : 0.f;
+            (std::isfinite(st.totalGB) && st.totalGB > 0 && std::isfinite(st.freeGB) && st.freeGB >= 0)
+                ? ImClamp(st.freeGB / st.totalGB, 0.f, 1.f) : 0.f;
         const float fill = 156 * freeFraction;
         if (fill > 0) {
             c.rect(421, 335, fill, 8, HomeCyan, 2);
@@ -1965,6 +2060,7 @@ namespace CyberMenu {
 
 
     static void visual(const Canvas& c) {
+        if (!c.dl) return;
         panel(c, 279, 164, 689, 38);
         icon(c, Shield, 290, 175, 20);
         c.text(324, 173, "ESP Style", 20);
@@ -2078,6 +2174,7 @@ namespace CyberMenu {
     }
 
     static void aim(const Canvas& c) {
+        if (!c.dl) return;
         heading(c, "AIM SETTINGS", 287, 164, 289);
         heading(c, "AIM CONTROL", 603, 164, 365, List);
         if (hit(c, "##aim_extra", 287, 164, 289, 35, true,
@@ -2185,6 +2282,7 @@ namespace CyberMenu {
 // HMOOD__TG@i_8_f
 
     static void memory(const Canvas& c) {
+        if (!c.dl) return;
         static bool absent = false;
         struct Row {
             const char* label;
@@ -2269,6 +2367,7 @@ namespace CyberMenu {
 
 
     static void settings(const Canvas& c) {
+        if (!c.dl) return;
         const Stats& st = stats();
         panel(c, 278, 168, 329, 187);
         panel(c, 626, 168, 350, 187);
@@ -2293,15 +2392,21 @@ namespace CyberMenu {
         icon(c, Gauge, 295, 389, 19, Cyan);
         c.text(325, 387, "RAM BOOSTER", 18, Cyan, 265);
         char app[40], freeMem[40];
-        snprintf(app, sizeof(app), "%.0f MB", st.appMB);
-        snprintf(freeMem, sizeof(freeMem), "%.1f GB", st.freeGB);
+        if (std::isfinite(st.appMB) && st.appMB >= 0)
+            snprintf(app, sizeof(app), "%.0f MB", st.appMB);
+        else
+            snprintf(app, sizeof(app), "--");
+        if (std::isfinite(st.freeGB) && st.freeGB >= 0)
+            snprintf(freeMem, sizeof(freeMem), "%.1f GB", st.freeGB);
+        else
+            snprintf(freeMem, sizeof(freeMem), "--");
         c.text(295, 426, "App", 17, White, 102);
         c.text(409, 426, app, 17, White);
         c.text(295, 457, "Free", 17, White, 102);
         c.text(409, 457, freeMem, 17, White);
         panel(c, 294, 489, 135, 39);
         char fps[32];
-        snprintf(fps, sizeof(fps), "%.0f FPS", st.fps);
+        snprintf(fps, sizeof(fps), "%.0f FPS", std::isfinite(st.fps) ? st.fps : 0.f);
         c.text(315, 500, fps, 17, White, 105);
         panel(c, 440, 489, 151, 39);
         icon(c, 7, 452, 499, 18);
@@ -2323,13 +2428,14 @@ namespace CyberMenu {
         }
         panel(c, 644, 473, 313, 40);
         icon(c, Globe, 656, 484, 18);
+        const int curLang = ImClamp(GetMenuLanguage(), 0, 6);
         const std::string languageLabel = std::string(MenuLocale::tr("Language")) + ": " +
-                                          MenuLocale::languageNames[GetMenuLanguage()];
+                                          MenuLocale::languageNames[curLang];
         c.text(686, 484, languageLabel.c_str(), 18, White, 260);
         if (hit(c, "##language_select", 644, 473, 313, 40)) {
             static const int order[] = {0, 4, 5, 2, 3, 1, 6};
             int position = 0;
-            for (int i = 0; i < 7; ++i) if (order[i] == GetMenuLanguage()) position = i;
+            for (int i = 0; i < 7; ++i) if (order[i] == curLang) position = i;
             const int next = order[(position + 1) % 7];
             SetMenuLanguage(next);
             configManager::putInteger(config, "SYSTEM", "LANGUAGE", next);
@@ -2364,6 +2470,7 @@ namespace CyberMenu {
 
 
     static void render() {
+        if (!ImGui::GetCurrentContext()) return;
         static PageMotion motion;
         if (!MenDeal) {
             motion.shown = false;
@@ -2374,7 +2481,8 @@ namespace CyberMenu {
         if (io.DisplaySize.x < 1 || io.DisplaySize.y < 1)
             return;
          
-        ImGui::PushFont(cyberMenuFont ? cyberMenuFont : ImGui::GetFont());
+        ImFont* activeFont = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
+        if (activeFont) ImGui::PushFont(activeFont);
         const float scale =
             ImMin(ImMin(io.DisplaySize.x * .98f / 1024.f, io.DisplaySize.y * .98f / 676.f), 1.20f);
         ImVec2 size(1024 * scale, 676 * scale);
@@ -2393,50 +2501,53 @@ namespace CyberMenu {
         ImGui::PopStyleColor();
         ImGui::PopStyleVar(3);
         if (visible) {
-            Canvas c{ImGui::GetWindowDrawList(), ImGui::GetWindowPos(), scale};
-            ImGui::SetWindowFontScale(ImClamp(scale * 1.5f, .7f, 1.5f));
-            static int page = 0;
-            frame(c);
-            navigation(c, page);
-            if (closeButton(c))
-                MenDeal = false;
-            motion.update(page);
-            headerSweep(c, motion.age);
-            Canvas pageCanvas = c;
-            pageCanvas.origin.x += motion.offset() * scale;
-            pageCanvas.switchReveal = motion.switches();
-            pageCanvas.animationTime = motion.lastFrame;
-            Canvas content = pageCanvas;
-            if (highQualityFrame().texture) {
-                content.stretchX = .954f;
-                content.origin.x += 253.f * (1.f - content.stretchX) * scale;
-                content.stretchY = .98f;
-                content.origin.y += 164.f * (1.f - content.stretchY) * scale;
+            ImDrawList* drawList = ImGui::GetWindowDrawList();
+            if (drawList) {
+                Canvas c{drawList, ImGui::GetWindowPos(), scale};
+                ImGui::SetWindowFontScale(ImClamp(scale * 1.5f, .7f, 1.5f));
+                static int page = 0;
+                frame(c);
+                navigation(c, page);
+                if (closeButton(c))
+                    MenDeal = false;
+                motion.update(page);
+                headerSweep(c, motion.age);
+                Canvas pageCanvas = c;
+                pageCanvas.origin.x += motion.offset() * scale;
+                pageCanvas.switchReveal = motion.switches();
+                pageCanvas.animationTime = motion.lastFrame;
+                Canvas content = pageCanvas;
+                if (highQualityFrame().texture) {
+                    content.stretchX = .954f;
+                    content.origin.x += 253.f * (1.f - content.stretchX) * scale;
+                    content.stretchY = .98f;
+                    content.origin.y += 164.f * (1.f - content.stretchY) * scale;
+                }
+                const int firstContentVertex = c.dl->VtxBuffer.Size;
+                switch (page) {
+                case 0:
+                    home(pageCanvas);
+                    break;
+                case 1:
+                    visual(content);
+                    break;
+                case 2:
+                    aim(content);
+                    break;
+                case 3:
+                    memory(content);
+                    break;
+                default:
+                    settings(content);
+                    break;
+                }
+                fadeContent(c.dl, firstContentVertex, motion.opacity());
             }
-            const int firstContentVertex = c.dl->VtxBuffer.Size;
-            switch (page) {
-            case 0:
-                home(pageCanvas);
-                break;
-            case 1:
-                visual(content);
-                break;
-            case 2:
-                aim(content);
-                break;
-            case 3:
-                memory(content);
-                break;
-            default:
-                settings(content);
-                break;
-            }
-            fadeContent(c.dl, firstContentVertex, motion.opacity());
             if (!MenDeal)
                 motion.shown = false;
         }
         ImGui::End();
-        ImGui::PopFont();
+        if (activeFont) ImGui::PopFont();
         renderNotices();
     }
 }  
@@ -2445,8 +2556,9 @@ namespace CyberMenu {
 
 
 void DrawMenuHudBadge(ImDrawList* draw, ImVec2 center, float diameter) {
+    if (!draw) return;
     auto& badge = CyberMenu::artwork(2);
-    if (!badge.texture || diameter <= 0.f) return;
+    if (!badge.texture || diameter <= 0.f || !std::isfinite(diameter)) return;
     const float radius = diameter * .5f;
     draw->AddImage((__bridge ImTextureID)badge.texture,
                    ImVec2(center.x - radius, center.y - radius),
@@ -2455,14 +2567,23 @@ void DrawMenuHudBadge(ImDrawList* draw, ImVec2 center, float diameter) {
 
 // HMOOD__TG@i_8_f
 void RenderMenu() {
+    if (!ImGui::GetCurrentContext()) return;
     MenuLocale::beginFrame();
-    CGFloat x =
-        (([UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.width) - 360) / 2;
-    CGFloat y =
-        (([UIApplication sharedApplication].windows[0].rootViewController.view.frame.size.height) - 360) / 2;
+
+    NSArray<UIWindow*>* windows = [UIApplication sharedApplication].windows;
+    if (windows && windows.count > 0) {
+        UIWindow* firstWin = windows[0];
+        UIView* rootView = firstWin.rootViewController.view;
+        if (rootView) {
+            CGFloat x = (rootView.frame.size.width - 360) / 2;
+            CGFloat y = (rootView.frame.size.height - 360) / 2;
+            (void)x;
+            (void)y;
+        }
+    }
 
     ImGuiIO& Io = ImGui::GetIO();
-    ImVec2 scr = ImGui::GetIO().DisplaySize;
+    ImVec2 scr = Io.DisplaySize;
     ImVec2 winSz = ImVec2(635, 300);
 
     ImGui::SetNextWindowPos(ImVec2(scr.x * 0.5f - winSz.x * 0.5f, scr.y * 0.5f - winSz.y * 0.5f),
