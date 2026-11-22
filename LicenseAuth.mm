@@ -5,7 +5,7 @@ bool g_DarkosLicenseVerified = false;
 
 namespace {
     // Öz backend.php ünvanını buraya yaz (HTTPS olmalıdır)
-    static NSString *const kDarkosBackendURL = @"https://YOUR-DOMAIN.COM/backend.php";
+    static NSString *const kDarkosBackendURL = @"https://darkos-yr3o.onrender.com/backend.php";
     static NSString *const kSavedKeyDefaults = @"darkos_saved_license_key";
     static NSString *const kDeviceIdDefaults = @"darkos_ios_device_id";
 
