@@ -19,8 +19,10 @@ using kaddr = uintptr_t;
 
 @class HeeNoScreenShotView;
 @class metalbiew;
+namespace SDK {
 class ASTExtraPlayerController;
 class ASTExtraPlayerCharacter;
+}
 struct ImFont;
 typedef unsigned int ImU32;
 struct ImColor;
@@ -72,9 +74,9 @@ bool hideNameKillMsg = false;
 
 float strokeIntensity = 1.0f;
 
-ASTExtraPlayerController* g_LocalController = nullptr;
-ASTExtraPlayerController* localPlayerController = nullptr;
-ASTExtraPlayerCharacter* localPlayer = nullptr;
+SDK::ASTExtraPlayerController* g_LocalController = nullptr;
+SDK::ASTExtraPlayerController* localPlayerController = nullptr;
+SDK::ASTExtraPlayerCharacter* localPlayer = nullptr;
 
 ImFont* mainFont = nullptr;
 
@@ -301,6 +303,10 @@ namespace YN {
 }
 
 long l2 = 0xFFFFF;
+
+using namespace std;
+using namespace SDK;
+using namespace ImGui;
 
 static int Radar = 0;
 
