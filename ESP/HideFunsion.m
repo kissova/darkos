@@ -2,7 +2,7 @@
  
 
 #import "HideFunsion.h"
-#import "HeeeNoScreenShotView.h"
+#import "HeeNoScreenShotView.h"
 
 @implementation HideFunsion {
     HeeeNoScreenShotView *_hideesp;
