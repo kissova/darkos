@@ -360,11 +360,13 @@ namespace Variables {
 
             ImGui_ImplMetal_NewFrame(renderPassDescriptor);
             ImGui::NewFrame();
-            if (imgui::ESP || Settings::Aimbot::Tick || Enable) {
+            if (IsLogin && (imgui::ESP || Settings::Aimbot::Tick || Enable)) {
                 Drawesp();
             }
 
-            DrawWorldEsp();
+            if (IsLogin) {
+                DrawWorldEsp();
+            }
             RenderMenu();
 
             ImGui::Render();
@@ -886,7 +888,7 @@ void hk_Broadcast(ASTExtraPlayerController* thiz, FFatalDamageParameter* FatalDa
         return orig_Broadcast(thiz, FatalDamageParameter);
     }
 
-    if (hideNameKillMsg && g_PlayerController->PlayerKey == FatalDamageParameter->CauserKey) {
+    if (IsLogin && hideNameKillMsg && g_PlayerController->PlayerKey == FatalDamageParameter->CauserKey) {
         static uint16_t hideBuf[] = { '?','?','?', 0 };
         struct FStr16 { uint16_t *D; int32_t C; int32_t M; };
         auto tryHide = [](void *fieldPtr) {
@@ -974,13 +976,16 @@ auto VIP_Fov_Based() -> ASTExtraPlayerCharacter* { return GetTargetByCrossDist()
 static void UpdateAutoFire(ASTExtraPlayerCharacter* player, ASTExtraPlayerController* controller) {
     static uintptr_t previousController = 0;
     static bool pressed = false;
-    if (isObjectInvalid(player) || isObjectInvalid(controller)) {
+    if (!IsLogin || isObjectInvalid(player) || isObjectInvalid(controller)) {
+        if (pressed && !isObjectInvalid(controller)) {
+            controller->OnReleaseFire();
+        }
         pressed = false;
         return;
     }
     const uintptr_t identity = (uintptr_t)controller;
     if (previousController != identity) { pressed = false; previousController = identity; }
-    bool fire = IsLogin && Settings::Aimbot::Tick && 自动开火 &&
+    bool fire = Settings::Aimbot::Tick && 自动开火 &&
                 !isObjectInvalid(player->RootComponent) && !player->bDead;
     if (fire) {
         auto* manager = player->WeaponManagerComponent;
@@ -1467,7 +1472,7 @@ void ResetGuestAccount() {
 
 // HMOOD__TG@i_8_f
 static void ApplyMemoryReferenceOptions(ASTExtraPlayerCharacter* player, ASTExtraPlayerController* controller) {
-    if (isObjectInvalid(player) || isObjectInvalid(controller)) return;
+    if (!IsLogin || isObjectInvalid(player) || isObjectInvalid(controller)) return;
     struct Value { float original = 0.f; bool applied = false; };
     struct IntegerValue { int original = 0; bool applied = false; };
     using Key = std::tuple<uintptr_t, int, uintptr_t>;
