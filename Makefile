@@ -13,6 +13,7 @@ $(TWEAK_NAME)_FILES = \
 	Engine.mm \
 	Esp.mm \
 	Menu.mm \
+	AntiCheatBypass.mm \
 	Dumped_Offsets.cpp \
 	HeeNoScreenShotView.m \
 	ESP/PubgLoad.mm \
@@ -28,7 +29,7 @@ $(TWEAK_NAME)_FILES = \
 
 $(TWEAK_NAME)_CFLAGS = -fobjc-arc -w -I. -IESP -IESP/imgui -ISDK
 $(TWEAK_NAME)_CCFLAGS = -std=c++17 -fobjc-arc -w -I. -IESP -IESP/imgui -ISDK
-$(TWEAK_NAME)_LDFLAGS = -Wl,-w
+$(TWEAK_NAME)_LDFLAGS = -Wl,-w -lsubstrate
 $(TWEAK_NAME)_FRAMEWORKS = UIKit Foundation CoreGraphics Metal MetalKit QuartzCore Security
 
 include $(THEOS_MAKE_PATH)/tweak.mk
