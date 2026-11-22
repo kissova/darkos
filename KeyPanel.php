@@ -106,6 +106,17 @@ body{background:#080808}
 .time-value-row input{width:100%;min-width:0}
 .time-value-row span{min-width:64px;font-size:13px;color:var(--text);font-weight:600;text-transform:lowercase}
 
+
+.time-combined-row{display:grid;grid-template-columns:62px minmax(0,1fr) minmax(76px,.72fr);align-items:center;gap:10px;margin-top:14px}
+.time-combined-row label{margin:0!important}
+.time-combined-row select,.time-combined-row input{width:100%;min-width:0}
+.time-combined-row input{text-align:center}
+.overview-welcome{min-height:180px;display:flex;flex-direction:column;justify-content:center}
+.overview-welcome h2{margin:0 0 8px;font-size:22px}
+.overview-welcome p{color:var(--muted);margin:0 0 18px}
+.sidebar{gap:8px}
+@media(max-width:480px){.time-combined-row{grid-template-columns:48px minmax(0,1fr) 82px;gap:7px}}
+
 </style>
 </head>
 <body data-theme="light">
@@ -162,50 +173,24 @@ body{background:#080808}
   <div class="body">
     <aside class="rail"><button title="Dashboard"><svg class="ui-icon"><use href="#i-grid"/></svg></button><button title="Projects"><svg class="ui-icon"><use href="#i-box"/></svg></button><button title="Activity"><svg class="ui-icon"><use href="#i-chart"/></svg></button><button title="Access"><svg class="ui-icon"><use href="#i-lock"/></svg></button></aside>
     <aside class="sidebar">
-      <div class="group-title">Core product</div>
-      <button class="nav active" data-page="overview"><span class="ico"><svg><use href="#i-grid"/></svg></span><span class="nav-label">Overview</span></button>
-      <button class="nav" data-page="sandbox"><span class="ico"><svg><use href="#i-box"/></svg></span><span class="nav-label">Sandbox</span> <span class="count">7 / 12</span></button>
-      <button class="nav" data-page="keys"><span class="ico"><svg><use href="#i-key"/></svg></span><span class="nav-label">API Keys</span> <span class="count">3 / 4</span></button>
-      <button class="nav" data-page="readiness"><span class="ico"><svg><use href="#i-chart"/></svg></span><span class="nav-label">Agent Readiness</span> <span class="count">82%</span></button>
-      <div class="nav-section group-title">Organization</div>
-      <button class="nav" data-page="organizations"><span class="ico"><svg><use href="#i-building"/></svg></span><span class="nav-label">Organizations</span> <span class="count">46 / 50</span></button>
-      <div class="nav-section group-title">Billing</div>
-      <button class="nav" data-page="billing"><span class="ico"><svg><use href="#i-wallet"/></svg></span><span class="nav-label">Billing</span> <span class="count green">$48.20</span></button>
-      <div class="nav-section group-title">Settings</div>
-      <button class="nav" data-page="general"><span class="ico"><svg><use href="#i-settings"/></svg></span><span class="nav-label">General</span></button>
-      <button class="nav" data-page="sessions"><span class="ico"><svg><use href="#i-clock"/></svg></span><span class="nav-label">Sessions</span> <span class="count green">3 / 12</span></button>
-      <button class="nav" data-page="privacy"><span class="ico"><svg><use href="#i-lock"/></svg></span><span class="nav-label">Privacy</span></button>
-      <button class="nav" data-page="archived"><span class="ico"><svg><use href="#i-archive"/></svg></span><span class="nav-label">Archived Agent sessions</span></button>
-      <button class="nav" data-page="deleted"><span class="ico"><svg><use href="#i-trash"/></svg></span><span class="nav-label">Recently Deleted</span></button>
-      <div class="nav-section group-title">Other</div>
-      <button class="nav" data-page="language"><span class="ico"><svg><use href="#i-globe"/></svg></span><span class="nav-label">Language</span></button>
-      <button class="nav" data-page="help"><span class="ico"><svg><use href="#i-help"/></svg></span><span class="nav-label">Get help</span></button>
-      <button class="nav" data-page="learn"><span class="ico"><svg><use href="#i-book"/></svg></span><span class="nav-label">Learn more</span></button>
-      <button class="nav" data-page="feedback"><span class="ico"><svg><use href="#i-message"/></svg></span><span class="nav-label">Feedback</span></button>
-      <button class="nav" data-page="signout" id="signout"><span class="ico" style="color:#d44"><svg><use href="#i-log-out"/></svg></span><span class="nav-label" style="color:#d44">Sign out</span></button>
-      <div class="upgrade"><button onclick="toast('Upgrade options opened')">Upgrade</button><strong>Get 5x More with Pro</strong><br>Keep building without limits</div>
-    </aside>
+ <button class="nav active" data-page="overview" title="Overview" aria-label="Overview"><span class="ico"><svg><use href="#i-grid"/></svg></span></button>
+ <button class="nav" data-page="keys" title="Key Management" aria-label="Key Management"><span class="ico"><svg><use href="#i-key"/></svg></span></button>
+ <button class="nav" data-page="general" title="Settings" aria-label="Settings"><span class="ico"><svg><use href="#i-settings"/></svg></span></button>
+</aside>
     <main class="main"><div class="content">
-      <section class="page active" id="page-overview">
-        <h1 class="page-title">Overview</h1>
-        <div class="cards3">
-          <div class="panel metric"><div class="metric-head"><svg class="ui-icon"><use href="#i-wallet"/></svg> Cost &amp; billing <span>›</span></div><div class="metric-value">$48.20 <span>/ $100.00 (1.2M tokens)</span></div><div class="meter"><i style="width:48%;background:var(--green)"></i></div><div class="metric-foot">Next invoice: Apr 1, 2026 ↗</div></div>
-          <div class="panel metric"><div class="metric-head"><svg class="ui-icon"><use href="#i-box"/></svg> Sandboxes <span>›</span></div><div class="metric-value">3 / 20 active</div><div class="meter"><i style="width:72%;background:var(--yellow)"></i></div><div class="metric-foot">20 slots / $1,200 ↗</div></div>
-          <div class="panel metric"><div class="metric-head"><svg class="ui-icon"><use href="#i-building"/></svg> Organization <span>›</span></div><div class="metric-value">46 / 50 seats (92%)</div><div class="meter"><i style="width:92%;background:var(--red)"></i></div><div class="metric-foot">2 active now · 5 pending ↗</div></div>
-        </div>
-        <div class="panel activity"><div class="panel-head">Activity <div class="month-nav"><button>‹</button>Jan - Jul 2026<button>›</button></div></div><div class="sub">Peak: <b style="color:#222">3.2k tokens (Jan 14)</b> ⓘ</div><div class="heat-wrap"><div class="days"><span>Mon</span><span>Wed</span><span>Fri</span></div><div class="heatmap" id="heatmap"></div></div></div>
-        <div class="two">
-          <div class="panel chart"><div class="chart-title">Additional Tokens <div class="tabs"><span>All</span><span class="selected">7d</span><span>1m</span><span>6m</span><span>1y</span></div></div><div class="sub">Avg 5.42K (23$)</div><svg viewBox="0 0 330 145" preserveAspectRatio="none"><path class="axis" d="M30 8V125H320 M30 95H320 M30 65H320 M30 35H320"/><g fill="#888" font-size="9"><text x="1" y="128">0</text><text x="0" y="98">250k</text><text x="0" y="68">500k</text><text x="0" y="38">750k</text><text x="0" y="11">1.25M</text><text x="35" y="141">Mon</text><text x="90" y="141">Tue</text><text x="145" y="141">Wed</text><text x="200" y="141">Thu</text><text x="255" y="141">Fri</text><text x="300" y="141">Sun</text></g><path class="line" d="M30 124 C65 122 85 116 110 105 S150 77 180 76 S225 70 248 88 S286 83 320 48"/><circle class="dot" cx="180" cy="76" r="2.7"/></svg></div>
-          <div class="panel chart"><div class="chart-title">Usage by Model <div class="tabs"><span>All</span><span class="selected">7d</span><span>1m</span><span>6m</span><span>1y</span></div></div><div class="sub">Avg 5.42K (23$)</div><svg viewBox="0 0 330 145" preserveAspectRatio="none"><path class="axis" d="M28 8V125H320 M28 95H320 M28 65H320 M28 35H320"/><g fill="#888" font-size="9"><text x="0" y="128">0</text><text x="0" y="98">10k</text><text x="0" y="68">20k</text><text x="0" y="38">30k</text><text x="0" y="11">50k</text></g><g><rect class="bar" x="42" y="70" width="22" height="55"/><rect class="bar" x="82" y="40" width="22" height="85"/><rect class="bar" x="122" y="62" width="22" height="63"/><rect class="bar" x="162" y="83" width="22" height="42"/><rect class="bar" x="202" y="94" width="22" height="31"/><rect class="bar" x="242" y="77" width="22" height="48"/><rect class="bar" x="282" y="88" width="22" height="37"/></g><g font-size="15"><circle cx="53" cy="59" r="4" fill="none" stroke="#777"/><rect x="90" y="27" width="9" height="9" rx="2" fill="none" stroke="#777"/><path d="m136 48 5 5-5 5-5-5z" fill="none" stroke="#777"/><path d="M169 70h8m-4-4v8" stroke="#777"/><circle cx="213" cy="83" r="4" fill="none" stroke="#777"/><path d="m250 64 6 6-6 6-6-6z" fill="none" stroke="#777"/><path d="M288 77h9m-9 4h9" stroke="#777"/></g></svg><div class="sub">Claude 3.5: 32.4k tokens (64% of total volume)</div></div>
-        </div>
-        <div class="panel quick"><div class="panel-head">Quick Actions</div><div class="quick-actions"><button onclick="toast('Logs panel opened')"><svg class="ui-icon"><use href="#i-terminal"/></svg> View Logs ›</button><button onclick="toast('Playground opened')"><svg class="ui-icon"><use href="#i-code"/></svg> Open playground ›</button><button onclick="toast('Budget alert settings opened')"><svg class="ui-icon"><use href="#i-bell"/></svg> Set Budget Alert ›</button><button class="primary" onclick="openModal('generatorModal')"><svg class="ui-icon"><use href="#i-plus"/></svg> Create API Key</button></div></div>
-        <div class="integrations">
-          <div class="panel integration"><h3>◉ GitHub</h3><p>Manage your repository access and team sync</p><div class="connect-row"><div>▤ Organization<small>2 installations · 7 repositories connected</small></div><span>›</span></div><div class="connect-row"><div>♙ Personal<small>Access your personal repositories</small></div><button onclick="toast('GitHub connected')">Connect</button></div></div>
-          <div class="panel integration"><h3>◆ GitLab</h3><p>Manage your repository access and team sync</p><div class="connect-row"><div>▤ Organization<small>Sync projects and shared usage</small></div><button onclick="toast('GitLab connected')">Connect</button></div><div class="connect-row"><div>♙ Personal<small>Access your personal projects</small></div><button onclick="toast('GitLab connected')">Connect</button></div></div>
-        </div>
-      </section>
-      <section class="page" id="page-sandbox"><h1 class="page-title">Sandbox</h1><div class="stats"><div class="panel stat"><b>7 / 12</b><small>Sandbox environments</small></div><div class="panel stat"><b>3</b><small>Currently active</small></div><div class="panel stat"><b>9</b><small>Available slots</small></div></div><div class="panel section-panel"><h3>Sandbox environments</h3><div class="toolbar"><input class="field" placeholder="Search sandboxes..."><button class="action" onclick="toast('New sandbox created')">＋ New sandbox</button></div><table class="table"><thead><tr><th>Name</th><th>Status</th><th>Region</th><th>Last active</th><th></th></tr></thead><tbody><tr><td>Development-01</td><td><span class="pill">Active</span></td><td>US East</td><td>2 min ago</td><td>•••</td></tr><tr><td>Testing-02</td><td><span class="pill">Active</span></td><td>EU West</td><td>18 min ago</td><td>•••</td></tr><tr><td>Staging-01</td><td><span class="pill warn">Idle</span></td><td>US West</td><td>Yesterday</td><td>•••</td></tr></tbody></table></div></section>
-      <section class="page" id="page-keys">
+<section class="page active" id="page-overview">
+ <h1 class="page-title">Overview</h1>
+ <div class="panel section-panel overview-welcome">
+  <h2>Control Center</h2>
+  <p>Manage your DARKIOS keys and workspace appearance.</p>
+  <div class="toolbar">
+   <button class="action" onclick="openModal('generatorModal')"><svg class="ui-icon"><use href="#i-plus"/></svg> Generate Key</button>
+   <button class="small-btn" onclick="showPage('keys')">Open Key List</button>
+   <button class="small-btn" onclick="showPage('general')">Settings</button>
+  </div>
+ </div>
+</section>
+<section class="page" id="page-keys">
  <h1 class="page-title">Key Management</h1>
  <div class="stats">
   <div class="panel stat"><b id="keyTotal">0</b><small>Total keys</small></div>
@@ -224,10 +209,7 @@ body{background:#080808}
   <p id="emptyKeys" class="sub">No keys yet. Generate a key or import a TXT file.</p>
  </div>
 </section>
-<section class="page" id="page-readiness"><h1 class="page-title">Agent Readiness</h1><div class="panel section-panel"><h3>Readiness score</h3><div style="font-size:42px;font-weight:650">82<span style="font-size:18px;color:#888">%</span></div><div class="meter"><i style="width:82%;background:var(--green)"></i></div><p>Your workspace is nearly ready. Complete the remaining checks to improve reliability.</p></div><div class="panel section-panel"><h3>Checklist</h3><table class="table"><tbody><tr><td>API key configured</td><td><span class="pill">Complete</span></td></tr><tr><td>Sandbox environment</td><td><span class="pill">Complete</span></td></tr><tr><td>Usage limits</td><td><span class="pill warn">Review</span></td></tr><tr><td>Team access</td><td><span class="pill">Complete</span></td></tr></tbody></table></div></section>
-      <section class="page" id="page-organizations"><h1 class="page-title">Organizations</h1><div class="stats"><div class="panel stat"><b>46 / 50</b><small>Seats used</small></div><div class="panel stat"><b>2</b><small>Active now</small></div><div class="panel stat"><b>5</b><small>Pending invites</small></div></div><div class="panel section-panel"><h3>Members</h3><div class="toolbar"><input class="field" placeholder="Search members..."><button class="action" onclick="toast('Invite form opened')">＋ Invite member</button></div><table class="table"><tbody><tr><td>Alex Morgan</td><td>Owner</td><td><span class="pill">Active</span></td></tr><tr><td>Sam Lee</td><td>Admin</td><td><span class="pill">Active</span></td></tr><tr><td>Jordan Kim</td><td>Member</td><td><span class="pill warn">Pending</span></td></tr></tbody></table></div></section>
-      <section class="page" id="page-billing"><h1 class="page-title">Billing</h1><div class="stats"><div class="panel stat"><b>$48.20</b><small>Current usage</small></div><div class="panel stat"><b>$100.00</b><small>Monthly budget</small></div><div class="panel stat"><b>1.2M</b><small>Tokens used</small></div></div><div class="panel section-panel"><h3>Payment overview</h3><p>Next invoice: April 1, 2026</p><div class="meter"><i style="width:48%;background:var(--green)"></i></div><div class="toolbar"><button class="action" onclick="toast('Billing settings opened')">Manage billing</button><button class="small-btn" onclick="toast('Invoices downloaded')">Download invoices</button></div></div></section>
-      <section class="page" id="page-general"><h1 class="page-title">General Settings</h1><div class="panel section-panel"><h3>Workspace preferences</h3><label>Workspace name</label><input class="field" style="width:100%" value="My Workspace"><label>Default region</label><select class="field" style="width:100%"><option>US East</option><option>EU West</option><option>Asia Pacific</option></select><label>Appearance · 8 themes</label>
+<section class="page" id="page-general"><h1 class="page-title">General Settings</h1><div class="panel section-panel"><h3>Workspace preferences</h3><label>Workspace name</label><input class="field" style="width:100%" value="My Workspace"><label>Default region</label><select class="field" style="width:100%"><option>US East</option><option>EU West</option><option>Asia Pacific</option></select><label>Appearance · 8 themes</label>
 <div class="theme-grid" id="themeGrid">
 <button class="theme-choice selected" data-theme="light"><span class="swatches"><i></i><i></i><i></i></span>Light</button>
 <button class="theme-choice" data-theme="midnight"><span class="swatches"><i></i><i></i><i></i></span>Midnight</button>
@@ -238,30 +220,19 @@ body{background:#080808}
 <button class="theme-choice" data-theme="rose"><span class="swatches"><i></i><i></i><i></i></span>Rose</button>
 <button class="theme-choice" data-theme="sand"><span class="swatches"><i></i><i></i><i></i></span>Sand</button>
 </div><div class="toolbar"><button class="action" onclick="toast('Settings saved')">Save changes</button></div></div></section>
-      <section class="page" id="page-sessions"><h1 class="page-title">Sessions</h1><div class="panel section-panel"><h3>Active sessions · 3 / 12</h3><table class="table"><tbody><tr><td>This device</td><td>iOS · Current session</td><td><span class="pill">Active</span></td></tr><tr><td>MacBook Pro</td><td>Chrome · 2 hours ago</td><td><button class="small-btn" onclick="toast('Session ended')">Revoke</button></td></tr><tr><td>Windows PC</td><td>Edge · Yesterday</td><td><button class="small-btn" onclick="toast('Session ended')">Revoke</button></td></tr></tbody></table></div></section>
-      <section class="page" id="page-privacy"><h1 class="page-title">Privacy</h1><div class="panel section-panel"><h3>Privacy controls</h3><p>Manage how your workspace data is stored and shared.</p><label><input type="checkbox" checked> Allow usage analytics</label><label><input type="checkbox"> Share diagnostics to improve reliability</label><label><input type="checkbox" checked> Require confirmation for external sharing</label><div class="toolbar"><button class="action" onclick="toast('Privacy preferences saved')">Save preferences</button></div></div></section>
-      <section class="page" id="page-archived"><h1 class="page-title">Archived Agent Sessions</h1><div class="panel section-panel"><h3>Archived sessions</h3><p>Sessions you archive will appear here.</p><table class="table"><tbody><tr><td>Research assistant run</td><td>Nov 20, 2026</td><td><button class="small-btn" onclick="toast('Session restored')">Restore</button></td></tr><tr><td>Code review agent</td><td>Nov 18, 2026</td><td><button class="small-btn" onclick="toast('Session restored')">Restore</button></td></tr></tbody></table></div></section>
-      <section class="page" id="page-deleted"><h1 class="page-title">Recently Deleted</h1><div class="panel section-panel"><h3>Recently deleted items</h3><p>Deleted items may be restored for a limited time.</p><table class="table"><tbody><tr><td>Old test session</td><td>Deleted Nov 21, 2026</td><td><button class="small-btn" onclick="toast('Item restored')">Restore</button></td></tr></tbody></table></div></section>
-      <section class="page" id="page-language"><h1 class="page-title">Language</h1><div class="panel section-panel"><h3>Display language</h3><p>Choose the language used throughout the dashboard.</p><select class="field" style="width:100%" id="languageSelect"><option>English</option><option>Türkçe</option><option>Azərbaycan dili</option><option>Русский</option></select><div class="toolbar"><button class="action" onclick="toast('Language preference saved')">Save language</button></div></div></section>
-      <section class="page" id="page-help"><h1 class="page-title">Get Help</h1><div class="panel section-panel"><h3>How can we help?</h3><p>Browse support topics or contact the workspace support team.</p><button class="action" onclick="toast('Support center opened')">Open support center</button></div></section>
-      <section class="page" id="page-learn"><h1 class="page-title">Learn More</h1><div class="panel section-panel"><h3>Resources</h3><p>Explore setup guides, API documentation, and best practices.</p><button class="small-btn" onclick="toast('Documentation opened')">API documentation ↗</button></div></section>
-      <section class="page" id="page-feedback"><h1 class="page-title">Feedback</h1><div class="panel section-panel"><h3>Share your feedback</h3><textarea class="field" style="width:100%;min-height:100px" placeholder="Tell us what you think..."></textarea><div class="toolbar"><button class="action" onclick="toast('Thanks for your feedback!')">Send feedback</button></div></div></section>
-    </div></main>
+</div></main>
   </div>
 </div>
 <div class="overlay" id="generatorModal"><div class="modal">
  <h2>Generate DARKIOS Key</h2>
  <label>Custom Key</label>
  <input class="field" id="customCode" placeholder="Leave empty for automatic key" style="width:100%">
- <div class="time-row">
+ <div class="time-combined-row">
   <label for="durationType">Time</label>
   <select class="field" id="durationType">
    <option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option><option value="hour">Hour</option><option value="minute">Minute</option>
   </select>
- </div>
- <div class="time-value-row">
-  <input class="field" id="durationAmount" type="number" min="1" step="1" value="100" aria-label="Time amount">
-  <span id="durationUnitLabel">Day</span>
+  <input class="field" id="durationAmount" type="number" min="1" step="1" value="100" aria-label="Duration number">
  </div>
  <label>Maximum devices</label>
  <input class="field" id="deviceLimit" type="number" min="1" value="1" style="width:100%">
@@ -282,15 +253,14 @@ body{background:#080808}
 
 
 <script>
+function showPage(name){
+ const navsNow=document.querySelectorAll('.nav[data-page]');
+ navsNow.forEach(n=>n.classList.toggle('active',n.dataset.page===name));
+ document.querySelectorAll('.page').forEach(p=>p.classList.toggle('active',p.id==='page-'+name));
+ const main=document.querySelector('.main');if(main)main.scrollTop=0;
+}
 const navs=document.querySelectorAll('.nav[data-page]');
-navs.forEach(btn=>{btn.title=btn.querySelector('.nav-label')?.textContent || btn.dataset.page;btn.setAttribute('aria-label',btn.title);btn.addEventListener('click',()=>{
-  navs.forEach(n=>n.classList.remove('active'));btn.classList.add('active');
-  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-  const page=document.getElementById('page-'+btn.dataset.page);if(page)page.classList.add('active');
-  document.querySelector('.main').scrollTop=0;
-});});
-const heat=document.getElementById('heatmap');
-for(let i=0;i<130;i++){const d=document.createElement('span');d.className='heat';const v=Math.random();if(v>.83)d.classList.add('l4');else if(v>.68)d.classList.add('l3');else if(v>.48)d.classList.add('l2');else if(v>.3)d.classList.add('l1');heat.appendChild(d)}
+navs.forEach(btn=>{btn.title=btn.querySelector('.nav-label')?.textContent || btn.dataset.page;btn.setAttribute('aria-label',btn.title);btn.addEventListener('click',()=>showPage(btn.dataset.page));});
 function openModal(id){document.getElementById(id).classList.add('show')}
 function closeModal(id){document.getElementById(id).classList.remove('show')}
 function toast(msg){const t=document.getElementById('toast');t.textContent=msg;t.style.display='block';clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display='none',2300)}
@@ -379,16 +349,6 @@ document.querySelectorAll('.theme-choice').forEach(btn=>btn.addEventListener('cl
  document.querySelectorAll('.theme-choice').forEach(b=>b.classList.toggle('selected',b===btn));
 }));
 
-
-const timeSelect=document.getElementById('durationType');
-const timeUnitLabel=document.getElementById('durationUnitLabel');
-function syncTimeUnitLabel(){
- if(!timeSelect||!timeUnitLabel)return;
- const labels={day:'day',week:'week',month:'month',year:'year',hour:'hour',minute:'minute'};
- timeUnitLabel.textContent=labels[timeSelect.value]||'day';
-}
-timeSelect?.addEventListener('change',syncTimeUnitLabel);
-syncTimeUnitLabel();
 
 </script>
 </body>
