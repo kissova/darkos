@@ -11,6 +11,7 @@
 #include <utility>
 #import <Metal/Metal.h>
 #include <string>
+#import "LicenseAuth.h"
 #import "Engine.h"
 #import "mahoa.h"
 #include "Tools.h"
