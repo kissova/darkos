@@ -1169,6 +1169,17 @@ void DrawAimingLine()
         d->AddLine(screenCenter, ImVec2(hs.X, hs.Y), IM_COL32(255, 255, 255, 255), 1.f);
 }
 
+static void DrawMenuHudBadge(ImDrawList* drawList, ImVec2 pos, float scale) {
+    if (!drawList) return;
+    const float s = (scale > 0.f && std::isfinite(scale)) ? scale : 1.f;
+    const float w = 120.0f * (s / 60.0f > 0.2f ? (s / 60.0f) : 1.f);
+    const float h = 24.0f * (s / 60.0f > 0.2f ? (s / 60.0f) : 1.f);
+    const ImVec2 a(pos.x - w * 0.5f, pos.y - h * 0.5f);
+    const ImVec2 b(pos.x + w * 0.5f, pos.y + h * 0.5f);
+    drawList->AddRectFilled(a, b, IM_COL32(15, 20, 30, 200), 6.0f);
+    drawList->AddText(ImVec2(a.x + 12.0f, a.y + 5.0f), IM_COL32(255, 255, 255, 255), "DARKIOS");
+}
+
 // HMOOD__TG@i_8_f
 void Drawesp() {
     ImGuiWindowFlags f = ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
