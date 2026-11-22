@@ -358,12 +358,15 @@ namespace {
         markers.clear();
         if (!IsValidPtr(world) || !IsValidPtr(world->PersistentLevel)) return;
 
-        auto& levelActors = world->PersistentLevel->Actors;
-        if (!IsValidPtr(levelActors.Data) || levelActors.Num <= 0 || levelActors.Num > 8192) return;
+        std::vector<T*> allActors;
+        GetAllActors<T>(allActors);
+        if (allActors.empty()) return;
 
         const float maxSquared = maxDistance * maxDistance * 10000.f;
-        for (int i = 0; i < levelActors.Num; ++i) {
-            AActor* actor = levelActors[i];
+        const size_t scanLimit = std::min<size_t>(allActors.size(), 8192);
+        for (size_t i = 0; i < scanLimit; ++i) {
+            T* typedActor = allActors[i];
+            AActor* actor = static_cast<AActor*>(typedActor);
             if (!IsValidPtr(actor) || !IsValidPtr(actor->RootComponent))
                 continue;
             if (!actor->IsA(T::StaticClass()))
@@ -374,7 +377,7 @@ namespace {
             if (!WorldVectorValid(marker.position) ||
                 WorldDistanceSquared(marker.position, playerPosition) > maxSquared) continue;
             marker.feature = feature;
-            if (!describe(static_cast<T*>(actor), marker)) continue;
+            if (!describe(typedActor, marker)) continue;
             markers.push_back(std::move(marker));
         }
         std::sort(markers.begin(), markers.end(), [&](const WorldMarker& a, const WorldMarker& b) {
@@ -983,7 +986,9 @@ void Draw360Alert(const std::vector<ASTExtraPlayerCharacter*>& enemies)
         if (imgui::HideBot && (p->bIsAI || p->bEnsure)) continue;
         const FVector pPos = p->RootComponent->K2_GetComponentLocation();
         if (!IsFiniteVec(pPos)) continue;
-        const FVector delta = pPos - playerPos;
+        FVector a = pPos;
+        FVector b = playerPos;
+        FVector delta = a - b;
         const float distance = sqrtf(delta.X * delta.X + delta.Y * delta.Y + delta.Z * delta.Z) / 100.f;
         if (!std::isfinite(distance) || distance < .5f || (ESPMaxDistance > 0.f && distance > ESPMaxDistance)) continue;
         FVector bearing = delta; bearing.Z = 0; bearing = NormalizeVector(bearing);
