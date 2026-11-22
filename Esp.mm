@@ -56,6 +56,15 @@ bool WorldToScreenBone(const FVector& WorldLocation, FVector2D* Out);
 
 static ImVec2 espProjectionScale(.5f, .5f);
 
+static ImFont* GetActiveEspFont() {
+    if (mainFont) return mainFont;
+    if (cyberMenuFont) return cyberMenuFont;
+    ImGuiIO& io = ImGui::GetIO();
+    if (io.FontDefault) return io.FontDefault;
+    if (!io.Fonts->Fonts.empty()) return io.Fonts->Fonts[0];
+    return nullptr;
+}
+
 struct Color255 {
     uint8_t r, g, b, a;
 };
@@ -85,7 +94,7 @@ ImU32 TeamID_Color2;
 
 static bool IsValidPtr(const void* ptr) {
     uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
-    return addr >= 0x100000000ULL && addr < 0x2000000000ULL;
+    return addr >= 0x100000000ULL && addr < 0x2000000000ULL && ((addr & (sizeof(void*) - 1ULL)) == 0ULL);
 }
 
 static bool IsFiniteVec(const FVector& p) {
@@ -584,7 +593,7 @@ void DrawWorldEsp() {
     const FVector up{-(cr * sp * cy + sr * sy), cy * sr - cr * sp * sy, cr * cp};
     const ImVec2 size = ImGui::GetIO().DisplaySize;
     const float focal = size.x * .5f / tanf(frame.fov * radians * .5f);
-    ImFont* font = cyberMenuFont ? cyberMenuFont : mainFont;
+    ImFont* font = cyberMenuFont ? cyberMenuFont : GetActiveEspFont();
     if (!font || !std::isfinite(focal)) return;
     ImDrawList* draw = ImGui::GetBackgroundDrawList();
     if (!draw) return;
@@ -615,7 +624,8 @@ void DrawWorldEsp() {
 
 ImVec2 DrawCyberHealthCard(ASTExtraPlayerCharacter* p, ImDrawList* draw, ImVec2 head)
 {
-    if (!IsValidPtr(p) || !draw || !mainFont) return ImVec2(0,0);
+    ImFont* activeFont = GetActiveEspFont();
+    if (!IsValidPtr(p) || !draw || !activeFont) return ImVec2(0,0);
     const float scale = HealthCardScale();
     const float w = 124.f * scale, h = 34.f * scale;
     const float x = head.x - w * .5f, y = head.y - h - 10.f * scale;
@@ -631,7 +641,7 @@ ImVec2 DrawCyberHealthCard(ASTExtraPlayerCharacter* p, ImDrawList* draw, ImVec2 
     const float chipW = 25.f * scale;
     draw->AddRectFilledMultiColor(ImVec2(x + 3 * scale, y + 4 * scale), ImVec2(x + chipW, y + h - 9 * scale),
         IM_COL32(10, 55, 85, 230), IM_COL32(7, 28, 44, 100), IM_COL32(7, 28, 44, 100), IM_COL32(10, 55, 85, 230));
-    ImFont* font = cyberMenuFont ? cyberMenuFont : mainFont;
+    ImFont* font = cyberMenuFont ? cyberMenuFont : activeFont;
     char hp[12]; snprintf(hp, sizeof(hp), "%.0f", amount * 100.f);
     const float hpFont = 10.f * scale;
     const ImVec2 hpSize = font->CalcTextSizeA(hpFont, FLT_MAX, 0.f, hp);
@@ -669,7 +679,8 @@ ImVec2 DrawHealthVnHax(ASTExtraPlayerCharacter* p, ImDrawList* draw)
 
 void DrawPlayerName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 {
-    if (!IsValidPtr(p) || !IsValidPtr(p->RootComponent) || !d || !mainFont)
+    ImFont* font = GetActiveEspFont();
+    if (!IsValidPtr(p) || !IsValidPtr(p->RootComponent) || !d || !font)
         return;
 
     FVector root = p->RootComponent->K2_GetComponentLocation();
@@ -692,7 +703,7 @@ void DrawPlayerName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 
     float nameFontSize = 8.0f;
 
-    ImVec2 nameSize = mainFont->CalcTextSizeA(
+    ImVec2 nameSize = font->CalcTextSizeA(
         nameFontSize,
         FLT_MAX,
         0.0f,
@@ -705,7 +716,7 @@ void DrawPlayerName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 
     if (textBorder)
         DrawEspTextStroke(d,
-            mainFont,
+            font,
             nameFontSize,
             namePos,
             IM_COL32(0, 0, 0, 200),
@@ -713,7 +724,7 @@ void DrawPlayerName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
         );
 
     d->AddText(
-        mainFont,
+        font,
         nameFontSize,
         namePos,
         IM_COL32(255, 255, 255, 255),
@@ -723,7 +734,8 @@ void DrawPlayerName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 
 void DrawTeamID(ASTExtraPlayerCharacter* p, ImDrawList* d, ImVec2 healthPos, bool textBorder)
 {
-    if (!IsValidPtr(p) || !IsValidPtr(p->RootComponent) || !d || !mainFont) return;
+    ImFont* font = GetActiveEspFont();
+    if (!IsValidPtr(p) || !IsValidPtr(p->RootComponent) || !d || !font) return;
 
     FVector root = p->RootComponent->K2_GetComponentLocation();
     if (!IsFiniteVec(root)) return;
@@ -742,8 +754,8 @@ void DrawTeamID(ASTExtraPlayerCharacter* p, ImDrawList* d, ImVec2 healthPos, boo
     float teamFontSize = 10.0f;
     float weaponFontSize = 9.5f;
 
-    ImVec2 teamSize  = mainFont->CalcTextSizeA(teamFontSize,   FLT_MAX, 0.0f, teamStr.c_str());
-    float  weaponH   = mainFont->CalcTextSizeA(weaponFontSize, FLT_MAX, 0.0f, "W").y;
+    ImVec2 teamSize  = font->CalcTextSizeA(teamFontSize,   FLT_MAX, 0.0f, teamStr.c_str());
+    float  weaponH   = font->CalcTextSizeA(weaponFontSize, FLT_MAX, 0.0f, "W").y;
 
     ImVec2 textPos;
     textPos.x = screenHead.X - teamSize.x * 0.5f;
@@ -751,14 +763,15 @@ void DrawTeamID(ASTExtraPlayerCharacter* p, ImDrawList* d, ImVec2 healthPos, boo
     if (imgui::Health) textPos.y -= 24.f * HealthCardScale();
 
     if (textBorder)
-        DrawEspTextStroke(d, mainFont, teamFontSize, textPos, IM_COL32(0,0,0,200), teamStr.c_str());
+        DrawEspTextStroke(d, font, teamFontSize, textPos, IM_COL32(0,0,0,200), teamStr.c_str());
 
-    d->AddText(mainFont, teamFontSize, textPos, IM_COL32(255,255,0,255), teamStr.c_str());
+    d->AddText(font, teamFontSize, textPos, IM_COL32(255,255,0,255), teamStr.c_str());
 }
 
 void DrawWeaponName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 {
-    if (!IsValidPtr(p) || !IsValidPtr(p->RootComponent) || !d || !mainFont)
+    ImFont* font = GetActiveEspFont();
+    if (!IsValidPtr(p) || !IsValidPtr(p->RootComponent) || !d || !font)
         return;
 
     FVector root = p->RootComponent->K2_GetComponentLocation();
@@ -793,7 +806,7 @@ void DrawWeaponName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 
     float weaponFontSize = 9.5f;
 
-    ImVec2 weaponSize = mainFont->CalcTextSizeA(
+    ImVec2 weaponSize = font->CalcTextSizeA(
         weaponFontSize,
         FLT_MAX,
         0.0f,
@@ -807,7 +820,7 @@ void DrawWeaponName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 
     if (textBorder)
         DrawEspTextStroke(d,
-            mainFont,
+            font,
             weaponFontSize,
             textPos,
             IM_COL32(0,0,0,200),
@@ -815,7 +828,7 @@ void DrawWeaponName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
         );
 
     d->AddText(
-        mainFont,
+        font,
         weaponFontSize,
         textPos,
         IM_COL32(255,255,255,255),
@@ -825,7 +838,7 @@ void DrawWeaponName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 
 static void DrawPlayerDistance(ImDrawList* draw, ImVec2 feet, float distance) {
     if (!draw || !std::isfinite(distance) || distance <= .5f) return;
-    ImFont* font = cyberMenuFont ? cyberMenuFont : mainFont;
+    ImFont* font = cyberMenuFont ? cyberMenuFont : GetActiveEspFont();
     if (!font) return;
     const float scale = ImClamp(ImGui::GetIO().DisplaySize.y / 592.f, .55f, 1.4f);
     const float fs = 12.f * scale;
@@ -968,7 +981,8 @@ static void DrawEnemyAimingWarning(bool active) {
 
 void Draw360Alert(const std::vector<ASTExtraPlayerCharacter*>& enemies)
 {
-    if (!IsValidPtr(g_LocalPlayer) || !IsValidPtr(g_LocalPlayer->RootComponent) || !mainFont) return;
+    ImFont* activeFont = GetActiveEspFont();
+    if (!IsValidPtr(g_LocalPlayer) || !IsValidPtr(g_LocalPlayer->RootComponent) || !activeFont) return;
     ImDrawList* draw = ImGui::GetForegroundDrawList();
     if (!draw) return;
     const ImGuiIO& io = ImGui::GetIO();
@@ -980,7 +994,7 @@ void Draw360Alert(const std::vector<ASTExtraPlayerCharacter*>& enemies)
     forward.Z = 0; forward = NormalizeVector(forward);
     const float radius = ImClamp(AlertRadius, 24.f, fmaxf(24.f, fminf(io.DisplaySize.x, io.DisplaySize.y) * .42f));
     const float length = 23.f * scale, half = 9.f * scale;
-    ImFont* font = cyberMenuFont ? cyberMenuFont : mainFont;
+    ImFont* font = cyberMenuFont ? cyberMenuFont : activeFont;
     for (auto* p : enemies) {
         if (!IsValidPtr(p) || p->bDead || !IsValidPtr(p->RootComponent)) continue;
         if (imgui::HideBot && (p->bIsAI || p->bEnsure)) continue;
@@ -1016,7 +1030,7 @@ void Draw360Alert(const std::vector<ASTExtraPlayerCharacter*>& enemies)
 }
 
 static void DrawEnemyCounters(int players, int bots) {
-    ImFont* font = cyberMenuFont ? cyberMenuFont : mainFont;
+    ImFont* font = cyberMenuFont ? cyberMenuFont : GetActiveEspFont();
     if (!font) return;
     const float scale = ImClamp(ImGui::GetIO().DisplaySize.y / 592.f, .55f, 1.4f);
     const float fs = 15.f * scale, height = 30.f * scale, gap = 11.f * scale, top = 64.f * scale;
@@ -1169,10 +1183,11 @@ void Drawesp() {
     if (!ImGui::Begin("ESPOverlay", nullptr, f)) { ImGui::End(); ImGui::PopStyleVar(); return; }
 
     ImDrawList* d = ImGui::GetWindowDrawList();
+    ImFont* activeFont = GetActiveEspFont();
 
     auto lp = g_LocalPlayer;
 
-    if (!IsValidPtr(lp) || !IsValidPtr(lp->RootComponent) || !mainFont || !d) {
+    if (!IsValidPtr(lp) || !IsValidPtr(lp->RootComponent) || !activeFont || !d) {
         ImGui::End(); ImGui::PopStyleVar(); return;
     }
 
@@ -1291,10 +1306,10 @@ void Drawesp() {
                     std::string nameStr = SafePlayerNameToUtf8(p, isBot, "?");
                     if (isBot) nameStr = "\xef\x95\x84";
                     const float nfs = 9.5f;
-                    ImVec2 nsz = mainFont->CalcTextSizeA(nfs, FLT_MAX, 0.0f, nameStr.c_str());
+                    ImVec2 nsz = activeFont->CalcTextSizeA(nfs, FLT_MAX, 0.0f, nameStr.c_str());
                     ImVec2 np(LocationScreen.x - nsz.x * 0.5f, bT - 15.8f);
-                    if (textBorder) DrawEspTextStroke(d, mainFont, nfs, np, IM_COL32(0, 0, 0, 200), nameStr.c_str());
-                    d->AddText(mainFont, nfs, np, IM_COL32(255, 255, 255, 255), nameStr.c_str());
+                    if (textBorder) DrawEspTextStroke(d, activeFont, nfs, np, IM_COL32(0, 0, 0, 200), nameStr.c_str());
+                    d->AddText(activeFont, nfs, np, IM_COL32(255, 255, 255, 255), nameStr.c_str());
                 }
 
                 if (imgui::Weapon) {
@@ -1311,10 +1326,10 @@ void Drawesp() {
                         }
                     }
                     const float wfs = 8.5f;
-                    ImVec2 wsz = mainFont->CalcTextSizeA(wfs, FLT_MAX, 0.0f, wepName.c_str());
+                    ImVec2 wsz = activeFont->CalcTextSizeA(wfs, FLT_MAX, 0.0f, wepName.c_str());
                     ImVec2 wp(LocationScreen.x - wsz.x * 0.5f, bT - 28.0f - (imgui::Health ? 32.f * HealthCardScale() : 0.f));
-                    if (textBorder) DrawEspTextStroke(d, mainFont, wfs, wp, IM_COL32(0, 0, 0, 200), wepName.c_str());
-                    d->AddText(mainFont, wfs, wp, IM_COL32(255, 210, 70, 255), wepName.c_str());
+                    if (textBorder) DrawEspTextStroke(d, activeFont, wfs, wp, IM_COL32(0, 0, 0, 200), wepName.c_str());
+                    d->AddText(activeFont, wfs, wp, IM_COL32(255, 210, 70, 255), wepName.c_str());
                 }
 
                 if (imgui::Line && hs.X > 0.f && hs.Y > 0.f && hs.Y < ImGui::GetIO().DisplaySize.y) {
