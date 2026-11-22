@@ -105,7 +105,8 @@ body{background:#080808}
 .time-value-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:8px}
 .time-value-row input{width:100%;min-width:0}
 .time-value-row span{min-width:64px;font-size:13px;color:var(--text);font-weight:600;text-transform:lowercase}
-\n</style>
+
+</style>
 </head>
 <body data-theme="light">
 
@@ -140,13 +141,13 @@ body{background:#080808}
 
 <div class="login-screen" id="loginScreen">
  <div class="login-left">
-  <form class="login-form" id="loginForm" autocomplete="off">
+  <form class="login-form" id="loginForm" autocomplete="off" onsubmit="doLogin(); return false;">
    <div class="login-logo" aria-hidden="true"></div>
    <label for="loginUser">Username</label>
    <div class="login-input-wrap"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c.8-4 3.4-6 8-6s7.2 2 8 6"/></svg><input id="loginUser" placeholder="Enter username" autocomplete="username" required></div>
    <label for="loginPass">Password</label>
    <div class="login-input-wrap"><svg viewBox="0 0 24 24"><rect x="4" y="10" width="16" height="11" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg><input id="loginPass" type="password" placeholder="Enter password" autocomplete="current-password" required></div>
-   <button class="login-submit" type="submit">Login</button>
+   <button class="login-submit" type="button" onclick="doLogin()">Login</button>
    <div class="login-error" id="loginError" role="alert"></div>
   </form>
  </div>
@@ -348,20 +349,26 @@ document.getElementById('importFile').addEventListener('change',async function()
  }
  saveKeys();this.value='';toast(added+' new keys imported; existing keys kept');
 });
-document.getElementById('loginForm').addEventListener('submit',function(e){
- e.preventDefault();
- const u=document.getElementById('loginUser').value;
- const p=document.getElementById('loginPass').value;
- if(u==='dark'&&p==='wear5555'){
-  document.getElementById('loginScreen').style.display='none';
-  document.querySelector('.app').style.display='flex';
-  document.getElementById('loginError').textContent='';
+function doLogin(){
+ const userInput=document.getElementById('loginUser');
+ const passInput=document.getElementById('loginPass');
+ const error=document.getElementById('loginError');
+ const screen=document.getElementById('loginScreen');
+ const app=document.querySelector('.app');
+ const username=(userInput.value||'').trim();
+ const password=passInput.value||'';
+ if(username==='dark' && password==='wear5555'){
+  error.textContent='';
+  screen.style.display='none';
+  app.style.display='flex';
   renderKeys();
- }else{
-  document.getElementById('loginError').textContent='Incorrect username or password.';
-  document.getElementById('loginPass').value='';
+  return true;
  }
-});
+ error.textContent='Username or password is incorrect.';
+ passInput.value='';
+ passInput.focus();
+ return false;
+}
 document.getElementById('shareBtn').addEventListener('click',()=>toast('Share link copied (demo)'));
 document.getElementById('signout').addEventListener('click',()=>toast('Sign out action (demo)'));
 document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{if(e.target===o)o.classList.remove('show')}));
@@ -382,6 +389,7 @@ function syncTimeUnitLabel(){
 }
 timeSelect?.addEventListener('change',syncTimeUnitLabel);
 syncTimeUnitLabel();
-\n</script>
+
+</script>
 </body>
 </html>
