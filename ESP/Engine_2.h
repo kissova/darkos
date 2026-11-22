@@ -12,6 +12,7 @@
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 #import <mach-o/dyld.h>
+#include "imgui/imgui.h"
 
 #ifndef kaddr
 using kaddr = uintptr_t;
@@ -23,9 +24,6 @@ namespace SDK {
 class ASTExtraPlayerController;
 class ASTExtraPlayerCharacter;
 }
-struct ImFont;
-typedef unsigned int ImU32;
-struct ImColor;
 
 #ifndef HMOOD_METALBIEW_IMPLEMENTATION
 #error "metalbiew_private.h must only be included by metalbiew.mm"
@@ -82,11 +80,10 @@ ImFont* mainFont = nullptr;
 
 float globalHpAlphaF = 1.00f;
 
-#ifndef IM_COL32
-#define IM_COL32(R, G, B, A) (((ImU32)(A) << 24) | ((ImU32)(B) << 16) | ((ImU32)(G) << 8) | ((ImU32)(R)))
-#endif
-
 ImU32 COLOR_Distance = IM_COL32(255, 255, 255, 255);
+
+ImColor borderColor = ImColor(0, 255, 0, 255);
+ImColor bgColor = ImColor(0, 0, 0, 80);
 
 bool ifismembotenable = false;
 
