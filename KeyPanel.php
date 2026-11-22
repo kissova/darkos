@@ -101,7 +101,11 @@ body{background:#080808}
 #generatorModal .sub{line-height:1.45}
 @media(max-width:480px){.time-row{grid-template-columns:90px 1fr}}
 
-</style>
+
+.time-value-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:12px;margin-top:8px}
+.time-value-row input{width:100%;min-width:0}
+.time-value-row span{min-width:64px;font-size:13px;color:var(--text);font-weight:600;text-transform:lowercase}
+\n</style>
 </head>
 <body data-theme="light">
 
@@ -254,8 +258,10 @@ body{background:#080808}
    <option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option><option value="hour">Hour</option><option value="minute">Minute</option>
   </select>
  </div>
- <label>Amount</label>
- <input class="field" id="durationAmount" type="number" min="1" value="1" style="width:100%">
+ <div class="time-value-row">
+  <input class="field" id="durationAmount" type="number" min="1" step="1" value="100" aria-label="Time amount">
+  <span id="durationUnitLabel">Day</span>
+ </div>
  <label>Maximum devices</label>
  <input class="field" id="deviceLimit" type="number" min="1" value="1" style="width:100%">
  <p class="sub">Custom Key daxil edilərsə, nəticə həmin mətn olacaq. Boş saxlanarsa DARKIOS formatı yaradılacaq.</p>
@@ -366,6 +372,16 @@ document.querySelectorAll('.theme-choice').forEach(btn=>btn.addEventListener('cl
  document.querySelectorAll('.theme-choice').forEach(b=>b.classList.toggle('selected',b===btn));
 }));
 
-</script>
+
+const timeSelect=document.getElementById('durationType');
+const timeUnitLabel=document.getElementById('durationUnitLabel');
+function syncTimeUnitLabel(){
+ if(!timeSelect||!timeUnitLabel)return;
+ const labels={day:'day',week:'week',month:'month',year:'year',hour:'hour',minute:'minute'};
+ timeUnitLabel.textContent=labels[timeSelect.value]||'day';
+}
+timeSelect?.addEventListener('change',syncTimeUnitLabel);
+syncTimeUnitLabel();
+\n</script>
 </body>
 </html>
