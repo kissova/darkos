@@ -13,8 +13,7 @@
 extern "C" int ptrace(int request, pid_t pid, caddr_t addr, int data);
 
 namespace {
-    // Öz .dylib faylının adını buraya yaz (məsələn: "inoy.dylib" və ya "DARKIOS.dylib")
-    constexpr const char* kHiddenDylibName = "inoy.dylib";
+    constexpr const char* kHiddenDylibName = "darkos.dylib";
     constexpr const char* kDecoySystemPath = "/usr/lib/system/libsystem_kernel.dylib";
 
     std::atomic<bool> g_BypassInitialized{false};
@@ -114,7 +113,7 @@ static pid_t my_getppid(void) {
 }
 
 __attribute__((constructor))
-static void project_bypass_init() {
+static void darkos_bypass_init() {
     if (g_BypassInitialized.exchange(true)) {
         return;
     }
