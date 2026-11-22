@@ -14,7 +14,8 @@ namespace Offsets {
 	constexpr uintptr_t GNames = 0x901BED0;
 	constexpr uintptr_t GUObjectArray = 0xF9AE670;
 
-	// ── Dumped UObject Properties & Offsets (100    constexpr auto Actor_RootComponent = 0x208; // Actor
+	// ── Dumped UObject Properties & Offsets (250/251) ──
+    constexpr auto Actor_RootComponent = 0x208; // Actor
     constexpr auto Actor_Children = 0x1f8; // Actor
     constexpr auto Actor_Role = 0x1a8; // Actor
     constexpr auto Actor_Owner = 0xf0; // Actor
