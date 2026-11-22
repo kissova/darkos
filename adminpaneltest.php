@@ -1,6 +1,6 @@
 <?php
 session_start();
-$admin_pass = "WEAR5555.2013DARKHXTE";
+$admin_pass = "WEAR5555.";
 $json_file = "keys.json";
 $backup_file = "keys_backup.json"; // Ehtiyat yaddaş
 
