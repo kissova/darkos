@@ -2,6 +2,28 @@
 #pragma once
 
 #include <atomic>
+#include <chrono>
+#include <cmath>
+#include <cstdint>
+#include <iostream>
+#include <string>
+#include <thread>
+#import <UIKit/UIKit.h>
+#import <Metal/Metal.h>
+#import <MetalKit/MetalKit.h>
+#import <mach-o/dyld.h>
+
+#ifndef kaddr
+using kaddr = uintptr_t;
+#endif
+
+@class HeeNoScreenShotView;
+@class metalbiew;
+class ASTExtraPlayerController;
+class ASTExtraPlayerCharacter;
+struct ImFont;
+typedef unsigned int ImU32;
+struct ImColor;
 
 #ifndef HMOOD_METALBIEW_IMPLEMENTATION
 #error "metalbiew_private.h must only be included by metalbiew.mm"
@@ -17,23 +39,25 @@ static std::atomic<float> aimDisplayWidth{0.f}, aimDisplayHeight{0.f};
 @property(nonatomic, weak) NSTimer* timer;
 @property(nonatomic, assign) NSInteger aimcir;
 @property(nonatomic, assign) NSInteger rpr;
-
 @end
 
 // HMOOD__TG@i_8_f
 static uintptr_t Get_module_base() {
     uint32_t count = _dyld_image_count();
-    for (int i = 0; i < count; i++) {
-        std::string path = (const char*)_dyld_get_image_name(i);
-        if (path.find("ShadowTrackerExtra.app/ShadowTrackerExtra") != path.npos) {
+    for (uint32_t i = 0; i < count; i++) {
+        const char* rawPath = _dyld_get_image_name(i);
+        if (!rawPath) continue;
+        std::string path(rawPath);
+        if (path.find("ShadowTrackerExtra.app/ShadowTrackerExtra") != std::string::npos) {
             return (uintptr_t)_dyld_get_image_vmaddr_slide(i);
         }
     }
     return 0;
 }
+
 // HMOOD__TG@i_8_f
-bool IsValidAddress(kaddr addr) {
-    return addr > 0x100000000 && addr < 0x2000000000;
+static inline bool IsValidAddress(kaddr addr) {
+    return addr > 0x100000000ULL && addr < 0x2000000000ULL;
 }
 
 extern bool aPVQRIF;
@@ -48,20 +72,19 @@ bool hideNameKillMsg = false;
 
 float strokeIntensity = 1.0f;
 
-ASTExtraPlayerController* g_LocalController = 0;
-
-ASTExtraPlayerController* localPlayerController = 0;
-
-ASTExtraPlayerCharacter* localPlayer = 0;
+ASTExtraPlayerController* g_LocalController = nullptr;
+ASTExtraPlayerController* localPlayerController = nullptr;
+ASTExtraPlayerCharacter* localPlayer = nullptr;
 
 ImFont* mainFont = nullptr;
 
 float globalHpAlphaF = 1.00f;
 
-ImU32 COLOR_Distance = IM_COL32(255, 255, 255, 255);
+#ifndef IM_COL32
+#define IM_COL32(R, G, B, A) (((ImU32)(A) << 24) | ((ImU32)(B) << 16) | ((ImU32)(G) << 8) | ((ImU32)(R)))
+#endif
 
-ImColor borderColor = ImColor(0, 255, 0, 255);
-ImColor bgColor = ImColor(0, 0, 0, 80);
+ImU32 COLOR_Distance = IM_COL32(255, 255, 255, 255);
 
 bool ifismembotenable = false;
 
@@ -130,59 +153,53 @@ namespace imgui {
     bool Items = false;
     bool Lootbox = false;
     bool Vehicle = false;
-
     bool Grenade = false;
 }
 
 namespace itemesp {
     inline bool Enable = false;
-
     inline bool Vehicles = true;
-
     inline float MaxDistance = 200.0f;
 }
 
-bool IsEnglish;
+bool IsEnglish = false;
 bool ShowFov = false;
 
-int 玩家, 人机;
+int 玩家 = 0, 人机 = 0;
 
-bool 坐标追;
-
-bool 自动开火;
+bool 坐标追 = false;
+bool 自动开火 = false;
 
 const float offset = 21.0f;
 
-bool 下雨;
+bool 下雨 = false;
+float 巨人 = 0.0f;
 
-float 巨人;
-
-bool 人物变大;
-bool 重置游客;
+bool 人物变大 = false;
+bool 重置游客 = false;
 
 int 打击圈 = 0;
 int CL = 1;
 
-bool 瞄准线;
+bool 瞄准线 = false;
 bool AimBot = false;
 int AimF = 3;
 int value = 120;
 
 int Aim = 0;
 
-float 追踪概率 = 100;
+float 追踪概率 = 100.0f;
 
-bool FixShoot;
+bool FixShoot = false;
 float Cross = 150.f;
 float g_disstance = 150.0f;
 
 bool IgnoreKnocked = false;
-
 bool VisCheck = false;
 bool IgnoreBot = false;
 
-float RadarX = 30;
-float RadarY = 10;
+float RadarX = 30.0f;
+float RadarY = 10.0f;
 bool 对局信息 = true;
 bool IsLogin = true;
 bool Enable = false;
@@ -201,31 +218,27 @@ bool IsFastDrop = false;
 bool IsHitXPL = false;
 bool InstantHit = false;
 
-float carx;
-float cary;
-float carz;
+float carx = 0.0f;
+float cary = 0.0f;
+float carz = 0.0f;
 bool CarFly = false;
 
 bool tudongnhay = false;
 bool chaynhanhv2 = false;
-float tocdoquay;
+float tocdoquay = 0.0f;
 bool isSpinning = false;
 
-float DanceValue;
-
-float DancerValue;
+float DanceValue = 0.0f;
+float DancerValue = 0.0f;
 
 float rainbowSpeed = 0.02f;
 
 bool MaxStep = false;
-
 bool good = false;
-
 bool Blacksky = false;
 
 bool 枪械变大 = false;
 bool HitX = false;
-
 bool ReCo = false;
 
 float magicX = 23.f + 150.f;
@@ -239,12 +252,12 @@ bool textBorder = true;
 
 static bool IsLaunch = false;
 
-bool ResetGuest;
+bool ResetGuest = false;
 int SX = 0;
 
-float Gun_Size = 2.5;
+float Gun_Size = 2.5f;
 
-bool 人物自杀;
+bool 人物自杀 = false;
 bool 据点 = false;
 
 static int currentLanguage = 0;
@@ -261,23 +274,19 @@ float MemoryCrossSpinSpeed = 180.f;
 int WideValue = 100;
 
 bool initialized = false;
+
 // HMOOD__TG@i_8_f
 void InitializeMemoryProtection() {
     if (!initialized) {
-
         initialized = true;
     }
 }
 
-#include <iostream>
-#include <chrono>
-#include <thread>
-#include <cmath>
-
 bool hideHacker = true;
-HeeeNoScreenShotView* hideesp = nullptr;
+HeeNoScreenShotView* hideesp = nullptr;
 
-kaddr module = (unsigned long)Get_module_base();
+kaddr module = (kaddr)Get_module_base();
+
 namespace YN {
     int boxtype = 1;
     int healthbartype = 0;
@@ -293,35 +302,29 @@ namespace YN {
 
 long l2 = 0xFFFFF;
 
-using namespace std;
-using namespace SDK;
-using namespace ImGui;
-
 static int Radar = 0;
 
 bool 下雪特效 = false;
 
 struct sConfig {
     struct sESPMenu {
-        bool Health;
-
-        bool Name;
-        bool Distance;
-        bool TeamID;
-        bool 对局信息;
-        bool Weapon;
-
-        bool Vehicle;
-        bool IgnoreBot;
+        bool Health = false;
+        bool Name = false;
+        bool Distance = false;
+        bool TeamID = false;
+        bool 对局信息 = false;
+        bool Weapon = false;
+        bool Vehicle = false;
+        bool IgnoreBot = false;
     };
-    sESPMenu ESPMenu{false};
+    sESPMenu ESPMenu{};
 };
-sConfig Config{false};
+sConfig Config{};
 
-UISlider* Auto1;
+UISlider* Auto1 = nullptr;
 
 int Interval = 1;
-int counter;
+int counter = 0;
 
 float AimSmooth = 5.0f;
 
@@ -336,21 +339,20 @@ int playersdistancessize = 600;
 bool esp_Outline = true;
 int distance_Radar = 150;
 
-#define SLEEP_TIME 1000LL / 120LL
+#define SLEEP_TIME (1000LL / 120LL)
 #define TORAD(x) ((x) * (M_PI / 180.f))
-#define DefineHook(RET, NAME, ARGS) \          \
-    ARGS;                           
+#define DefineHook(RET, NAME, ARGS) RET NAME ARGS
 
+int screenWidth = 0;
+int screenHeight = 0;
 
-int screenWidth ;
-int screenHeight ;
+char extra[30] = {0};
+float density = -1.0f;
 
-
-char extra[30];
-float density = -1;
-
-
+#ifndef PI
 #define PI 3.14159265358979323846
+#endif
+
+#ifndef __fastcall
 #define __fastcall
-
-
+#endif
