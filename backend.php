@@ -2,15 +2,15 @@
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: POST, GET, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Accept, X-Admin-Pass');
+header('Access-Control-Allow-Headers: Content-Type, Accept');
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(200);
     exit;
 }
 
-$ADMIN_USER = 'dark';
-$ADMIN_PASS = 'wear5555';
+$ADMIN_USER = 'Ayxan';
+$ADMIN_PASS = 'Wear5555';
 $DATA_FILE  = __DIR__ . '/darkos_data.json';
 
 function loadData($file) {
@@ -59,8 +59,10 @@ function getClientIp() {
 }
 
 function unitToSeconds($unit, $amount) {
+    $u = strtolower(trim((string)$unit));
+    if ($u === 'lifetime') return 0;
     $n = max(1, (int)$amount);
-    switch (strtolower($unit)) {
+    switch ($u) {
         case 'minute': case 'min': return $n * 60;
         case 'hour':   case 'h':   return $n * 3600;
         case 'day':    case 'd':   return $n * 86400;
@@ -71,16 +73,31 @@ function unitToSeconds($unit, $amount) {
     }
 }
 
-function unitCode($unit, $amount) {
+function durationTag($unit, $amount) {
+    $u = strtolower(trim((string)$unit));
+    if ($u === 'lifetime') return 'LIFETIME';
     $n = max(1, (int)$amount);
-    $map = ['minute'=>'MIN','hour'=>'H','day'=>'D','week'=>'W','month'=>'M','year'=>'Y'];
-    return $n . ($map[strtolower($unit)] ?? 'D');
+    $map = [
+        'minute' => 'MINUTE',
+        'min'    => 'MINUTE',
+        'hour'   => 'HOUR',
+        'h'      => 'HOUR',
+        'day'    => 'DAY',
+        'd'      => 'DAY',
+        'week'   => 'WEEK',
+        'w'      => 'WEEK',
+        'month'  => 'MONTH',
+        'm'      => 'MONTH',
+        'year'   => 'YEAR',
+        'y'      => 'YEAR'
+    ];
+    return $n . ($map[$u] ?? 'DAY');
 }
 
 function checkAdmin($input, $user, $pass) {
-    $u = $input['admin_user'] ?? ($_SERVER['HTTP_X_ADMIN_USER'] ?? '');
-    $p = $input['admin_pass'] ?? ($_SERVER['HTTP_X_ADMIN_PASS'] ?? '');
-    return ($u === $user && $p === $pass);
+    $u = (string)($input['admin_user'] ?? '');
+    $p = (string)($input['admin_pass'] ?? '');
+    return hash_equals($user, $u) && hash_equals($pass, $p);
 }
 
 $rawBody = file_get_contents('php://input');
@@ -94,7 +111,7 @@ $data = loadData($DATA_FILE);
 $now = time();
 
 // =========================================================================
-// 1. iOS TWEAK LOGIN ENDPOINT (LicenseAuth.mm -> action: "player_login")
+// 1. iOS TWEAK LOGIN ENDPOINT
 // =========================================================================
 if ($action === 'player_login') {
     $keyStr   = trim((string)($input['key'] ?? ''));
@@ -105,7 +122,7 @@ if ($action === 'player_login') {
     $ip       = getClientIp();
 
     if ($keyStr === '' || $deviceId === '') {
-        echo json_encode(['success' => false, 'message' => 'Açar və ya cihaz ID boşdur.', 'remaining_seconds' => 0]);
+        echo json_encode(['success' => false, 'message' => 'Key or device ID is empty.', 'remaining_seconds' => 0]);
         exit;
     }
 
@@ -118,15 +135,14 @@ if ($action === 'player_login') {
     }
 
     if ($foundIndex === -1) {
-        echo json_encode(['success' => false, 'message' => 'Açar tapılmadı.', 'remaining_seconds' => 0]);
+        echo json_encode(['success' => false, 'message' => 'License key not found.', 'remaining_seconds' => 0]);
         exit;
     }
 
     $k = &$data['keys'][$foundIndex];
 
-    // Status yoxlaması
     if (($k['status'] ?? 'Active') === 'Banned') {
-        echo json_encode(['success' => false, 'message' => 'Bu açar bloklanıb (Banned).', 'remaining_seconds' => 0]);
+        echo json_encode(['success' => false, 'message' => 'This license key is banned.', 'remaining_seconds' => 0]);
         exit;
     }
 
@@ -135,32 +151,34 @@ if ($action === 'player_login') {
         if ($pauseUntil > 0 && $now >= $pauseUntil) {
             $k['status'] = 'Active';
             $k['pause_until'] = 0;
-            addAudit($k, 'Müvəqqəti dayandırma müddəti bitdi, açar yenidən aktiv oldu.');
+            addAudit($k, 'Temporary stop expired, key resumed automatically.');
         } else {
-            echo json_encode(['success' => false, 'message' => 'Açar müvəqqəti dayandırılıb.', 'remaining_seconds' => 0]);
+            echo json_encode(['success' => false, 'message' => 'This license key is temporarily stopped.', 'remaining_seconds' => 0]);
             exit;
         }
     }
 
-    // İlk aktivləşmə və ya müddət yoxlaması
-    $durationSec = (int)($k['duration_seconds'] ?? 86400);
-    if (empty($k['expires_at'])) {
-        $k['expires_at'] = $now + $durationSec;
-        addAudit($k, 'Açar ilk dəfə aktivləşdirildi.');
-    }
-
-    $rem = (int)$k['expires_at'] - $now;
-    if ($rem <= 0) {
-        $k['status'] = 'Expired';
-        saveData($DATA_FILE, $data);
-        echo json_encode(['success' => false, 'message' => 'Açarın vaxtı bitib.', 'remaining_seconds' => 0]);
-        exit;
+    $isLifetime = !empty($k['lifetime']) || (($k['duration_label'] ?? '') === 'LIFETIME');
+    if ($isLifetime) {
+        $rem = 999999999;
+    } else {
+        $durationSec = (int)($k['duration_seconds'] ?? 86400);
+        if (empty($k['expires_at'])) {
+            $k['expires_at'] = $now + $durationSec;
+            addAudit($k, 'Key activated for the first time.');
+        }
+        $rem = (int)$k['expires_at'] - $now;
+        if ($rem <= 0) {
+            $k['status'] = 'Expired';
+            saveData($DATA_FILE, $data);
+            echo json_encode(['success' => false, 'message' => 'License key has expired.', 'remaining_seconds' => 0]);
+            exit;
+        }
     }
 
     if (!isset($k['approved_devices']) || !is_array($k['approved_devices'])) $k['approved_devices'] = [];
     if (!isset($k['pending_devices']) || !is_array($k['pending_devices']))   $k['pending_devices'] = [];
 
-    // Artıq təsdiqlənmiş cihazdırmı?
     foreach ($k['approved_devices'] as &$dev) {
         if ($dev['device_id'] === $deviceId) {
             $dev['last_seen'] = date('Y-m-d H:i:s');
@@ -172,7 +190,7 @@ if ($action === 'player_login') {
             saveData($DATA_FILE, $data);
             echo json_encode([
                 'success' => true,
-                'message' => 'Giriş uğurludur',
+                'message' => 'Login successful',
                 'remaining_seconds' => $rem
             ]);
             exit;
@@ -180,7 +198,6 @@ if ($action === 'player_login') {
     }
     unset($dev);
 
-    // Yeni cihazdır: limit yoxla
     $maxDev = max(1, (int)($k['max_devices'] ?? 1));
     if (count($k['approved_devices']) < $maxDev) {
         $k['approved_devices'][] = [
@@ -192,17 +209,16 @@ if ($action === 'player_login') {
             'last_seen' => date('Y-m-d H:i:s'),
             'active'    => true
         ];
-        addAudit($k, "Yeni cihaz qoşuldu: {$deviceId} ({$ip})");
+        addAudit($k, "Device approved & registered: {$deviceId} ({$ip})");
         saveData($DATA_FILE, $data);
         echo json_encode([
             'success' => true,
-            'message' => 'Cihaz qeydə alındı və giriş verildi',
+            'message' => 'Device registered and login successful',
             'remaining_seconds' => $rem
         ]);
         exit;
     }
 
-    // Limit dolub -> Pending siyahısına sal (Default: DENIED)
     $alreadyPending = false;
     foreach ($k['pending_devices'] as &$pDev) {
         if ($pDev['device_id'] === $deviceId) {
@@ -226,26 +242,27 @@ if ($action === 'player_login') {
             'ip'        => $ip,
             'last_seen' => date('Y-m-d H:i:s')
         ];
-        addAudit($k, "Limit dolduğu üçün yeni cihaz təsdiq gözləyir: {$deviceId}");
+        addAudit($k, "Device limit reached; pending approval added: {$deviceId}");
     }
 
     saveData($DATA_FILE, $data);
     echo json_encode([
         'success' => false,
-        'message' => 'Cihaz limiti dolub. Admin təsdiqi gözlənilir.',
+        'message' => 'Device limit reached. Waiting for admin approval.',
         'remaining_seconds' => 0
     ]);
     exit;
 }
 
 // =========================================================================
-// 2. ADMIN PANEL ENDPOINTS (KeyPanel.php)
+// 2. ADMIN LOGIN & PROTECTED ACTIONS (ONLY Ayxan / Wear5555)
 // =========================================================================
 if ($action === 'admin_login') {
     if (checkAdmin($input, $ADMIN_USER, $ADMIN_PASS)) {
         echo json_encode(['success' => true]);
     } else {
-        echo json_encode(['success' => false, 'message' => 'Username or password is incorrect.']);
+        http_response_code(401);
+        echo json_encode(['success' => false, 'message' => 'Invalid username or password.']);
     }
     exit;
 }
@@ -258,8 +275,13 @@ if (!checkAdmin($input, $ADMIN_USER, $ADMIN_PASS)) {
 
 if ($action === 'list_keys') {
     foreach ($data['keys'] as &$k) {
-        if (($k['status'] ?? '') === 'Active' && !empty($k['expires_at']) && $k['expires_at'] <= $now) {
+        $isLife = !empty($k['lifetime']) || (($k['duration_label'] ?? '') === 'LIFETIME');
+        if (!$isLife && ($k['status'] ?? '') === 'Active' && !empty($k['expires_at']) && $k['expires_at'] <= $now) {
             $k['status'] = 'Expired';
+        }
+        if (($k['status'] ?? '') === 'Paused' && !empty($k['pause_until']) && (int)$k['pause_until'] <= $now) {
+            $k['status'] = 'Active';
+            $k['pause_until'] = 0;
         }
     }
     unset($k);
@@ -269,34 +291,36 @@ if ($action === 'list_keys') {
 }
 
 if ($action === 'create_key') {
-    $custom   = trim((string)($input['custom_key'] ?? ''));
-    $unit     = trim((string)($input['unit'] ?? 'day'));
-    $amount   = max(1, (int)($input['amount'] ?? 1));
-    $maxDev   = max(1, (int)($input['max_devices'] ?? 1));
+    $custom = trim((string)($input['custom_key'] ?? ''));
+    $unit   = trim((string)($input['unit'] ?? 'day'));
+    $amount = max(1, (int)($input['amount'] ?? 1));
+    $maxDev = max(1, (int)($input['max_devices'] ?? 1));
 
-    $code = unitCode($unit, $amount);
-    $secs = unitToSeconds($unit, $amount);
+    $isLife = (strtolower($unit) === 'lifetime');
+    $tag    = durationTag($unit, $amount);
+    $secs   = $isLife ? 0 : unitToSeconds($unit, $amount);
 
     if ($custom !== '') {
-        $keyStr = $custom;
-        $durLabel = 'Custom (' . $code . ')';
+        $keyStr   = $custom;
+        $durLabel = $isLife ? 'LIFETIME' : ('Custom (' . $tag . ')');
     } else {
         $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
         $rnd = '';
         for ($i = 0; $i < 12; $i++) $rnd .= $chars[random_int(0, strlen($chars) - 1)];
-        $keyStr = 'DARKIOS-' . $code . '-' . $rnd;
-        $durLabel = $code;
+        $keyStr   = 'DARKIOS-' . $tag . '-' . $rnd;
+        $durLabel = $tag;
     }
 
     foreach ($data['keys'] as $ex) {
         if (strcasecmp($ex['key'], $keyStr) === 0) {
-            echo json_encode(['success' => false, 'message' => 'Bu açar artıq mövcuddur.']);
+            echo json_encode(['success' => false, 'message' => 'Key already exists.']);
             exit;
         }
     }
 
     $newKey = [
         'key'              => $keyStr,
+        'lifetime'         => $isLife,
         'duration_label'   => $durLabel,
         'duration_seconds' => $secs,
         'max_devices'      => $maxDev,
@@ -308,55 +332,80 @@ if ($action === 'create_key') {
         'pending_devices'  => [],
         'audit'            => []
     ];
-    addAudit($newKey, "Açar yaradıldı (Limit: {$maxDev}, Müddət: {$durLabel})");
+    addAudit($newKey, "Key created (Duration: {$durLabel}, Max Devices: {$maxDev})");
     array_unshift($data['keys'], $newKey);
     saveData($DATA_FILE, $data);
     echo json_encode(['success' => true, 'key' => $newKey]);
     exit;
 }
 
-if ($action === 'import_keys') {
-    $lines = $input['keys'] ?? [];
+if ($action === 'import_keys_full') {
+    $entries = $input['entries'] ?? [];
     $added = 0;
-    foreach ($lines as $raw) {
-        $kStr = trim((string)$raw);
+    $updated = 0;
+
+    foreach ($entries as $ent) {
+        if (!is_array($ent)) continue;
+        $kStr = trim((string)($ent['key'] ?? ''));
         if ($kStr === '') continue;
-        $exists = false;
-        foreach ($data['keys'] as $ex) {
-            if (strcasecmp($ex['key'], $kStr) === 0) { $exists = true; break; }
+
+        $isLife   = !empty($ent['lifetime']) || (($ent['duration_label'] ?? '') === 'LIFETIME');
+        $durSec   = max(0, (int)($ent['duration_seconds'] ?? 86400));
+        $durLabel = trim((string)($ent['duration_label'] ?? ($isLife ? 'LIFETIME' : '1DAY')));
+        $maxDev   = max(1, (int)($ent['max_devices'] ?? 1));
+        $status   = in_array($ent['status'] ?? 'Active', ['Active', 'Paused', 'Banned', 'Expired'], true) ? $ent['status'] : 'Active';
+        $pauseUntil = (int)($ent['pause_until'] ?? 0);
+
+        $expAt = null;
+        if (!$isLife) {
+            if (isset($ent['remaining_seconds']) && (int)$ent['remaining_seconds'] > 0) {
+                $expAt = $now + (int)$ent['remaining_seconds'];
+            } elseif (!empty($ent['expires_at']) && (int)$ent['expires_at'] > $now) {
+                $expAt = (int)$ent['expires_at'];
+            }
         }
-        if (!$exists) {
-            $item = [
-                'key' => $kStr,
-                'duration_label' => 'Imported',
-                'duration_seconds' => 86400 * 30,
-                'max_devices' => 1,
-                'created' => date('Y-m-d H:i'),
-                'expires_at' => null,
-                'status' => 'Active',
-                'pause_until' => 0,
-                'approved_devices' => [],
-                'pending_devices' => [],
-                'audit' => []
-            ];
-            addAudit($item, 'TXT faylından import edildi.');
-            $data['keys'][] = $item;
+
+        $record = [
+            'key'              => $kStr,
+            'lifetime'         => $isLife,
+            'duration_label'   => $durLabel,
+            'duration_seconds' => $durSec,
+            'max_devices'      => $maxDev,
+            'created'          => (string)($ent['created'] ?? date('Y-m-d H:i')),
+            'expires_at'       => $expAt,
+            'status'           => $status,
+            'pause_until'      => $pauseUntil,
+            'approved_devices' => is_array($ent['approved_devices'] ?? null) ? $ent['approved_devices'] : [],
+            'pending_devices'  => is_array($ent['pending_devices'] ?? null) ? $ent['pending_devices'] : [],
+            'audit'            => is_array($ent['audit'] ?? null) ? $ent['audit'] : []
+        ];
+        addAudit($record, "Imported from TXT (Status: {$status}, Max Devices: {$maxDev})");
+
+        $found = -1;
+        foreach ($data['keys'] as $i => $ex) {
+            if (strcasecmp($ex['key'], $kStr) === 0) { $found = $i; break; }
+        }
+        if ($found >= 0) {
+            $data['keys'][$found] = $record;
+            $updated++;
+        } else {
+            array_unshift($data['keys'], $record);
             $added++;
         }
     }
+
     saveData($DATA_FILE, $data);
-    echo json_encode(['success' => true, 'added' => $added]);
+    echo json_encode(['success' => true, 'added' => $added, 'updated' => $updated]);
     exit;
 }
 
-// Hədəf açarı tap (qalan əməliyyatlar üçün)
 $targetKey = trim((string)($input['key'] ?? ''));
 $idx = -1;
 foreach ($data['keys'] as $i => $item) {
     if ($item['key'] === $targetKey) { $idx = $i; break; }
 }
 if ($idx === -1) {
-    echo json_encode(['success' => false, 'message' => 'Açar tapılmadı.']);
+    echo json_encode(['success' => false, 'message' => 'Key not found.']);
     exit;
 }
 
@@ -374,48 +423,58 @@ if ($action === 'set_limit') {
     $force    = !empty($input['force']);
     $activeCount = count($k['approved_devices'] ?? []);
     if ($newLimit < $activeCount && !$force) {
-        echo json_encode(['success' => false, 'need_confirm' => true, 'message' => "Hazırda {$activeCount} aktiv cihaz var. Limiti aşağı salmaq artıq cihazları çıxaracaq."]);
+        echo json_encode(['success' => false, 'need_confirm' => true, 'message' => "{$activeCount} active device(s) connected. Lowering limit will remove extra devices. Continue?"]);
         exit;
     }
     if ($newLimit < $activeCount && $force) {
         $k['approved_devices'] = array_slice($k['approved_devices'], 0, $newLimit);
     }
     $k['max_devices'] = $newLimit;
-    addAudit($k, "Maksimum cihaz limiti dəyişdirildi: {$newLimit}");
+    addAudit($k, "Device limit changed to {$newLimit}");
 }
 elseif ($action === 'extend_duration') {
     $unit   = $input['unit'] ?? 'day';
     $amount = max(1, (int)($input['amount'] ?? 1));
-    $addSec = unitToSeconds($unit, $amount);
-    if (!empty($k['expires_at']) && $k['expires_at'] > $now) {
-        $k['expires_at'] += $addSec;
+    if (strtolower($unit) === 'lifetime') {
+        $k['lifetime'] = true;
+        $k['expires_at'] = null;
+        $k['duration_label'] = 'LIFETIME';
+        $k['duration_seconds'] = 0;
+        if (($k['status'] ?? '') === 'Expired') $k['status'] = 'Active';
+        addAudit($k, 'Duration set to LIFETIME');
     } else {
-        $k['duration_seconds'] = (int)($k['duration_seconds'] ?? 0) + $addSec;
-        if (!empty($k['expires_at'])) {
-            $k['expires_at'] = $now + $addSec;
+        $k['lifetime'] = false;
+        $addSec = unitToSeconds($unit, $amount);
+        if (!empty($k['expires_at']) && $k['expires_at'] > $now) {
+            $k['expires_at'] += $addSec;
+        } else {
+            $k['duration_seconds'] = (int)($k['duration_seconds'] ?? 0) + $addSec;
+            if (!empty($k['expires_at'])) {
+                $k['expires_at'] = $now + $addSec;
+            }
         }
+        if (($k['status'] ?? '') === 'Expired') $k['status'] = 'Active';
+        addAudit($k, "Duration extended by +{$amount} " . strtoupper($unit));
     }
-    if (($k['status'] ?? '') === 'Expired') $k['status'] = 'Active';
-    addAudit($k, "Müddət uzadıldı: +{$amount} {$unit}");
 }
 elseif ($action === 'ban_key') {
     $k['status'] = 'Banned';
-    addAudit($k, 'Açar admin tərəfindən BAN edildi.');
+    addAudit($k, 'Key banned by administrator');
 }
 elseif ($action === 'unban_key') {
     $k['status'] = 'Active';
-    addAudit($k, 'Açarın BAN statusu ləğv edildi.');
+    addAudit($k, 'Key unbanned by administrator');
 }
 elseif ($action === 'pause_key') {
     $until = trim((string)($input['pause_until'] ?? ''));
     $k['status'] = 'Paused';
     $k['pause_until'] = $until !== '' ? (int)strtotime($until) : 0;
-    addAudit($k, 'Açar müvəqqəti dayandırıldı (Paused).');
+    addAudit($k, 'Key temporarily stopped (Paused)');
 }
 elseif ($action === 'resume_key') {
     $k['status'] = 'Active';
     $k['pause_until'] = 0;
-    addAudit($k, 'Açar yenidən aktivləşdirildi (Resumed).');
+    addAudit($k, 'Key resumed (Active)');
 }
 elseif ($action === 'approve_device') {
     $devId = trim((string)($input['device_id'] ?? ''));
@@ -425,7 +484,7 @@ elseif ($action === 'approve_device') {
         if ($pd['device_id'] === $devId) { $pIdx = $pi; break; }
     }
     if ($pIdx === -1) {
-        echo json_encode(['success' => false, 'message' => 'Sorğu tapılmadı.']);
+        echo json_encode(['success' => false, 'message' => 'Request not found.']);
         exit;
     }
     $maxDev = max(1, (int)$k['max_devices']);
@@ -433,7 +492,7 @@ elseif ($action === 'approve_device') {
         if ($raiseLimit) {
             $k['max_devices'] = count($k['approved_devices']) + 1;
         } else {
-            echo json_encode(['success' => false, 'need_raise' => true, 'message' => 'Cihaz limiti doludur. Limiti 1 vahid artırıb təsdiqləmək istəyirsiniz?']);
+            echo json_encode(['success' => false, 'need_raise' => true, 'message' => 'Device limit reached. Increase limit by 1 and accept?']);
             exit;
         }
     }
@@ -442,17 +501,17 @@ elseif ($action === 'approve_device') {
     $devObj['last_seen'] = date('Y-m-d H:i:s');
     $k['approved_devices'][] = $devObj;
     array_splice($k['pending_devices'], $pIdx, 1);
-    addAudit($k, "Yeni cihaz təsdiqləndi: {$devId}");
+    addAudit($k, "Approved device: {$devId}");
 }
 elseif ($action === 'decline_device') {
     $devId = trim((string)($input['device_id'] ?? ''));
     $k['pending_devices'] = array_values(array_filter($k['pending_devices'], fn($d) => $d['device_id'] !== $devId));
-    addAudit($k, "Yeni cihaz sorğusu rədd edildi: {$devId}");
+    addAudit($k, "Declined device request: {$devId}");
 }
 elseif ($action === 'reset_devices') {
     $k['approved_devices'] = [];
     $k['pending_devices'] = [];
-    addAudit($k, 'Bütün cihazlar sıfırlandı (Reset Devices).');
+    addAudit($k, 'All approved devices reset');
 }
 
 saveData($DATA_FILE, $data);
