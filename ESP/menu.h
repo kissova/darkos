@@ -17,7 +17,8 @@ int GetMenuLanguage();
 const char* TranslateMenuText(const char* value);
 
 void DrawMenuHudBadge(ImDrawList* draw, ImVec2 center, float diameter);
+
 #ifdef __OBJC__
 @class UIImage;
-UIImage* GetMenuBadgeImage();
+UIImage* GetMenuBadgeImage(void);
 #endif
