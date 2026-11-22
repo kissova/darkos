@@ -2,7 +2,7 @@
 #import "PubgLoad.h"
 #import "Engine.h"
 #import "menu.h"
-#import "HeeeNoScreenShotView.h"
+#import "HeeNoScreenShotView.h"
 #import <QuartzCore/QuartzCore.h>
 #include <math.h>
 #include <sys/sysctl.h>
