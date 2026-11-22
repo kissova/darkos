@@ -63,6 +63,7 @@ float menuIconAlpha = .92f;
 }
 
 - (UIWindow*)getKeyWindow {
+    if (![NSThread isMainThread]) return nil;
     UIApplication* app = UIApplication.sharedApplication;
     if (!app) return nil;
     UIWindow* fallback = nil;
@@ -81,13 +82,18 @@ float menuIconAlpha = .92f;
 }
 
 - (void)attachRenderer {
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(), ^{ [self attachRenderer]; });
+        return;
+    }
     UIWindow* window = [self getKeyWindow];
     if (!window || !window.rootViewController || !window.rootViewController.view) return;
     if (!self.vna) self.vna = [[metalbiew alloc] init];
     UIView* view = self.vna.view;
     if (!view) return;
     CGRect bounds = window.bounds;
-    if (bounds.size.width <= 0.f || bounds.size.height <= 0.f) return;
+    if (bounds.size.width <= 0.f || bounds.size.height <= 0.f ||
+        !isfinite(bounds.size.width) || !isfinite(bounds.size.height)) return;
     view.frame = bounds;
     view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
     if (view.superview != window.rootViewController.view) {
@@ -117,6 +123,10 @@ float menuIconAlpha = .92f;
 }
 
 - (void)refreshMenuIcon {
+    if (![NSThread isMainThread]) {
+        dispatch_async(dispatch_get_main_queue(), ^{ [self refreshMenuIcon]; });
+        return;
+    }
     UIWindow* window = [self getKeyWindow];
     if (!window || !window.windowScene || window.bounds.size.width <= 0.f || window.bounds.size.height <= 0.f) {
         self.floatingWindow.hidden = YES;
@@ -168,8 +178,10 @@ float menuIconAlpha = .92f;
         self.previousWindowSize = floating.bounds.size;
 
         NSUserDefaults* defaults = NSUserDefaults.standardUserDefaults;
-        double rawX = [defaults objectForKey:@"HMOODIconX"] ? [defaults doubleForKey:@"HMOODIconX"] : 0.94;
-        double rawY = [defaults objectForKey:@"HMOODIconY"] ? [defaults doubleForKey:@"HMOODIconY"] : 0.32;
+        id savedX = [defaults objectForKey:@"HMOODIconX"];
+        id savedY = [defaults objectForKey:@"HMOODIconY"];
+        double rawX = [savedX respondsToSelector:@selector(doubleValue)] ? [savedX doubleValue] : 0.94;
+        double rawY = [savedY respondsToSelector:@selector(doubleValue)] ? [savedY doubleValue] : 0.32;
         if (!isfinite(rawX) || rawX < 0.0 || rawX > 1.0) rawX = 0.94;
         if (!isfinite(rawY) || rawY < 0.0 || rawY > 1.0) rawY = 0.32;
         icon.center = CGPointMake((CGFloat)rawX * floating.bounds.size.width, (CGFloat)rawY * floating.bounds.size.height);
