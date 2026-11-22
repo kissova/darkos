@@ -63,6 +63,7 @@ function unitToSeconds($unit, $amount) {
     if ($u === 'lifetime') return 0;
     $n = max(1, (int)$amount);
     switch ($u) {
+        case 'second': case 'sec': case 's': return $n;
         case 'minute': case 'min': return $n * 60;
         case 'hour':   case 'h':   return $n * 3600;
         case 'day':    case 'd':   return $n * 86400;
@@ -78,18 +79,15 @@ function durationTag($unit, $amount) {
     if ($u === 'lifetime') return 'LIFETIME';
     $n = max(1, (int)$amount);
     $map = [
+        'second' => 'SEC',
+        'sec'    => 'SEC',
         'minute' => 'MINUTE',
         'min'    => 'MINUTE',
         'hour'   => 'HOUR',
-        'h'      => 'HOUR',
         'day'    => 'DAY',
-        'd'      => 'DAY',
         'week'   => 'WEEK',
-        'w'      => 'WEEK',
         'month'  => 'MONTH',
-        'm'      => 'MONTH',
-        'year'   => 'YEAR',
-        'y'      => 'YEAR'
+        'year'   => 'YEAR'
     ];
     return $n . ($map[$u] ?? 'DAY');
 }
@@ -98,6 +96,28 @@ function checkAdmin($input, $user, $pass) {
     $u = (string)($input['admin_user'] ?? '');
     $p = (string)($input['admin_pass'] ?? '');
     return hash_equals($user, $u) && hash_equals($pass, $p);
+}
+
+function syncKeyState(&$k, $now) {
+    $isLife = !empty($k['lifetime']) || (($k['duration_label'] ?? '') === 'LIFETIME');
+    $status = $k['status'] ?? 'Active';
+    $activated = !empty($k['activated']);
+
+    if (!isset($k['manual_paused'])) $k['manual_paused'] = ($status === 'Paused');
+    if (!isset($k['bulk_paused']))   $k['bulk_paused']   = false;
+
+    if ($status === 'Paused' && !empty($k['pause_until']) && (int)$k['pause_until'] <= $now) {
+        $k['status'] = 'Active';
+        $k['pause_until'] = 0;
+        $k['manual_paused'] = false;
+        $k['bulk_paused'] = false;
+        addAudit($k, 'Temporary stop expired, key resumed automatically.');
+        $status = 'Active';
+    }
+
+    if (!$isLife && $activated && $status === 'Active' && !empty($k['expires_at']) && (int)$k['expires_at'] <= $now) {
+        $k['status'] = 'Expired';
+    }
 }
 
 $rawBody = file_get_contents('php://input');
@@ -140,32 +160,30 @@ if ($action === 'player_login') {
     }
 
     $k = &$data['keys'][$foundIndex];
+    syncKeyState($k, $now);
 
     if (($k['status'] ?? 'Active') === 'Banned') {
+        saveData($DATA_FILE, $data);
         echo json_encode(['success' => false, 'message' => 'This license key is banned.', 'remaining_seconds' => 0]);
         exit;
     }
 
     if (($k['status'] ?? 'Active') === 'Paused') {
-        $pauseUntil = (int)($k['pause_until'] ?? 0);
-        if ($pauseUntil > 0 && $now >= $pauseUntil) {
-            $k['status'] = 'Active';
-            $k['pause_until'] = 0;
-            addAudit($k, 'Temporary stop expired, key resumed automatically.');
-        } else {
-            echo json_encode(['success' => false, 'message' => 'This license key is temporarily stopped.', 'remaining_seconds' => 0]);
-            exit;
-        }
+        saveData($DATA_FILE, $data);
+        echo json_encode(['success' => false, 'message' => 'This license key is stopped.', 'remaining_seconds' => 0]);
+        exit;
     }
 
     $isLifetime = !empty($k['lifetime']) || (($k['duration_label'] ?? '') === 'LIFETIME');
     if ($isLifetime) {
+        $k['activated'] = true;
         $rem = 999999999;
     } else {
-        $durationSec = (int)($k['duration_seconds'] ?? 86400);
-        if (empty($k['expires_at'])) {
+        $durationSec = max(1, (int)($k['duration_seconds'] ?? 86400));
+        if (empty($k['activated']) || empty($k['expires_at'])) {
+            $k['activated'] = true;
             $k['expires_at'] = $now + $durationSec;
-            addAudit($k, 'Key activated for the first time.');
+            addAudit($k, 'Key activated for the first time; countdown started.');
         }
         $rem = (int)$k['expires_at'] - $now;
         if ($rem <= 0) {
@@ -275,18 +293,58 @@ if (!checkAdmin($input, $ADMIN_USER, $ADMIN_PASS)) {
 
 if ($action === 'list_keys') {
     foreach ($data['keys'] as &$k) {
-        $isLife = !empty($k['lifetime']) || (($k['duration_label'] ?? '') === 'LIFETIME');
-        if (!$isLife && ($k['status'] ?? '') === 'Active' && !empty($k['expires_at']) && $k['expires_at'] <= $now) {
-            $k['status'] = 'Expired';
-        }
-        if (($k['status'] ?? '') === 'Paused' && !empty($k['pause_until']) && (int)$k['pause_until'] <= $now) {
-            $k['status'] = 'Active';
-            $k['pause_until'] = 0;
-        }
+        syncKeyState($k, $now);
     }
     unset($k);
     saveData($DATA_FILE, $data);
     echo json_encode(['success' => true, 'keys' => $data['keys'], 'server_time' => $now]);
+    exit;
+}
+
+if ($action === 'stop_all_keys') {
+    $stoppedCount = 0;
+    foreach ($data['keys'] as &$k) {
+        syncKeyState($k, $now);
+        $st = $k['status'] ?? 'Active';
+        if ($st === 'Banned' || $st === 'Expired') continue;
+        if ($st === 'Active') {
+            $k['status'] = 'Paused';
+            $k['manual_paused'] = false;
+            $k['bulk_paused'] = true;
+            $stoppedCount++;
+            addAudit($k, 'Stopped via Stop All Keys');
+        }
+    }
+    unset($k);
+    saveData($DATA_FILE, $data);
+    echo json_encode(['success' => true, 'stopped' => $stoppedCount]);
+    exit;
+}
+
+if ($action === 'resume_all_keys') {
+    $resumedCount = 0;
+    foreach ($data['keys'] as &$k) {
+        syncKeyState($k, $now);
+        $st = $k['status'] ?? 'Active';
+        $isManualPaused = !empty($k['manual_paused']);
+        $isBulkPaused = !empty($k['bulk_paused']);
+        // Banlanmış veya manuel olarak elle durdurulmuş anahtarlar açılmaz
+        if ($st === 'Banned' || $st === 'Expired' || $isManualPaused) {
+            $k['bulk_paused'] = false;
+            continue;
+        }
+        if ($st === 'Paused' && ($isBulkPaused || !$isManualPaused)) {
+            $k['status'] = 'Active';
+            $k['pause_until'] = 0;
+            $k['bulk_paused'] = false;
+            $k['manual_paused'] = false;
+            $resumedCount++;
+            addAudit($k, 'Resumed via Resume All Keys');
+        }
+    }
+    unset($k);
+    saveData($DATA_FILE, $data);
+    echo json_encode(['success' => true, 'resumed' => $resumedCount]);
     exit;
 }
 
@@ -321,12 +379,15 @@ if ($action === 'create_key') {
     $newKey = [
         'key'              => $keyStr,
         'lifetime'         => $isLife,
+        'activated'        => false,
         'duration_label'   => $durLabel,
         'duration_seconds' => $secs,
         'max_devices'      => $maxDev,
         'created'          => date('Y-m-d H:i'),
         'expires_at'       => null,
         'status'           => 'Active',
+        'manual_paused'    => false,
+        'bulk_paused'      => false,
         'pause_until'      => 0,
         'approved_devices' => [],
         'pending_devices'  => [],
@@ -349,15 +410,18 @@ if ($action === 'import_keys_full') {
         $kStr = trim((string)($ent['key'] ?? ''));
         if ($kStr === '') continue;
 
-        $isLife   = !empty($ent['lifetime']) || (($ent['duration_label'] ?? '') === 'LIFETIME');
-        $durSec   = max(0, (int)($ent['duration_seconds'] ?? 86400));
-        $durLabel = trim((string)($ent['duration_label'] ?? ($isLife ? 'LIFETIME' : '1DAY')));
-        $maxDev   = max(1, (int)($ent['max_devices'] ?? 1));
-        $status   = in_array($ent['status'] ?? 'Active', ['Active', 'Paused', 'Banned', 'Expired'], true) ? $ent['status'] : 'Active';
-        $pauseUntil = (int)($ent['pause_until'] ?? 0);
+        $isLife       = !empty($ent['lifetime']) || (($ent['duration_label'] ?? '') === 'LIFETIME');
+        $durSec       = max(0, (int)($ent['duration_seconds'] ?? 86400));
+        $durLabel     = trim((string)($ent['duration_label'] ?? ($isLife ? 'LIFETIME' : '1DAY')));
+        $maxDev       = max(1, (int)($ent['max_devices'] ?? 1));
+        $status       = in_array($ent['status'] ?? 'Active', ['Active', 'Paused', 'Banned', 'Expired'], true) ? $ent['status'] : 'Active';
+        $pauseUntil   = (int)($ent['pause_until'] ?? 0);
+        $activated    = !empty($ent['activated']);
+        $manualPaused = isset($ent['manual_paused']) ? !empty($ent['manual_paused']) : ($status === 'Paused');
+        $bulkPaused   = !empty($ent['bulk_paused']);
 
         $expAt = null;
-        if (!$isLife) {
+        if (!$isLife && $activated) {
             if (isset($ent['remaining_seconds']) && (int)$ent['remaining_seconds'] > 0) {
                 $expAt = $now + (int)$ent['remaining_seconds'];
             } elseif (!empty($ent['expires_at']) && (int)$ent['expires_at'] > $now) {
@@ -368,12 +432,15 @@ if ($action === 'import_keys_full') {
         $record = [
             'key'              => $kStr,
             'lifetime'         => $isLife,
+            'activated'        => $activated,
             'duration_label'   => $durLabel,
             'duration_seconds' => $durSec,
             'max_devices'      => $maxDev,
             'created'          => (string)($ent['created'] ?? date('Y-m-d H:i')),
             'expires_at'       => $expAt,
             'status'           => $status,
+            'manual_paused'    => $manualPaused,
+            'bulk_paused'      => $bulkPaused,
             'pause_until'      => $pauseUntil,
             'approved_devices' => is_array($ent['approved_devices'] ?? null) ? $ent['approved_devices'] : [],
             'pending_devices'  => is_array($ent['pending_devices'] ?? null) ? $ent['pending_devices'] : [],
@@ -417,6 +484,7 @@ if ($action === 'delete_key') {
 }
 
 $k = &$data['keys'][$idx];
+syncKeyState($k, $now);
 
 if ($action === 'set_limit') {
     $newLimit = max(1, (int)($input['max_devices'] ?? 1));
@@ -445,11 +513,11 @@ elseif ($action === 'extend_duration') {
     } else {
         $k['lifetime'] = false;
         $addSec = unitToSeconds($unit, $amount);
-        if (!empty($k['expires_at']) && $k['expires_at'] > $now) {
-            $k['expires_at'] += $addSec;
+        if (!empty($k['activated']) && !empty($k['expires_at']) && (int)$k['expires_at'] > $now) {
+            $k['expires_at'] = (int)$k['expires_at'] + $addSec;
         } else {
             $k['duration_seconds'] = (int)($k['duration_seconds'] ?? 0) + $addSec;
-            if (!empty($k['expires_at'])) {
+            if (!empty($k['activated']) && !empty($k['expires_at'])) {
                 $k['expires_at'] = $now + $addSec;
             }
         }
@@ -459,22 +527,30 @@ elseif ($action === 'extend_duration') {
 }
 elseif ($action === 'ban_key') {
     $k['status'] = 'Banned';
+    $k['manual_paused'] = false;
+    $k['bulk_paused'] = false;
     addAudit($k, 'Key banned by administrator');
 }
 elseif ($action === 'unban_key') {
     $k['status'] = 'Active';
+    $k['manual_paused'] = false;
+    $k['bulk_paused'] = false;
     addAudit($k, 'Key unbanned by administrator');
 }
 elseif ($action === 'pause_key') {
     $until = trim((string)($input['pause_until'] ?? ''));
     $k['status'] = 'Paused';
+    $k['manual_paused'] = true;
+    $k['bulk_paused'] = false;
     $k['pause_until'] = $until !== '' ? (int)strtotime($until) : 0;
-    addAudit($k, 'Key temporarily stopped (Paused)');
+    addAudit($k, 'Key manually stopped (Paused)');
 }
 elseif ($action === 'resume_key') {
     $k['status'] = 'Active';
+    $k['manual_paused'] = false;
+    $k['bulk_paused'] = false;
     $k['pause_until'] = 0;
-    addAudit($k, 'Key resumed (Active)');
+    addAudit($k, 'Key resumed manually (Active)');
 }
 elseif ($action === 'approve_device') {
     $devId = trim((string)($input['device_id'] ?? ''));
