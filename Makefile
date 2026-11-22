@@ -16,7 +16,7 @@ $(TWEAK_NAME)_FILES = \
 	AntiCheatBypass.mm \
 	Dumped_Offsets.cpp \
 	HeeNoScreenShotView.m \
-	src/DarkIOSLoginViewController.mm \
+	DarkIOSLoginViewController.mm \
 	ESP/PubgLoad.mm \
 	ESP/HideFunsion.m \
 	ESP/ini_rw.cpp \
