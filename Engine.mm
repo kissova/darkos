@@ -141,7 +141,7 @@ static bool SafeWriteVTableSlot(void **vtable, int index, void *newFunc, void **
 
 // HMOOD__TG@i_8_f
 static bool IsAimTriggerActive(const ASTExtraPlayerCharacter* player) {
-    if (!Tools::IsPtrValid(player)) return false;
+    if (!Tools::IsPtrValid((void *)(uintptr_t)player)) return false;
     const bool fire = player->bIsWeaponFiring;
     const bool ads = player->bIsGunADS;
     switch (Settings::Aimbot::TriggerMode.load(std::memory_order_relaxed)) {
