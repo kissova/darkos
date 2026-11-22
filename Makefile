@@ -16,6 +16,7 @@ $(TWEAK_NAME)_FILES = \
 	AntiCheatBypass.mm \
 	Dumped_Offsets.cpp \
 	HeeNoScreenShotView.m \
+	src/DarkIOSLoginViewController.mm \
 	ESP/PubgLoad.mm \
 	ESP/HideFunsion.m \
 	ESP/ini_rw.cpp \
@@ -27,9 +28,9 @@ $(TWEAK_NAME)_FILES = \
 	ESP/imgui/imgui_impl_metal.mm \
 	$(SDK_CPP_FILES)
 
-$(TWEAK_NAME)_CFLAGS = -fobjc-arc -w -I. -IESP -IESP/imgui -ISDK
-$(TWEAK_NAME)_CCFLAGS = -std=c++17 -fobjc-arc -w -I. -IESP -IESP/imgui -ISDK
+$(TWEAK_NAME)_CFLAGS = -fobjc-arc -w -I. -Isrc -IESP -IESP/imgui -ISDK
+$(TWEAK_NAME)_CCFLAGS = -std=c++17 -fobjc-arc -w -I. -Isrc -IESP -IESP/imgui -ISDK
 $(TWEAK_NAME)_LDFLAGS = -Wl,-w -lsubstrate
-$(TWEAK_NAME)_FRAMEWORKS = UIKit Foundation CoreGraphics Metal MetalKit QuartzCore Security
+$(TWEAK_NAME)_FRAMEWORKS = UIKit Foundation CoreGraphics Metal MetalKit QuartzCore Security WebKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk
