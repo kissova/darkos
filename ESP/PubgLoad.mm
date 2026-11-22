@@ -24,8 +24,10 @@ float menuIconAlpha = .92f;
 @implementation HMOODFloatingWindow
 - (BOOL)canBecomeKeyWindow { return NO; }
 - (UIView*)hitTest:(CGPoint)point withEvent:(UIEvent*)event {
+    if (self.hidden || self.alpha <= 0.01f) return nil;
     UIView* target = [super hitTest:point withEvent:event];
-    return target && (target == self.interactiveView || [target isDescendantOfView:self.interactiveView]) ? target : nil;
+    if (!target || !self.interactiveView) return nil;
+    return (target == self.interactiveView || [target isDescendantOfView:self.interactiveView]) ? target : nil;
 }
 @end
 
@@ -48,12 +50,6 @@ float menuIconAlpha = .92f;
 + (void)load { [self load1]; }
 
 + (void)load1 {
-    struct kinfo_proc info;
-    int query[4] = {CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid()};
-    size_t size = sizeof(info);
-    if (sysctl(query, 4, &info, &size, NULL, 0) == 0 && (info.kp_proc.p_flag & P_TRACED)) {
-        abort();
-    }
     dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 3 * NSEC_PER_SEC), dispatch_get_main_queue(), ^{
         [[self share] initTapGes];
     });
@@ -67,14 +63,17 @@ float menuIconAlpha = .92f;
 }
 
 - (UIWindow*)getKeyWindow {
+    UIApplication* app = UIApplication.sharedApplication;
+    if (!app) return nil;
     UIWindow* fallback = nil;
-    for (UIScene* scene in UIApplication.sharedApplication.connectedScenes) {
+    for (UIScene* scene in app.connectedScenes) {
         if (![scene isKindOfClass:UIWindowScene.class] || scene.activationState != UISceneActivationStateForegroundActive)
             continue;
-        for (UIWindow* window in ((UIWindowScene*)scene).windows) {
-            if (window == self.floatingWindow || [window isKindOfClass:HMOODFloatingWindow.class] ||
+        UIWindowScene* windowScene = (UIWindowScene*)scene;
+        for (UIWindow* window in windowScene.windows) {
+            if (!window || window == self.floatingWindow || [window isKindOfClass:HMOODFloatingWindow.class] ||
                 window.hidden || window.windowLevel != UIWindowLevelNormal) continue;
-            if (window.isKeyWindow) return window;
+            if (window.isKeyWindow && window.rootViewController) return window;
             if (!fallback && window.rootViewController) fallback = window;
         }
     }
@@ -83,12 +82,18 @@ float menuIconAlpha = .92f;
 
 - (void)attachRenderer {
     UIWindow* window = [self getKeyWindow];
-    if (!window || !window.rootViewController) return;
+    if (!window || !window.rootViewController || !window.rootViewController.view) return;
     if (!self.vna) self.vna = [[metalbiew alloc] init];
     UIView* view = self.vna.view;
-    view.frame = window.bounds;
+    if (!view) return;
+    CGRect bounds = window.bounds;
+    if (bounds.size.width <= 0.f || bounds.size.height <= 0.f) return;
+    view.frame = bounds;
     view.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
-    if (!view.superview) [window.rootViewController.view addSubview:view];
+    if (view.superview != window.rootViewController.view) {
+        [view removeFromSuperview];
+        [window.rootViewController.view addSubview:view];
+    }
     view.userInteractionEnabled = MenDeal;
 }
 
@@ -103,7 +108,9 @@ float menuIconAlpha = .92f;
         __weak ImGuiLoad* weakSelf = self;
         self.iconTimer = [NSTimer timerWithTimeInterval:.25 repeats:YES block:^(NSTimer* timer) {
             (void)timer;
-            [weakSelf refreshMenuIcon];
+            ImGuiLoad* strongSelf = weakSelf;
+            if (!strongSelf) return;
+            [strongSelf refreshMenuIcon];
         }];
         [NSRunLoop.mainRunLoop addTimer:self.iconTimer forMode:NSRunLoopCommonModes];
     }
@@ -111,28 +118,37 @@ float menuIconAlpha = .92f;
 
 - (void)refreshMenuIcon {
     UIWindow* window = [self getKeyWindow];
-    if (!window) { self.floatingWindow.hidden = YES; return; }
+    if (!window || !window.windowScene || window.bounds.size.width <= 0.f || window.bounds.size.height <= 0.f) {
+        self.floatingWindow.hidden = YES;
+        return;
+    }
     if (!self.floatingWindow || self.floatingWindow.windowScene != window.windowScene) {
         self.floatingWindow.hidden = YES;
         HMOODFloatingWindow* floating = [[HMOODFloatingWindow alloc] initWithWindowScene:window.windowScene];
+        if (!floating) return;
         floating.frame = window.bounds;
         floating.backgroundColor = UIColor.clearColor;
         floating.windowLevel = UIWindowLevelAlert + 1.f;
         UIViewController* controller = [UIViewController new];
-        controller.view = [[HeeeNoScreenShotView alloc] initWithFrame:floating.bounds];
-        controller.view.backgroundColor = UIColor.clearColor;
+        UIView* container = [[HeeeNoScreenShotView alloc] initWithFrame:floating.bounds];
+        if (!container) container = [[UIView alloc] initWithFrame:floating.bounds];
+        container.backgroundColor = UIColor.clearColor;
+        container.autoresizingMask = UIViewAutoresizingFlexibleWidth | UIViewAutoresizingFlexibleHeight;
+        controller.view = container;
         floating.rootViewController = controller;
+
         UIButton* icon = [UIButton buttonWithType:UIButtonTypeCustom];
         icon.frame = CGRectMake(0, 0, 52, 52);
         icon.adjustsImageWhenHighlighted = NO;
         UIImage* image = GetMenuBadgeImage();
-        if (image) [icon setImage:image forState:UIControlStateNormal];
-        else {
+        if (image) {
+            [icon setImage:image forState:UIControlStateNormal];
+        } else {
             [icon setTitle:@"H" forState:UIControlStateNormal];
             [icon setTitleColor:UIColor.whiteColor forState:UIControlStateNormal];
             icon.backgroundColor = [UIColor colorWithRed:.35f green:.02f blue:.08f alpha:1.f];
         }
-        icon.imageView.contentMode = UIViewContentModeScaleAspectFit;
+        if (icon.imageView) icon.imageView.contentMode = UIViewContentModeScaleAspectFit;
         icon.accessibilityLabel = @"HMOOD VIP";
         icon.layer.cornerRadius = 26.f;
         icon.layer.shadowColor = UIColor.blackColor.CGColor;
@@ -140,52 +156,84 @@ float menuIconAlpha = .92f;
         icon.layer.shadowRadius = 4.f;
         icon.layer.shadowOffset = CGSizeMake(0, 2);
         [icon addTarget:self action:@selector(show) forControlEvents:UIControlEventTouchUpInside];
+
         UIPanGestureRecognizer* pan = [[UIPanGestureRecognizer alloc] initWithTarget:self action:@selector(dragMenuIcon:)];
         pan.cancelsTouchesInView = YES;
         [icon addGestureRecognizer:pan];
-        [controller.view addSubview:icon];
+        [container addSubview:icon];
+
         floating.interactiveView = icon;
         self.floatingWindow = floating;
         self.menuIconView = icon;
         self.previousWindowSize = floating.bounds.size;
+
         NSUserDefaults* defaults = NSUserDefaults.standardUserDefaults;
-        const CGFloat x = [defaults objectForKey:@"HMOODIconX"] ? [defaults doubleForKey:@"HMOODIconX"] : .94;
-        const CGFloat y = [defaults objectForKey:@"HMOODIconY"] ? [defaults doubleForKey:@"HMOODIconY"] : .32;
-        icon.center = CGPointMake(x * floating.bounds.size.width, y * floating.bounds.size.height);
+        double rawX = [defaults objectForKey:@"HMOODIconX"] ? [defaults doubleForKey:@"HMOODIconX"] : 0.94;
+        double rawY = [defaults objectForKey:@"HMOODIconY"] ? [defaults doubleForKey:@"HMOODIconY"] : 0.32;
+        if (!isfinite(rawX) || rawX < 0.0 || rawX > 1.0) rawX = 0.94;
+        if (!isfinite(rawY) || rawY < 0.0 || rawY > 1.0) rawY = 0.32;
+        icon.center = CGPointMake((CGFloat)rawX * floating.bounds.size.width, (CGFloat)rawY * floating.bounds.size.height);
     }
+
     [self attachRenderer];
+    if (!self.floatingWindow || !self.menuIconView) return;
+
     self.floatingWindow.frame = window.bounds;
-    const CGSize previous = self.previousWindowSize, current = self.floatingWindow.bounds.size;
-    if (!self.dragging && previous.width > 0 && previous.height > 0 && !CGSizeEqualToSize(previous, current))
-        self.menuIconView.center = CGPointMake(self.menuIconView.center.x * current.width / previous.width,
-                                               self.menuIconView.center.y * current.height / previous.height);
+    const CGSize previous = self.previousWindowSize;
+    const CGSize current = self.floatingWindow.bounds.size;
+    if (!self.dragging && previous.width > 0.f && previous.height > 0.f &&
+        current.width > 0.f && current.height > 0.f && !CGSizeEqualToSize(previous, current)) {
+        CGFloat nx = self.menuIconView.center.x * current.width / previous.width;
+        CGFloat ny = self.menuIconView.center.y * current.height / previous.height;
+        if (isfinite(nx) && isfinite(ny)) {
+            self.menuIconView.center = CGPointMake(nx, ny);
+        }
+    }
     self.previousWindowSize = current;
+
     if (!self.dragging) {
         CGPoint center = self.menuIconView.center;
         const UIEdgeInsets safe = window.safeAreaInsets;
-        center.x = fmax(safe.left + 29.f, fmin(self.floatingWindow.bounds.size.width - safe.right - 29.f, center.x));
-        center.y = fmax(safe.top + 29.f, fmin(self.floatingWindow.bounds.size.height - safe.bottom - 29.f, center.y));
-        self.menuIconView.center = center;
+        CGFloat minX = safe.left + 29.f;
+        CGFloat maxX = current.width - safe.right - 29.f;
+        CGFloat minY = safe.top + 29.f;
+        CGFloat maxY = current.height - safe.bottom - 29.f;
+        if (maxX >= minX) center.x = fmax(minX, fmin(maxX, center.x));
+        if (maxY >= minY) center.y = fmax(minY, fmin(maxY, center.y));
+        if (isfinite(center.x) && isfinite(center.y)) {
+            self.menuIconView.center = center;
+        }
     }
-    self.menuIconView.alpha = MenDeal ? 1.f : menuIconAlpha;
+
+    float safeAlpha = isfinite(menuIconAlpha) ? fmaxf(.35f, fminf(1.f, menuIconAlpha)) : .92f;
+    self.menuIconView.alpha = MenDeal ? 1.f : safeAlpha;
     self.floatingWindow.hidden = NO;
 }
 
 - (void)dragMenuIcon:(UIPanGestureRecognizer*)gesture {
+    if (!gesture || !self.menuIconView || !self.floatingWindow) return;
     if (gesture.state == UIGestureRecognizerStateBegan) {
         self.dragging = YES;
         self.dragOrigin = self.menuIconView.center;
     }
-    const CGPoint shift = [gesture translationInView:self.floatingWindow.rootViewController.view];
-    if (gesture.state == UIGestureRecognizerStateChanged)
-        self.menuIconView.center = CGPointMake(self.dragOrigin.x + shift.x, self.dragOrigin.y + shift.y);
+    UIView* refView = self.floatingWindow.rootViewController.view ?: self.floatingWindow;
+    const CGPoint shift = [gesture translationInView:refView];
+    if (gesture.state == UIGestureRecognizerStateChanged) {
+        CGFloat tx = self.dragOrigin.x + shift.x;
+        CGFloat ty = self.dragOrigin.y + shift.y;
+        if (isfinite(tx) && isfinite(ty)) {
+            self.menuIconView.center = CGPointMake(tx, ty);
+        }
+    }
     if (gesture.state == UIGestureRecognizerStateEnded || gesture.state == UIGestureRecognizerStateCancelled) {
         self.dragging = NO;
         [self refreshMenuIcon];
         const CGSize size = self.floatingWindow.bounds.size;
-        if (size.width > 0 && size.height > 0) {
-            [NSUserDefaults.standardUserDefaults setDouble:self.menuIconView.center.x / size.width forKey:@"HMOODIconX"];
-            [NSUserDefaults.standardUserDefaults setDouble:self.menuIconView.center.y / size.height forKey:@"HMOODIconY"];
+        if (size.width > 0.f && size.height > 0.f && isfinite(self.menuIconView.center.x) && isfinite(self.menuIconView.center.y)) {
+            double ratioX = fmax(0.0, fmin(1.0, (double)(self.menuIconView.center.x / size.width)));
+            double ratioY = fmax(0.0, fmin(1.0, (double)(self.menuIconView.center.y / size.height)));
+            [NSUserDefaults.standardUserDefaults setDouble:ratioX forKey:@"HMOODIconX"];
+            [NSUserDefaults.standardUserDefaults setDouble:ratioY forKey:@"HMOODIconY"];
         }
     }
 }
@@ -195,7 +243,7 @@ float menuIconAlpha = .92f;
         dispatch_async(dispatch_get_main_queue(), ^{ [self updateMenuIconAlpha:alpha]; });
         return;
     }
-    menuIconAlpha = fmaxf(.35f, fminf(1.f, alpha));
+    menuIconAlpha = isfinite(alpha) ? fmaxf(.35f, fminf(1.f, alpha)) : .92f;
     [self refreshMenuIcon];
 }
 
@@ -205,7 +253,7 @@ float menuIconAlpha = .92f;
         return;
     }
     [self attachRenderer];
-    if (!self.vna.view.superview) return;
+    if (!self.vna || !self.vna.view || !self.vna.view.superview) return;
     MenDeal = !MenDeal;
     self.vna.view.userInteractionEnabled = MenDeal;
     [self refreshMenuIcon];
