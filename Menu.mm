@@ -21,7 +21,7 @@
 #include "fa_solid_900.h"
 #include "ini_rw.h"
 #include "menu.h"
-#include "LicenseAuth.h"
+#import "LicenseAuth.h"
 #import <sys/sysctl.h>
 #import <sys/stat.h>
 #include <dlfcn.h>
@@ -141,6 +141,7 @@ extern ImFont* mainFont;
 
 
 bool MenDeal;
+static bool IsLogin = false;
 ImFont* cyberMenuFont = nullptr;
 
 static ImFont* SafeMenuFont() {
@@ -2068,7 +2069,8 @@ namespace CyberMenu {
         homeText(c, 477.5f, 331, "RESET GUEST", 11.5f, IM_COL32(228, 230, 234, 255), 191, 8.2f, true);
         if (hit(c, "##cyber_reset_guest", 376, 323, 203, 27))
             ImGui::OpenPopup("##cyber_reset_guest_popup");
-        ImGui::SetNextWindowPos(ImGui::GetIO().DisplaySize * .5f, ImGuiCond_Appearing, ImVec2(.5f, .5f));
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * .5f, ImGui::GetIO().DisplaySize.y * .5f),
+                                ImGuiCond_Appearing, ImVec2(.5f, .5f));
         if (ImGui::BeginPopupModal("##cyber_reset_guest_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             MenuLocale::text("Reset guest account?");
             ImGui::Spacing();
@@ -2160,7 +2162,12 @@ namespace CyberMenu {
             MenuLocale::sliderFloat("Stroke Width", &strokeIntensity, .5f, 5.f, "%.2f");
             MenuLocale::checkbox("Text Border", &textBorder);
             MenuLocale::checkbox("Hide Name", &hideNameKillMsg);
-            ImGui::ColorEdit4(MenuLocale::tr("Distance Color"), &COLOR_Distance);
+            ImVec4 distVec = ImGui::ColorConvertU32ToFloat4(COLOR_Distance);
+            float distColor[4] = {distVec.x, distVec.y, distVec.z, distVec.w};
+            if (ImGui::ColorEdit4(MenuLocale::tr("Distance Color"), distColor)) {
+                COLOR_Distance = ImGui::ColorConvertFloat4ToU32(
+                    ImVec4(distColor[0], distColor[1], distColor[2], distColor[3]));
+            }
             float borderColor[4] = {bgColor.Value.x, bgColor.Value.y, bgColor.Value.z, bgColor.Value.w};
             if (MenuLocale::colorEdit("Border Color", borderColor)) {
                 bgColor.Value.x = borderColor[0];
@@ -2300,7 +2307,8 @@ namespace CyberMenu {
         c.text(126, 193, "Reset Guest", 20, White, 190);
         if (hit(c, "##cyber_set_reset", 24, 184, 330, 40))
             ImGui::OpenPopup("##cyber_set_reset_popup");
-        ImGui::SetNextWindowPos(ImGui::GetIO().DisplaySize * .5f, ImGuiCond_Appearing, ImVec2(.5f, .5f));
+        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * .5f, ImGui::GetIO().DisplaySize.y * .5f),
+                                ImGuiCond_Appearing, ImVec2(.5f, .5f));
         if (ImGui::BeginPopupModal("##cyber_set_reset_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             MenuLocale::text("Reset guest account?");
             ImGui::Spacing();
