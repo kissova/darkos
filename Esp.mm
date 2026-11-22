@@ -1169,7 +1169,7 @@ void DrawAimingLine()
         d->AddLine(screenCenter, ImVec2(hs.X, hs.Y), IM_COL32(255, 255, 255, 255), 1.f);
 }
 
-static void DrawMenuHudBadge(ImDrawList* drawList, ImVec2 pos, float scale) {
+void DrawMenuHudBadge(ImDrawList* drawList, ImVec2 pos, float scale) {
     if (!drawList) return;
     const float s = (scale > 0.f && std::isfinite(scale)) ? scale : 1.f;
     const float w = 120.0f * (s / 60.0f > 0.2f ? (s / 60.0f) : 1.f);
