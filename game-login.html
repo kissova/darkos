@@ -1,0 +1,568 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>DARKIOS License System</title>
+
+<style>
+* {
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    overflow: hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #f4f5f7;
+}
+
+body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px;
+}
+
+.card {
+    width: 100%;
+    height: 100%;
+    max-width: 1200px;
+    max-height: 720px;
+    padding: 20px 28px 14px;
+    color: #f8fafc;
+    background: #080a0e;
+    border-radius: 27px;
+    display: flex;
+    flex-direction: column;
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding-bottom: 14px;
+    border-bottom: 1px solid #29303c;
+    flex-shrink: 0;
+}
+
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.logo {
+    width: 46px;
+    height: 46px;
+    display: grid;
+    place-items: center;
+    border-radius: 14px;
+    background: #171e2c;
+    color: #79aaff;
+    font-size: 30px;
+    font-weight: 700;
+}
+
+.brand-name {
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.brand-sub {
+    color: #788397;
+    font-size: 12px;
+    margin-top: 3px;
+}
+
+.system {
+    color: #54c66c;
+    background: #102519;
+    padding: 7px 13px;
+    border-radius: 30px;
+    font-size: 13px;
+}
+
+.content {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-columns: 1fr 1.15fr;
+    gap: 42px;
+    align-items: center;
+    padding: 20px 12px 12px;
+}
+
+.left {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+}
+
+.shield {
+    width: 72px;
+    height: 72px;
+    display: grid;
+    place-items: center;
+    border-radius: 24px;
+    background: #171e2c;
+    color: #79aaff;
+    margin-bottom: 18px;
+}
+
+.shield svg {
+    width: 41px;
+    height: 41px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+}
+
+h1 {
+    margin: 0;
+    font-size: clamp(25px, 4vw, 38px);
+    letter-spacing: -1px;
+}
+
+.subtitle {
+    color: #8b96a9;
+    font-size: clamp(13px, 1.8vw, 17px);
+    margin: 12px 0 0;
+}
+
+.buy-key {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 11px;
+    width: 205px;
+    height: 55px;
+    margin-top: 35px;
+    padding: 0 16px;
+    border: 1px solid #263c68;
+    border-radius: 15px;
+    color: #8ab5ff;
+    background: #111a2b;
+    text-decoration: none;
+    font-size: 16px;
+    font-weight: 750;
+    letter-spacing: .5px;
+    transition: .15s;
+}
+
+.buy-key:active {
+    transform: scale(.97);
+    background: #192944;
+}
+
+.telegram-icon {
+    width: 35px;
+    height: 35px;
+    flex-shrink: 0;
+}
+
+.right {
+    width: 100%;
+}
+
+.label {
+    display: block;
+    margin-bottom: 10px;
+    color: #b4bdcc;
+    font-size: 14px;
+}
+
+.input-wrap {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 0 15px;
+    border: 1.5px solid #303b4f;
+    border-radius: 15px;
+    background: #121722;
+}
+
+.input-wrap svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: #79aaff;
+    stroke-width: 2.2;
+    flex-shrink: 0;
+}
+
+input {
+    width: 100%;
+    min-width: 0;
+    border: 0;
+    outline: 0;
+    color: white;
+    background: transparent;
+    font-size: 17px;
+}
+
+input::placeholder {
+    color: #7e899c;
+}
+
+.login-btn {
+    width: 100%;
+    height: 61px;
+    margin-top: 13px;
+    border: 0;
+    border-radius: 16px;
+    color: white;
+    background: #477de0;
+    font-size: 20px;
+    font-weight: 750;
+    cursor: pointer;
+}
+
+.login-btn:active {
+    transform: scale(.99);
+}
+
+.login-btn:disabled {
+    opacity: .65;
+}
+
+.status {
+    margin-top: 14px;
+    padding: 15px 17px;
+    border-radius: 16px;
+    background: #121722;
+}
+
+.status-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    color: #9aa5b7;
+    font-size: 14px;
+}
+
+.status-value {
+    color: #73d98b;
+    font-weight: 700;
+}
+
+.dot {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    margin-right: 6px;
+    border-radius: 50%;
+    background: #73d98b;
+}
+
+.divider {
+    height: 1px;
+    margin: 13px 0;
+    background: #30394a;
+}
+
+.message {
+    min-height: 16px;
+    margin-top: 7px;
+    color: #f08080;
+    font-size: 12px;
+    text-align: center;
+}
+
+.footer {
+    flex-shrink: 0;
+    margin-top: 8px;
+    color: #657187;
+    text-align: center;
+    font-size: 11px;
+}
+
+@media (max-height: 500px) {
+    .card {
+        padding: 12px 20px 9px;
+    }
+
+    .header {
+        padding-bottom: 8px;
+    }
+
+    .content {
+        padding-top: 9px;
+        gap: 25px;
+    }
+
+    .left {
+        min-height: 0;
+    }
+
+    .shield {
+        width: 52px;
+        height: 52px;
+        margin-bottom: 7px;
+    }
+
+    .shield svg {
+        width: 30px;
+        height: 30px;
+    }
+
+    h1 {
+        font-size: 25px;
+    }
+
+    .subtitle {
+        margin-top: 5px;
+        font-size: 12px;
+    }
+
+    .buy-key {
+        height: 42px;
+        width: 170px;
+        margin-top: 13px;
+    }
+
+    .telegram-icon {
+        width: 28px;
+        height: 28px;
+    }
+
+    .input-wrap {
+        height: 47px;
+    }
+
+    .login-btn {
+        height: 49px;
+        margin-top: 9px;
+        font-size: 17px;
+    }
+
+    .status {
+        padding: 10px 14px;
+        margin-top: 9px;
+    }
+
+    .status-row {
+        font-size: 12px;
+    }
+
+    .divider {
+        margin: 8px 0;
+    }
+
+    .footer {
+        margin-top: 5px;
+    }
+}
+</style>
+</head>
+
+<body>
+<div class="card">
+
+    <header class="header">
+        <div class="brand">
+            <div class="logo">D</div>
+            <div>
+                <div class="brand-name">DARKIOS</div>
+                <div class="brand-sub">LICENSE SYSTEM</div>
+            </div>
+        </div>
+
+        <div class="system">SYSTEM ONLINE</div>
+    </header>
+
+    <main class="content">
+
+        <section class="left">
+
+            <div class="shield">
+                <svg viewBox="0 0 48 48">
+                    <path d="M24 5 L39 12 V23 C39 33 32 40 24 43 C16 40 9 33 9 23 V12 Z"/>
+                    <path d="M17 24 L22 29 L32 18"/>
+                </svg>
+            </div>
+
+            <h1>Welcome Back</h1>
+            <p class="subtitle">Enter your license key to continue</p>
+
+            <a class="buy-key"
+               href="https://t.me/DylibSafe"
+               target="_blank"
+               rel="noopener">
+
+                <svg class="telegram-icon" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="49" fill="#2CA5E0"/>
+                    <path d="M20 47 L76 26 Q82 24 80 32 L69 75 Q67 82 61 78 L44 65 L35 76 Q32 79 31 73 L28 55 L20 51 Q14 48 20 47Z" fill="#FFFFFF"/>
+                    <path d="M28 55 L70 33 L43 65 L35 76 L31 58Z" fill="#D9E8F2"/>
+                    <path d="M43 65 L70 33 L47 69 L44 65Z" fill="#B8D4E8"/>
+                </svg>
+
+                <span>BUY KEY</span>
+            </a>
+
+        </section>
+
+        <section class="right">
+
+            <label class="label" for="license">LICENSE KEY</label>
+
+            <div class="input-wrap">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="8" cy="15" r="4"/>
+                    <path d="M11 12 L19 4 L22 7 L19 10 L17 8 L14 11"/>
+                </svg>
+
+                <input
+                    id="license"
+                    type="text"
+                    placeholder="DARKIOS-1D-XXXXXXXXXXXX"
+                    autocomplete="off"
+                    autocapitalize="characters">
+            </div>
+
+            <button class="login-btn" id="loginButton" onclick="login()">
+                VERIFY &amp; LOGIN
+            </button>
+
+            <div class="message" id="message"></div>
+
+            <div class="status">
+                <div class="status-row">
+                    <span>SERVER STATUS</span>
+                    <span class="status-value" id="serverStatus">
+                        <span class="dot"></span>ONLINE
+                    </span>
+                </div>
+
+                <div class="divider"></div>
+
+                <div class="status-row">
+                    <span>LICENSE STATUS</span>
+                    <span id="licenseStatus">WAITING</span>
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <footer class="footer">
+        DARKIOS SECURITY SYSTEM · 2026
+    </footer>
+
+</div>
+
+<script>
+const FALLBACK_API_URL = "https://darkos-yr3o.onrender.com/backend.php";
+let activeKey = "";
+
+function setButtonLoading(loading) {
+    const button = document.getElementById("loginButton");
+    button.disabled = loading;
+    button.textContent = loading ? "VERIFYING..." : "VERIFY & LOGIN";
+}
+
+window.onDarkIOSAuthResult = function(result) {
+    const message = document.getElementById("message");
+    const status = document.getElementById("licenseStatus");
+    const server = document.getElementById("serverStatus");
+
+    setButtonLoading(false);
+
+    if (result && result.success) {
+        server.innerHTML = '<span class="dot"></span>ONLINE';
+        server.style.color = "#73d98b";
+        status.textContent = "ACTIVE";
+        status.style.color = "#73d98b";
+        message.style.color = "#73d98b";
+        message.textContent = result.message || "License verified successfully.";
+
+        if (activeKey) {
+            localStorage.setItem("darkios_license", activeKey);
+        }
+
+        window.dispatchEvent(new CustomEvent("darkios-login-success", { detail: result }));
+    } else {
+        status.textContent = "INVALID";
+        status.style.color = "#f08080";
+        message.style.color = "#f08080";
+        message.textContent = (result && (result.message || result.error)) || "License verification failed.";
+    }
+};
+
+async function login() {
+    const key = document.getElementById("license").value.trim();
+    const message = document.getElementById("message");
+    const status = document.getElementById("licenseStatus");
+    const server = document.getElementById("serverStatus");
+
+    message.textContent = "";
+
+    if (!key) {
+        message.style.color = "#f08080";
+        message.textContent = "Please enter your license key.";
+        return;
+    }
+
+    activeKey = key;
+    setButtonLoading(true);
+    status.textContent = "CHECKING";
+    status.style.color = "#9aa5b7";
+
+    if (window.webkit && window.webkit.messageHandlers && window.webkit.messageHandlers.darkiosAuth) {
+        window.webkit.messageHandlers.darkiosAuth.postMessage({
+            type: "verify_key",
+            key: key
+        });
+        return;
+    }
+
+    try {
+        const response = await fetch(FALLBACK_API_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                action: "player_login",
+                key: key,
+                device_id: "WEB-TEST"
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error("Server connection failed.");
+        }
+
+        const result = await response.json();
+        window.onDarkIOSAuthResult(result);
+    } catch (error) {
+        server.textContent = "OFFLINE";
+        server.style.color = "#f08080";
+        status.textContent = "ERROR";
+        status.style.color = "#f08080";
+        message.style.color = "#f08080";
+        message.textContent = error.message;
+        setButtonLoading(false);
+    }
+}
+
+document.getElementById("license").addEventListener("keydown", function(e) {
+    if (e.key === "Enter") login();
+});
+
+const savedKey = localStorage.getItem("darkios_license");
+if (savedKey) {
+    document.getElementById("license").value = savedKey;
+}
+</script>
+
+</body>
+</html>
