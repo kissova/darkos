@@ -1,18 +1,8 @@
-// HMOOD__TG@i_8_f
- 
-
- 
- 
- 
- 
-  
-
 #import "HeeeNoScreenShotView.h"
 
 @interface HeeeNoScreenShotView ()
-@property (nonatomic,strong) UITextField *textField;
-@property (nonatomic,strong) UIView *clearView;
-
+@property (nonatomic, strong) UITextField *textField;
+@property (nonatomic, strong) UIView *clearView;
 @end
 
 @implementation HeeeNoScreenShotView
@@ -48,32 +38,33 @@
 }
 
 - (void)setupUI {
-  [self addSubview:self.textField];
-  self.textField.subviews.firstObject.userInteractionEnabled = YES;
-  [self.textField.subviews.firstObject addSubview:self.clearView];
+  [super addSubview:self.textField];
+  UIView *secureContainer = self.textField.subviews.firstObject ?: self.textField;
+  secureContainer.userInteractionEnabled = YES;
+  [secureContainer addSubview:self.clearView];
 }
 
 - (void)addSubview:(UIView *)view {
-  [super addSubview:view];
-  if (self.textField != view) {
+  if (view == self.textField) {
+    [super addSubview:view];
+  } else {
     [self.clearView addSubview:view];
   }
 }
 
-
 - (UITextField *)textField {
   if (!_textField) {
     _textField = [[UITextField alloc] init];
-
-    _textField.secureTextEntry = YES;       
+    _textField.secureTextEntry = YES;
+    _textField.enabled = NO;
   }
-  
   return _textField;
 }
 
 - (UIView *)clearView {
   if (!_clearView) {
     _clearView = [[UIView alloc] init];
+    _clearView.userInteractionEnabled = YES;
   }
   return _clearView;
 }
