@@ -78,7 +78,7 @@ static bool IsSafeFiniteVec(const FVector& v) {
 
 // HMOOD__TG@i_8_f
 bool isObjectInvalid(UObject *obj) {
-    if (!Tools::IsPtrValid(obj)) {
+    if (!Tools::IsPtrValid(obj) || !IsWritableSafeAddr(obj, sizeof(UObject))) {
         return true;
     }
 
@@ -87,7 +87,7 @@ bool isObjectInvalid(UObject *obj) {
         return true;
     }
 
-    if (!Tools::IsPtrValid(obj->ClassPrivate)) {
+    if (!Tools::IsPtrValid(obj->ClassPrivate) || !IsWritableSafeAddr(obj->ClassPrivate, sizeof(void*))) {
         return true;
     }
 
@@ -114,13 +114,13 @@ bool isObjectInvalid(UObject *obj) {
 // HMOOD__TG@i_8_f
 static bool SafeWriteVTableSlot(void **vtable, int index, void *newFunc, void **outOldFunc) {
     if (!vtable || index < 0 || index > 4096 || !newFunc) return false;
-    if (!Tools::IsPtrValid(vtable)) return false;
+    if (!Tools::IsPtrValid(vtable) || !IsWritableSafeAddr(vtable, sizeof(void*) * ((size_t)index + 1))) return false;
 
     void **slotPtr = &vtable[index];
-    if (!Tools::IsPtrValid(slotPtr)) return false;
+    if (!Tools::IsPtrValid(slotPtr) || !IsWritableSafeAddr(slotPtr, sizeof(void*))) return false;
 
     void *currentVal = *slotPtr;
-    if (!Tools::IsPtrValid(currentVal)) return false;
+    if (!IsValidAddress((kaddr)currentVal)) return false;
 
     if (currentVal == newFunc) {
         if (outOldFunc && !*outOldFunc) {
@@ -454,13 +454,14 @@ namespace Variables {
 // HMOOD__TG@i_8_f
 kaddr getRealOffset(kaddr offset){
     kaddr base = (kaddr)Get_module_base();
-    if (!base) return 0;
-    return base + offset;
+    if (!IsValidAddress(base)) return 0;
+    kaddr result = base + offset;
+    return IsValidAddress(result) ? result : 0;
 }
 
 long obbbbl() {
     kaddr base = (kaddr)Get_module_base();
-    if (!base) return 0;
+    if (!IsValidAddress(base)) return 0;
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
     NSString *BundID = [infoDictionary objectForKey:@"CFBundleIdentifier"];
     if (!BundID) return 0;
@@ -492,9 +493,9 @@ static UFont *robotoFont = nullptr, *robotoTinyFont = nullptr, *tslFont = nullpt
 // HMOOD__TG@i_8_f
 UWorld *GetFullWorld()
 {
-    if (!Tools::IsPtrValid(UObject::GUObjectArray)) return nullptr;
+    if (!Tools::IsPtrValid(UObject::GUObjectArray) || !IsWritableSafeAddr(UObject::GUObjectArray, sizeof(FUObjectArray))) return nullptr;
     auto *objArray = &UObject::GUObjectArray->ObjObjects;
-    if (!Tools::IsPtrValid(objArray)) return nullptr;
+    if (!Tools::IsPtrValid(objArray) || !IsWritableSafeAddr(objArray, sizeof(TUObjectArray))) return nullptr;
 
     int count = objArray->Num();
     if (count <= 0 || count > 5000000) return nullptr;
@@ -538,26 +539,24 @@ UWorld *GetFullWorld()
 // HMOOD__TG@i_8_f
 TNameEntryArray *GetGNames() {
     kaddr base = (kaddr)Get_module_base();
-    if (!base) return nullptr;
+    if (!IsValidAddress(base)) return nullptr;
     NSDictionary *infoDictionary = [[NSBundle mainBundle] infoDictionary];
     NSString *BundID = [infoDictionary objectForKey:@"CFBundleIdentifier"];
     if (!BundID) return nullptr;
+    kaddr fnAddr = 0;
     if ([BundID containsString:@"ig"]) {
-        return ((TNameEntryArray *(*)())(base + 0x10522AC98))();
+        fnAddr = base + 0x10522AC98;
+    } else if ([BundID containsString:@"kr"]) {
+        fnAddr = base + 0x104D9FA14;
+    } else if ([BundID containsString:@"rekoo"]) {
+        fnAddr = base + 0x104D78AE0;
+    } else if ([BundID containsString:@"vn"]) {
+        fnAddr = base + 0x104B1AE24;
+    } else if ([BundID containsString:@"imobile"]) {
+        fnAddr = base + 0x10454d2a4;
     }
-    if ([BundID containsString:@"kr"]) {
-        return ((TNameEntryArray *(*)())(base + 0x104D9FA14))();
-    }
-    if ([BundID containsString:@"rekoo"]) {
-        return ((TNameEntryArray *(*)())(base + 0x104D78AE0))();
-    }
-    if ([BundID containsString:@"vn"]) {
-        return ((TNameEntryArray *(*)())(base + 0x104B1AE24))();
-    }
-    if ([BundID containsString:@"imobile"]) {
-        return ((TNameEntryArray *(*)())(base + 0x10454d2a4))();
-    }
-    return nullptr;
+    if (!IsValidAddress(fnAddr)) return nullptr;
+    return ((TNameEntryArray *(*)())fnAddr)();
 }
 
 // HMOOD__TG@i_8_f
@@ -572,7 +571,7 @@ std::vector<AActor *> getActorsSafe(UWorld* World)
     }
 
     uintptr_t actorsPtrAddr = (uintptr_t)PersistentLevel + 0xa0;
-    if (!Tools::IsPtrValid((void *)actorsPtrAddr)) {
+    if (!Tools::IsPtrValid((void *)actorsPtrAddr) || !IsWritableSafeAddr((void *)actorsPtrAddr, sizeof(TArray<AActor*>))) {
         return {};
     }
 
@@ -603,7 +602,7 @@ FVector GetBoneLocationByName(ASTExtraPlayerCharacter *Actor, const char *BoneNa
 // HMOOD__TG@i_8_f
 bool WriteAddr(void *addr, void *buffer, size_t length) {
     if (!addr || !buffer || length == 0) return false;
-    if (!Tools::IsPtrValid(addr)) return false;
+    if (!Tools::IsPtrValid(addr) || !IsWritableSafeAddr(addr, length)) return false;
     long page_size = sysconf(_SC_PAGESIZE);
     if (page_size <= 0) page_size = 16384;
     uintptr_t start = ((uintptr_t)addr) & ~((uintptr_t)page_size - 1);
@@ -761,7 +760,7 @@ void LoadFontOnce() {
 // HMOOD__TG@i_8_f
 bool _read(kaddr addr, void *buffer, int len)
 {
-    if (!addr || !buffer || len <= 0 || !IsValidAddress(addr)) return false;
+    if (!addr || !buffer || len <= 0 || !IsWritableSafeAddr((const void*)addr, (size_t)len)) return false;
     vm_size_t size = 0;
     kern_return_t error = vm_read_overwrite(mach_task_self(), (vm_address_t)addr, len, (vm_address_t)buffer, &size);
     if (error != KERN_SUCCESS || size != (vm_size_t)len) {
@@ -809,8 +808,8 @@ void (*orig_Broadcast)(ASTExtraPlayerController* thiz, FFatalDamageParameter* Fa
 // HMOOD__TG@i_8_f
 void hk_Broadcast(ASTExtraPlayerController* thiz, FFatalDamageParameter* FatalDamageParameter)
 {
-    if (!Tools::IsPtrValid((void *)orig_Broadcast)) return;
-    if (isObjectInvalid(thiz) || !Tools::IsPtrValid(FatalDamageParameter) ||
+    if (!IsValidAddress((kaddr)orig_Broadcast)) return;
+    if (isObjectInvalid(thiz) || !IsWritableSafeAddr(FatalDamageParameter, sizeof(FFatalDamageParameter)) ||
         isObjectInvalid(g_PlayerController) || isObjectInvalid(g_LocalPlayer) ||
         g_PlayerController->PlayerKey == 0) {
         return orig_Broadcast(thiz, FatalDamageParameter);
@@ -820,9 +819,9 @@ void hk_Broadcast(ASTExtraPlayerController* thiz, FFatalDamageParameter* FatalDa
         static uint16_t hideBuf[] = { '?','?','?', 0 };
         struct FStr16 { uint16_t *D; int32_t C; int32_t M; };
         auto tryHide = [](void *fieldPtr) {
-            if (!Tools::IsPtrValid(fieldPtr)) return;
+            if (!IsWritableSafeAddr(fieldPtr, sizeof(FStr16))) return;
             FStr16 *r = reinterpret_cast<FStr16*>(fieldPtr);
-            if (Tools::IsPtrValid(r->D) && r->M >= 4) {
+            if (IsWritableSafeAddr(r->D, sizeof(uint16_t) * 4) && r->M >= 4) {
                 r->D = hideBuf;
                 r->C = 3;
             }
@@ -1155,7 +1154,7 @@ void (*orig_shoot_event)(USTExtraShootWeaponComponent *thiz, FVector start, FRot
 
 // HMOOD__TG@i_8_f
 void shoot_event(USTExtraShootWeaponComponent *thiz, FVector start, FRotator rot, ASTExtraShootWeapon *weapon, int unk1) {
-    if (!Tools::IsPtrValid((void *)orig_shoot_event)) return;
+    if (!IsValidAddress((kaddr)orig_shoot_event)) return;
     if (!Enable || !Settings::Aimbot::Tick || Settings::Aimbot::AimMethod == 0 ||
         !IsLogin || isObjectInvalid(g_LocalPlayer) || isObjectInvalid(g_PlayerController) ||
         isObjectInvalid(thiz) || !IsSafeFiniteVec(start))
@@ -1164,7 +1163,7 @@ void shoot_event(USTExtraShootWeaponComponent *thiz, FVector start, FRotator rot
     if (probability <= 0.f || (probability < 100.f && arc4random_uniform(10000) >= (uint32_t)(probability * 100.f)))
         return orig_shoot_event(thiz, start, rot, weapon, unk1);
     UKismetMathLibrary* UMC = (UKismetMathLibrary*)UKismetMathLibrary::StaticClass();
-    if (!Tools::IsPtrValid(UMC)) return orig_shoot_event(thiz, start, rot, weapon, unk1);
+    if (!IsWritableSafeAddr(UMC, sizeof(void*))) return orig_shoot_event(thiz, start, rot, weapon, unk1);
 
     ASTExtraPlayerCharacter* Target = nullptr;
     if (Enable) Target = VIP_Fov_Based();
@@ -1408,7 +1407,7 @@ static void ApplyMemoryReferenceOptions(ASTExtraPlayerCharacter* player, ASTExtr
         floats.clear(); integers.clear(); previousController = (uintptr_t)controller;
     }
     auto changeFloat = [&](UObject* owner, float& field, bool enabled, float value) {
-        if (isObjectInvalid(owner) || !Tools::IsPtrValid(&field) || !IsSafeFiniteFloat(value)) return;
+        if (isObjectInvalid(owner) || !IsWritableSafeAddr(&field, sizeof(float)) || !IsSafeFiniteFloat(value)) return;
         const Key key((uintptr_t)owner, owner->InternalIndex, (uintptr_t)&field);
         if (!enabled && floats.find(key) == floats.end()) return;
         auto& saved = floats[key];
@@ -1419,7 +1418,7 @@ static void ApplyMemoryReferenceOptions(ASTExtraPlayerCharacter* player, ASTExtr
         } else if (saved.applied) { field = saved.original; saved.applied = false; }
     };
     auto changeInteger = [&](UObject* owner, int& field, bool enabled, int value) {
-        if (isObjectInvalid(owner) || !Tools::IsPtrValid(&field)) return;
+        if (isObjectInvalid(owner) || !IsWritableSafeAddr(&field, sizeof(int))) return;
         const Key key((uintptr_t)owner, owner->InternalIndex, (uintptr_t)&field);
         if (!enabled && integers.find(key) == integers.end()) return;
         auto& saved = integers[key];
@@ -1443,7 +1442,7 @@ static void ApplyMemoryReferenceOptions(ASTExtraPlayerCharacter* player, ASTExtr
     changeInteger(controller, controller->GameReplayType, MemoryDamage, player->bIsWeaponFiring ? 2 : 1);
     if (auto* camera = player->ScopeCameraComp; !isObjectInvalid(camera)) {
         float* fov = (float*)((uintptr_t)&camera->OrthoWidth - sizeof(float));
-        if (Tools::IsPtrValid(fov)) {
+        if (IsWritableSafeAddr(fov, sizeof(float))) {
             changeFloat(camera, *fov, MemoryZoom && player->bIsGunADS, ImClamp(MemoryZoomFov, 20.f, 90.f));
         }
     }
@@ -1477,7 +1476,7 @@ void RenderESP(AHUD *HUD, int ScreenWidth, int ScreenHeight) {
             (void)gGameplayStatics;
 
             auto GWorld = GetFullWorld();
-            if (!isObjectInvalid(GWorld) && IsLogin && Tools::IsPtrValid(UMC)) {
+            if (!isObjectInvalid(GWorld) && IsLogin && IsWritableSafeAddr(UMC, sizeof(void*))) {
                 UNetDriver *NetDriver = GWorld->NetDriver;
                 if (!isObjectInvalid(NetDriver)) {
                     UNetConnection *ServerConnection = NetDriver->ServerConnection;
@@ -1509,7 +1508,7 @@ void RenderESP(AHUD *HUD, int ScreenWidth, int ScreenHeight) {
                         static bool viewApplied = false;
                         if (!isObjectInvalid(camera)) {
                             float* view = (float*)((uintptr_t)&camera->OrthoWidth - sizeof(float));
-                            if (Tools::IsPtrValid(view)) {
+                            if (IsWritableSafeAddr(view, sizeof(float))) {
                                 if (previousCamera != (uintptr_t)camera) {
                                     previousCamera = (uintptr_t)camera;
                                     originalView = *view;
@@ -1530,7 +1529,8 @@ void RenderESP(AHUD *HUD, int ScreenWidth, int ScreenHeight) {
                             localPlayer->SetWeaponShootType(ESTEWeaponShootType::ESTEWeaponShootType__Auto);
                         }
 
-                        if (!isObjectInvalid(localPlayer->MeshContainer)) {
+                        if (!isObjectInvalid(localPlayer->MeshContainer) &&
+                            IsWritableSafeAddr(&localPlayer->MeshContainer->RelativeRotation, sizeof(FRotator))) {
                             if (localPlayer->bIsGunADS) {
                                 localPlayer->MeshContainer->RelativeRotation = { 0, 360, 0 };
                             } else if (!localPlayer->bIsWeaponFiring) {
@@ -1798,7 +1798,8 @@ void RenderESP(AHUD *HUD, int ScreenWidth, int ScreenHeight) {
                                 if ((int)Slot.GetValue() >= 1 && (int)Slot.GetValue() <= 3 &&
                                     !isObjectInvalid(WeaponManagerComponent->CurrentWeaponReplicated)) {
                                     auto CurrentWeaponReplicated = (ASTExtraShootWeapon *)WeaponManagerComponent->CurrentWeaponReplicated;
-                                    if (!isObjectInvalid(CurrentWeaponReplicated->RootComponent)) {
+                                    if (!isObjectInvalid(CurrentWeaponReplicated->RootComponent) &&
+                                        IsWritableSafeAddr(&CurrentWeaponReplicated->RootComponent->RelativeScale3D, sizeof(FVector))) {
                                         CurrentWeaponReplicated->RootComponent->RelativeScale3D.Y = Gun_Size;
                                         CurrentWeaponReplicated->RootComponent->RelativeScale3D.Z = Gun_Size;
                                         CurrentWeaponReplicated->RootComponent->RelativeScale3D.X = Gun_Size;
@@ -1947,18 +1948,18 @@ void *(*oProcessEvent)(UObject *pObj, UFunction *pFunc, void *pArgs) = nullptr;
 
 // HMOOD__TG@i_8_f
 void *hkProcessEvent(UObject *pObj, UFunction *pFunc, void *pArgs) {
-    if (!isObjectInvalid(pObj) && !isObjectInvalid(pFunc) && Tools::IsPtrValid(pArgs)) {
+    if (!isObjectInvalid(pObj) && !isObjectInvalid(pFunc) && IsWritableSafeAddr(pArgs, sizeof(void*))) {
         if (pObj->IsA(AHUD::StaticClass()) && pFunc->GetFullName() == "Function Engine.HUD.ReceiveDrawHUD") {
             AHUD *pHUD = (AHUD *)pObj;
             auto Params = (AHUD_ReceiveDrawHUD_Params *)pArgs;
-            if (!isObjectInvalid(pHUD) && Tools::IsPtrValid(Params)) {
+            if (!isObjectInvalid(pHUD) && IsWritableSafeAddr(Params, sizeof(AHUD_ReceiveDrawHUD_Params))) {
                 RenderESP(pHUD, Params->SizeX, Params->SizeY);
                 screenWidth = Params->SizeX;
                 screenHeight = Params->SizeY;
             }
         }
     }
-    if (Tools::IsPtrValid((void *)oProcessEvent)) {
+    if (IsValidAddress((kaddr)oProcessEvent)) {
         return oProcessEvent(pObj, pFunc, pArgs);
     }
     return nullptr;
@@ -1968,11 +1969,11 @@ void *hkProcessEvent(UObject *pObj, UFunction *pFunc, void *pArgs) {
 void *RTL_language(){
     std::lock_guard<std::mutex> lock(g_HookMutex);
     long baseAddr = obbbbl();
-    if (!baseAddr) return nullptr;
+    if (!baseAddr || !IsValidAddress((kaddr)baseAddr)) return nullptr;
     auto MAIN = (FUObjectArray *)(baseAddr);
-    if (!Tools::IsPtrValid(MAIN)) return nullptr;
+    if (!Tools::IsPtrValid(MAIN) || !IsWritableSafeAddr(MAIN, sizeof(FUObjectArray))) return nullptr;
     auto *objArray = &MAIN->ObjObjects;
-    if (!Tools::IsPtrValid(objArray)) return nullptr;
+    if (!Tools::IsPtrValid(objArray) || !IsWritableSafeAddr(objArray, sizeof(TUObjectArray))) return nullptr;
 
     int count = objArray->Num();
     if (count <= 0 || count > 5000000) return nullptr;
@@ -2004,7 +2005,7 @@ void *RTL_language(){
 
             for (int attempt = 0; attempt < 30 && !Tools::IsPtrValid(UObject::GUObjectArray); attempt++) {
                 long objArrayAddr = obbbbl();
-                if (objArrayAddr && Tools::IsPtrValid((void *)objArrayAddr)) {
+                if (objArrayAddr && IsValidAddress((kaddr)objArrayAddr) && Tools::IsPtrValid((void *)objArrayAddr)) {
                     UObject::GUObjectArray = (FUObjectArray *)(objArrayAddr);
                 }
                 if (!Tools::IsPtrValid(UObject::GUObjectArray)) sleep(1);
