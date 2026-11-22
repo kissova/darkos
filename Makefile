@@ -13,6 +13,7 @@ $(TWEAK_NAME)_FILES = \
 	Engine.mm \
 	Esp.mm \
 	Menu.mm \
+	DarkosLicenseAuth.mm \
 	AntiCheatBypass.mm \
 	Dumped_Offsets.cpp \
 	HeeNoScreenShotView.m \
