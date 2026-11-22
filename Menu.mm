@@ -1,10 +1,4 @@
 // HMOOD__TG@i_8_f
- 
-
- 
- 
-
-// HMOOD__TG@i_8_f
 
 
 #import <UIKit/UIKit.h>
@@ -27,6 +21,7 @@
 #include "fa_solid_900.h"
 #include "ini_rw.h"
 #include "menu.h"
+#include "LicenseAuth.h"
 #import <sys/sysctl.h>
 #import <sys/stat.h>
 #include <dlfcn.h>
@@ -37,6 +32,7 @@
 #include <cmath>
 #include <cfloat>
 #include <cstdio>
+#include <cstring>
 #include <vector>
 #include <mach/mach.h>
 #include <mach/mach_host.h>
@@ -1928,7 +1924,7 @@ namespace CyberMenu {
 
     static void openChannel() {
         dispatch_async(dispatch_get_main_queue(), ^{
-            NSURL* url = [NSURL URLWithString:@"https://t.me/hmoodhack"];
+            NSURL* url = [NSURL URLWithString:@"https://t.me/DylibSafe"];
             UIApplication* app = [UIApplication sharedApplication];
             if (url && app) {
                 [app openURL:url options:@{} completionHandler:nil];
@@ -1969,90 +1965,154 @@ namespace CyberMenu {
                                            : IM_COL32(192, 16, 44, 210);
             const float width = pass == 0 ? 5.f : pass == 1 ? 2.6f : .85f;
             c.line(339.3f, 168, 339.3f, 225, edge, width);
-            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(338, 233.3f), c.p(330, 233.3f), edge,
-                                 width * c.scale, 16);
-            c.line(315, 233.3f, 330, 233.3f, edge, width);
+            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(335.5f, 233.4f),
+                                 c.p(328, 233.4f), edge, width * c.scale, 12);
         }
-        c.line(339.3f, 145, 339.3f, 168, IM_COL32(115, 12, 35, 155), .7f);
-        statusTile(c, 27, 68, 296, "SERVER", "NOT CONFIGURED", Muted, -1);
-        statusTile(c, 27, 120, 141, "FPS", fps, HomeCyan, Gauge);
-        statusTile(c, 183, 120, 140, "LICENSE", "UNAVAILABLE", Muted, Shield);
-        statusTile(c, 27, 172, 141, "SUBSCRIPTION", "--", HomeCyan, Cloud);
-        statusTile(c, 183, 172, 140, "DEVICE LINK", st.device.c_str(), White, Link);
-        for (int i = 0; i < 10; ++i) {
-            const float x = 28 + i * 29.5f;
-            c.rect(x, 221, 26, 3, HomeCyan, .5f);
-            c.line(x + .7f, 221.4f, x + 25.3f, 221.4f, IM_COL32(123, 232, 239, 100), .65f);
+        c.line(23, 233.4f, 328, 233.4f, IM_COL32(72, 16, 30, 145), .7f);
+         
+        const float leftX[] = {29, 189}, rightX[] = {369, 487};
+        const float tileW = 135, miniW = 98, row1 = 76, row2 = 123, row3 = 171;
+        statusTile(c, leftX[0], row1, tileW, "SERVER", "LIVE", Green, -1);
+        statusTile(c, leftX[1], row1, tileW, "EXPIRES", "UNAVAILABLE", Muted, -1);
+        statusTile(c, leftX[0], row2, tileW, "SUBSCRIPTION", "UNAVAILABLE", Muted, Shield);
+        statusTile(c, leftX[1], row2, tileW, "DEVICE LINK", "UNAVAILABLE", Muted, Link);
+        statusTile(c, leftX[0], row3, tileW, "DEVICE", st.device.c_str(), HomeCyan, Phone);
+        statusTile(c, leftX[1], row3, tileW, "KEY", "NOT CONFIGURED", Muted, Calendar);
+         
+        homeText(c, 370, 31, "CONTACT", 17.5f, White, 210);
+        homeAction(c, 370, 76, 210, 44);
+        icon(c, PaperPlane, 386, 87, 21, IM_COL32(25, 198, 224, 255));
+        homeText(c, 424, 90, "TELEGRAM", 15, White, 145);
+        homeAction(c, 370, 128, 210, 44);
+        icon(c, Headset, 386, 139, 21, IM_COL32(236, 18, 52, 255));
+        homeText(c, 424, 142, "SUPPORT", 15, White, 145);
+        if (hit(c, "##cyber_telegram", 370, 76, 210, 44))
+            openChannel();
+        if (hit(c, "##cyber_support", 370, 128, 210, 44))
+            openChannel();
+        c.rect(370, 180, 210, 38, IM_COL32(10, 12, 16, 255), 3);
+        c.dl->AddRect(c.p(370, 180), c.p(580, 218), IM_COL32(43, 15, 25, 200), 3 * c.scale, 0,
+                      .8f * c.scale);
+        c.dl->AddCircleFilled(c.p(387, 199), 6.5f * c.scale, IM_COL32(0, 235, 126, 16), 24);
+        c.dl->AddCircleFilled(c.p(387, 199), 5 * c.scale, IM_COL32(0, 235, 126, 30), 24);
+        c.dl->AddCircleFilled(c.p(387, 199), 3.3f * c.scale, Green, 20);
+        homeText(c, 404, 192, "LIVE", 11.8f, IM_COL32(189, 193, 198, 255), 165, 8.5f);
+         
+        homePanel(c, 12, 249, 254, 111);
+        homePanel(c, 281, 249, 314, 111);
+        homeText(c, 27, 261, "GAME MODE", 15.5f, White, 224);
+        homeText(c, 27, 290, "LOCAL MODE", 11.2f, IM_COL32(223, 225, 229, 255), 224, 8.2f);
+        homeText(c, 27, 305, "NO LICENSE SERVICE", 10.5f, IM_COL32(162, 168, 175, 255), 224, 7.6f);
+        homeAction(c, 27, 323, 134, 27);
+        homeText(c, 94, 331, "OPEN MODE", 11.5f, IM_COL32(228, 230, 234, 255), 120, 8.2f, true);
+        if (hit(c, "##cyber_open_mode", 27, 323, 134, 27, false,
+                "No mode or licensing service is configured")) {
         }
-        homeText(c, 369, 32, "CONTACT", 15, Red, 207);
-        homeAction(c, 369, 82, 211, 40);
-        icon(c, PaperPlane, 381, 94, 14);
-        homeText(c, 412, 94, "TELEGRAM", 14, IM_COL32(174, 177, 184, 255), 162);
-        if (hit(c, "##telegram_channel", 369, 82, 211, 40))
+        homeText(c, 296, 261, "RAM BOOSTER", 15.5f, White, 284);
+        char app[32], free[32];
+        snprintf(app, sizeof(app), st.appMB >= 0 ? "APP: %.0f MB" : "APP: --", st.appMB);
+        snprintf(free, sizeof(free), st.freeGB >= 0 ? "FREE: %.1f GB" : "FREE: --", st.freeGB);
+        homeText(c, 296, 290, app, 11.2f, IM_COL32(223, 225, 229, 255), 284, 8.2f);
+        homeText(c, 296, 305, free, 10.5f, IM_COL32(162, 168, 175, 255), 284, 7.6f);
+        homeAction(c, 296, 323, 92, 27);
+        homeText(c, 342, 331, "PURGE", 11.5f, IM_COL32(228, 230, 234, 255), 80, 8.2f, true);
+        if (hit(c, "##cyber_purge", 296, 323, 92, 27, false,
+                "The current project has no memory purge operation")) {
+        }
+        homeAction(c, 396, 323, 146, 27);
+        homeText(c, 469, 331, "AUTO-CLEAN: OFF", 11.5f, IM_COL32(228, 230, 234, 255), 134, 8.2f, true);
+        if (hit(c, "##cyber_autoclean", 396, 323, 146, 27, false,
+                "Automatic cleaning is not configured")) {
+        }
+         
+        homePanel(c, 360, 15, 235, 219);
+        homeText(c, 376, 30, "CONTACT", 17.5f, White, 203);
+        homeAction(c, 376, 75, 203, 44);
+        icon(c, PaperPlane, 392, 86, 21, IM_COL32(25, 198, 224, 255));
+        homeText(c, 429, 89, "TELEGRAM", 15, White, 138);
+        homeAction(c, 376, 127, 203, 44);
+        icon(c, Headset, 392, 138, 21, IM_COL32(236, 18, 52, 255));
+        homeText(c, 429, 141, "SUPPORT", 15, White, 138);
+        if (hit(c, "##cyber_telegram_top", 376, 75, 203, 44))
             openChannel();
-        homeAction(c, 369, 136, 211, 40);
-        icon(c, Headset, 381, 148, 14);
-        homeText(c, 412, 148, "SUPPORT", 14, IM_COL32(174, 177, 184, 255), 162);
-        if (hit(c, "##support_channel", 369, 136, 211, 40))
+        if (hit(c, "##cyber_support_top", 376, 127, 203, 44))
             openChannel();
-        c.rect(369, 186, 211, 39, IM_COL32(7, 21, 30, 255), 3);
-        c.dl->AddRect(c.p(369, 186), c.p(580, 225), IM_COL32(14, 35, 45, 160), 3 * c.scale, 0, .7f * c.scale);
-        icon(c, Gamepad, 380, 198, 17, HomeCyan);
-        homeText(c, 408, 190, "LOCAL MODE", 10, HomeLabel, 166);
-        homeText(c, 408, 207, hideHacker ? "STREAM: ON" : "STREAM: OFF", 10.5f, White, 166);
-
-        homePanel(c, 12, 263, 189, 96);
-        homePanel(c, 212, 263, 184, 96);
-        homePanel(c, 407, 263, 188, 96);
-        c.dl->AddCircleFilled(c.p(27, 278), 3.3f * c.scale, Green, 18);
-        homeText(c, 40, 270, "HMOOD VIP", 12.5f, Red, 148);
-        homeText(c, 27, 305, st.device.c_str(), 14, White, 160);
-        homeText(c, 27, 333, (std::string(MenuLocale::tr("OS")) + " iOS " + st.ios).c_str(), 11.5f, IM_COL32(154, 139, 90, 255),
-                 161);
-        for (int i = 0; i < 5; ++i)
-            c.rect(220 + i * 4.5f, 280 - i * 3, 2.8f, 4 + i * 3, Green, .5f);
-        homeText(c, 251, 271, "DEVICE", 10, Muted, 95);
-        homeText(c, 355, 271, "LIVE", 10, HomeCyan, 44);
-        auto center = [&](float x, float y, const char* text, float height, ImU32 color, float cap = 0.f) {
-            homeText(c, x, y, text, height, color, 0, cap, true);
-        };
-        center(304, 292, st.time.c_str(), 21, White, 12.8f);
-        center(304, 319, "--", 10.5f, HomeCyan);
-        center(304, 342, st.date.c_str(), 10.5f, Muted);
-        char battery[24];
-        if (std::isfinite(st.battery) && st.battery >= 0)
-            snprintf(battery, sizeof(battery), "%.0f%%", st.battery * 100);
-        else
-            snprintf(battery, sizeof(battery), "--");
-        const float charge = ImClamp(std::isfinite(st.battery) ? st.battery : 0.f, 0.f, 1.f);
-        const ImU32 batteryColor = charge <= .2f ? Red : charge <= .4f ? IM_COL32(200, 177, 72, 255) : Green;
-        c.dl->AddRect(c.p(419, 273), c.p(443, 283), IM_COL32(132, 138, 141, 255), 2 * c.scale, 0,
-                      1.1f * c.scale);
-        c.rect(443, 276, 2, 4, IM_COL32(132, 138, 141, 255), .5f);
-        if (std::isfinite(st.battery) && st.battery >= 0)
-            for (int i = 0; i < 5; ++i) {
-                const float portion = ImClamp(charge * 5 - i, 0.f, 1.f);
-                if (portion > 0)
-                    c.rect(421 + i * 4.1f, 275, 3.1f * portion, 6, batteryColor, .45f);
+        c.rect(376, 179, 203, 38, IM_COL32(10, 12, 16, 255), 3);
+        c.dl->AddRect(c.p(376, 179), c.p(579, 217), IM_COL32(43, 15, 25, 200), 3 * c.scale, 0,
+                      .8f * c.scale);
+        c.dl->AddCircleFilled(c.p(393, 198), 6.5f * c.scale, IM_COL32(0, 235, 126, 16), 24);
+        c.dl->AddCircleFilled(c.p(393, 198), 5 * c.scale, IM_COL32(0, 235, 126, 30), 24);
+        c.dl->AddCircleFilled(c.p(393, 198), 3.3f * c.scale, Green, 20);
+        homeText(c, 410, 191, "LIVE", 11.8f, IM_COL32(189, 193, 198, 255), 158, 8.5f);
+        homePanel(c, 360, 249, 235, 111);
+        homeText(c, 376, 261, "PREFERENCES", 15.5f, White, 203);
+        homeAction(c, 376, 290, 96, 27);
+        homeText(c, 424, 298, hideHacker ? "STREAM: ON" : "STREAM: OFF", 11.5f,
+                 IM_COL32(228, 230, 234, 255), 84, 8.2f, true);
+        if (hit(c, "##cyber_stream", 376, 290, 96, 27)) {
+            hideHacker = !hideHacker;
+            notifyFeature("Stream", Eye, hideHacker);
+        }
+        homeAction(c, 480, 290, 99, 27);
+        homeText(c, 529.5f, 298, MenuLocale::languageNames[MenuLocale::language], 11.5f,
+                 IM_COL32(228, 230, 234, 255), 87, 8.2f, true);
+        if (hit(c, "##cyber_language", 480, 290, 99, 27))
+            ImGui::OpenPopup("##cyber_language_popup");
+        if (ImGui::BeginPopup("##cyber_language_popup")) {
+            for (int i = 0; i < 7; ++i)
+                if (MenuLocale::selectable(MenuLocale::languageNames[i], MenuLocale::language == i))
+                    MenuLocale::language = i;
+            ImGui::EndPopup();
+        }
+        homeAction(c, 376, 323, 203, 27);
+        homeText(c, 477.5f, 331, "RESET GUEST", 11.5f, IM_COL32(228, 230, 234, 255), 191, 8.2f, true);
+        if (hit(c, "##cyber_reset_guest", 376, 323, 203, 27))
+            ImGui::OpenPopup("##cyber_reset_guest_popup");
+        ImGui::SetNextWindowPos(ImGui::GetIO().DisplaySize * .5f, ImGuiCond_Appearing, ImVec2(.5f, .5f));
+        if (ImGui::BeginPopupModal("##cyber_reset_guest_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
+            MenuLocale::text("Reset guest account?");
+            ImGui::Spacing();
+            MenuLocale::text("This deletes local game data, settings and account data.");
+            MenuLocale::text("The game will exit after the reset.");
+            ImGui::Spacing();
+            if (MenuLocale::button("Reset Guest", ImVec2(120, 30))) {
+                ImGui::CloseCurrentPopup();
+                ResetGuestAccount();
             }
-        homeText(c, 450, 271, battery, 11, Green, 51);
-        homeText(c, 507, 271, fps, 11.5f, HomeCyan, 78);
-        char ram[40];
-        if (std::isfinite(st.freeGB) && st.freeGB >= 0)
-            snprintf(ram, sizeof(ram), "%s: %.2f GB", MenuLocale::tr("RAM"), st.freeGB);
-        else
-            snprintf(ram, sizeof(ram), "%s: --", MenuLocale::tr("RAM"));
-        homeText(c, 421, 305, ram, 12.5f, White, 158);
-        c.rect(421, 335, 156, 8, IM_COL32(9, 28, 36, 255), 2);
-        c.dl->AddRect(c.p(421, 335), c.p(577, 343), IM_COL32(15, 37, 45, 155), 2 * c.scale, 0, .6f * c.scale);
-        const float freeFraction =
-            (std::isfinite(st.totalGB) && st.totalGB > 0 && std::isfinite(st.freeGB) && st.freeGB >= 0)
-                ? ImClamp(st.freeGB / st.totalGB, 0.f, 1.f) : 0.f;
-        const float fill = 156 * freeFraction;
-        if (fill > 0) {
-            c.rect(421, 335, fill, 8, HomeCyan, 2);
-            if (fill > 2)
-                c.line(422, 335.8f, 420 + fill, 335.8f, IM_COL32(129, 238, 243, 135), .75f);
+            ImGui::SameLine();
+            if (MenuLocale::button("Cancel", ImVec2(100, 30)))
+                ImGui::CloseCurrentPopup();
+            ImGui::EndPopup();
+        }
+        c.rect(346, 17, 13, 215, IM_COL32(10, 8, 12, 255));
+        for (int pass = 0; pass < 3; ++pass) {
+            const ImU32 edge = pass == 0   ? IM_COL32(226, 7, 44, 16)
+                               : pass == 1 ? IM_COL32(216, 10, 43, 55)
+                                           : IM_COL32(192, 16, 44, 210);
+            const float width = pass == 0 ? 5.f : pass == 1 ? 2.6f : .85f;
+            c.line(339.3f, 20, 339.3f, 225, edge, width);
+            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(335.5f, 233.4f),
+                                 c.p(328, 233.4f), edge, width * c.scale, 12);
+        }
+         
+        statusTile(c, rightX[0], row1, miniW, "SERVER", "LIVE", Green, -1);
+        statusTile(c, rightX[1], row1, miniW, "OS", st.ios.empty() ? "iOS" : st.ios.c_str(), White,
+                   Gamepad);
+        statusTile(c, rightX[0], row2, miniW, "FPS", fps, st.fps >= 55 ? Green : Cyan, Gauge);
+        statusTile(c, rightX[1], row2, miniW, "RAM",
+                   st.totalGB > 0 ? (std::to_string((int)std::round(st.totalGB)) + " GB").c_str() : "iOS",
+                   Cyan, MemoryChip);
+        statusTile(c, rightX[0], row3, miniW, "TIME", st.time.c_str(), White, Calendar);
+        statusTile(c, rightX[1], row3, miniW, "DATE", st.date.c_str(), White, Calendar);
+        c.rect(346, 17, 13, 215, IM_COL32(10, 8, 12, 255));
+        for (int pass = 0; pass < 3; ++pass) {
+            const ImU32 edge = pass == 0   ? IM_COL32(226, 7, 44, 16)
+                               : pass == 1 ? IM_COL32(216, 10, 43, 55)
+                                           : IM_COL32(192, 16, 44, 210);
+            const float width = pass == 0 ? 5.f : pass == 1 ? 2.6f : .85f;
+            c.line(339.3f, 20, 339.3f, 225, edge, width);
+            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(335.5f, 233.4f),
+                                 c.p(328, 233.4f), edge, width * c.scale, 12);
         }
     }
 
@@ -2061,306 +2121,167 @@ namespace CyberMenu {
 
     static void visual(const Canvas& c) {
         if (!c.dl) return;
-        panel(c, 279, 164, 689, 38);
-        icon(c, Shield, 290, 175, 20);
-        c.text(324, 173, "ESP Style", 20);
-        const char* styles[] = {"BASIC", "VIP CYBER VERTICAL"};
-        if (combo(c, "##cyber_style", &IsStyle, styles, 2, 657, 169, 297, 28))
-            configManager::putInteger(config, "ESP", "STYLE", IsStyle);
-        if (hit(c, "##esp_extra", 279, 164, 330, 44, true, "Open additional existing display settings"))
-            ImGui::OpenPopup("Display options");
-        struct Row {
-            const char* label;
-            const char* id;
-            bool* value;
-            const char* key;
-            int glyph;
-        };
-        Row left[] = {{"PLAYER ESP", "##v_esp", &imgui::ESP, "ESP", 0},
-                      {"DRAW NAMES", "##v_names", &imgui::Name, "NAME", NameCard},
-                      {"DRAW WEAPON", "##v_weapon", &imgui::Weapon, "WEAPON", Question},
-                      {"GAME INFO", "##v_info", &imgui::GameInfo, "GAME_INFO", Information},
-                      {"DRAW DISTANCE", "##v_distance", &imgui::Distance, "DISTANCE", 6},
-                      {"DRAW HEALTH", "##v_health", &imgui::Health, "HEALTH", Health},
-                      {"360 ALERT", "##v_360", &imgui::Alert360, "ALERT_360", Compass},
-                      {"SNAP LINES", "##v_lines", &imgui::Line, "LINE", 7}};
-        for (int i = 0; i < 8; ++i) {
-            if (toggle(c, left[i].label, left[i].id, left[i].value, 282, 215 + i * 37.f, 329, left[i].glyph))
-                configManager::putBoolean(config, "ESP", left[i].key, *left[i].value);
-        }
-        static bool unavailable = false;
-        Row right[] = {{"DRAW BOXES", "##v_boxes", &imgui::Boxes, "BOXES", 3},
-                       {"DRAW BONES", "##v_bones", &imgui::Bone, "BONE", Bone},
-                       {"HIDE BOTS", "##v_bots", &imgui::HideBot, nullptr, Robot},
-                       {"ENEMY COUNT", "##v_count", &imgui::EnemyCount, "ENEMY_COUNT", 5},
-                       {"PLAYER TEAM ID", "##v_team", &imgui::TeamID, "TEAM_ID", Shield},
-                       {"ENEMY AIMING", "##v_aiming", &imgui::EnemyAiming, "ENEMY_AIMING", 1},
-                       {"LOOTBOX", "##v_loot", &imgui::Lootbox, "LOOTBOX", Loot},
-                       {"ITEMS ESP", "##v_items", &imgui::Items, "ITEMS", Items},
-                       {"VEHICLE ESP", "##v_vehicle", &imgui::Vehicle, "VEHICLE", Car}};
-        for (int i = 0; i < 9; ++i) {
-            Row& r = right[i];
-            bool changed = toggle(c, r.label, r.id, r.value ? r.value : &unavailable, 633, 215 + i * 37.f,
-                                  329, r.glyph, r.value != nullptr);
-            if (changed && r.key)
-                configManager::putBoolean(config, "ESP", r.key, *r.value);
-        }
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 12));
-        if (ImGui::BeginPopup("Display options")) {
-            MenuLocale::text("Existing display settings");
-            ImGui::Separator();
-            MenuLocale::sliderFloat("ESP distance", &ESPMaxDistance, 1.f, 450.f, "%.0f m");
-            if (MenuLocale::sliderFloat("HP scale", &globalHpAlphaF, .5f, 5.f, "%.1f"))
-                configManager::putFloat(config, "ESP", "HP_SCALE", globalHpAlphaF);
-            MenuLocale::sliderFloat("Alert radius", &AlertRadius, 1.f, 200.f, "%.0f m");
-            if (MenuLocale::sliderFloat("Stroke width", &strokeIntensity, .5f, 5.f, "%.1f"))
-                configManager::putFloat(config, "ESP", "STROKE_WIDTH", strokeIntensity);
-            featureCheckbox("Text border", &textBorder, NameCard);
-            if (featureCheckbox("Hide name", &hideNameKillMsg, NameCard))
-                configManager::putBoolean(config, "ESP", "HIDE_NAME_KILL", hideNameKillMsg);
-            ImVec4 distance = ImGui::ColorConvertU32ToFloat4(COLOR_Distance);
-            if (MenuLocale::colorEdit("Distance color", &distance.x))
-                COLOR_Distance = ImGui::ColorConvertFloat4ToU32(distance);
-            if (MenuLocale::colorEdit("Border color", &bgColor.Value.x)) {
-                configManager::putFloat(config, "ESP", "BORDER_R", bgColor.Value.x);
-                configManager::putFloat(config, "ESP", "BORDER_G", bgColor.Value.y);
-                configManager::putFloat(config, "ESP", "BORDER_B", bgColor.Value.z);
-                configManager::putFloat(config, "ESP", "BORDER_A", bgColor.Value.w);
+        panel(c, 12, 12, 232, 85);
+        c.text(24, 18, "ESP Style", 19, White, 208);
+        static const char* styles[] = {"Basic", "VIP Cyber Vertical"};
+        combo(c, "##cyber_style", &IsStyle, styles, 2, 24, 46, 208, 36);
+        panel(c, 12, 106, 232, 260);
+        heading(c, "Player ESP", 20, 114, 216, Player);
+        toggle(c, "Draw Names", "##cyber_name", &imgui::Name, 24, 151, 208, NameCard);
+        toggle(c, "Draw Weapon", "##cyber_weapon", &imgui::Weapon, 24, 192, 208, Cross);
+        toggle(c, "Game Info", "##cyber_gameinfo", &imgui::GameInfo, 24, 233, 208, Information);
+        toggle(c, "Draw Distance", "##cyber_dist", &imgui::Distance, 24, 274, 208, Ruler);
+        toggle(c, "Draw Health", "##cyber_hp", &imgui::Health, 24, 315, 208, Health);
+        panel(c, 253, 12, 232, 354);
+        toggle(c, "360 Alert", "##cyber_360", &imgui::Alert360, 265, 20, 208, Compass);
+        toggle(c, "Snap Lines", "##cyber_line", &imgui::Line, 265, 61, 208, Box);
+        toggle(c, "Draw Boxes", "##cyber_box", &imgui::Boxes, 265, 102, 208, Box);
+        toggle(c, "Draw Bones", "##cyber_bone", &imgui::Bone, 265, 143, 208, Bone);
+        toggle(c, "Hide Bots", "##cyber_bot", &imgui::HideBot, 265, 184, 208, Robot);
+        toggle(c, "Enemy Count", "##cyber_ecount", &imgui::EnemyCount, 265, 225, 208, Group);
+        toggle(c, "Player Team ID", "##cyber_tid", &imgui::TeamID, 265, 266, 208, Group);
+        toggle(c, "Enemy Aiming", "##cyber_aiming", &imgui::EnemyAiming, 265, 307, 208, Warning);
+        panel(c, 494, 12, 232, 146);
+        toggle(c, "Lootbox", "##cyber_loot", &imgui::Lootbox, 506, 20, 208, Loot);
+        toggle(c, "Items ESP", "##cyber_items", &imgui::Items, 506, 61, 208, Items);
+        toggle(c, "Vehicle ESP", "##cyber_veh", &imgui::Vehicle, 506, 102, 208, Car);
+        panel(c, 494, 167, 232, 199);
+        heading(c, "Existing Display Settings", 502, 175, 216, Gear);
+        c.text(508, 214, "Open additional existing display settings.", 15, Muted, 204);
+        c.rect(508, 256, 204, 42, IM_COL32(28, 11, 18, 255), 4);
+        c.dl->AddRect(c.p(508, 256), c.p(712, 298), Red, 4 * c.scale, 0, 1.3f * c.scale);
+        c.text(552, 267, "ESP Radar", 20, White, 152);
+        if (hit(c, "##cyber_esp_settings", 508, 256, 204, 42))
+            ImGui::OpenPopup("##cyber_esp_settings_popup");
+        if (ImGui::BeginPopup("##cyber_esp_settings_popup")) {
+            MenuLocale::sliderFloat("ESP Distance", &ESPMaxDistance, 50.f, 600.f, "%.0f m");
+            MenuLocale::sliderFloat("HP Scale", &globalHpAlphaF, .5f, 5.f, "%.2f");
+            MenuLocale::sliderFloat("Alert Radius", &AlertRadius, 20.f, 240.f, "%.0f");
+            MenuLocale::sliderFloat("Stroke Width", &strokeIntensity, .5f, 5.f, "%.2f");
+            MenuLocale::checkbox("Text Border", &textBorder);
+            MenuLocale::checkbox("Hide Name", &hideNameKillMsg);
+            ImGui::ColorEdit4(MenuLocale::tr("Distance Color"), &COLOR_Distance);
+            float borderColor[4] = {bgColor.Value.x, bgColor.Value.y, bgColor.Value.z, bgColor.Value.w};
+            if (MenuLocale::colorEdit("Border Color", borderColor)) {
+                bgColor.Value.x = borderColor[0];
+                bgColor.Value.y = borderColor[1];
+                bgColor.Value.z = borderColor[2];
+                bgColor.Value.w = borderColor[3];
             }
             ImGui::EndPopup();
         }
-        ImGui::PopStyleVar();
     }
 
 // HMOOD__TG@i_8_f
 
-
-    static void saveAimSettings() {
-        Settings::Aimbot::SilentAim = Enable;
-        configManager::putBoolean(config, "AIMBOT", "ENABLED", Settings::Aimbot::Tick);
-        configManager::putBoolean(config, "AIMBOT", "SILENT_AIM", Enable);
-        configManager::putBoolean(config, "AIMBOT", "AUTOFIRE", 自动开火);
-        configManager::putInteger(config, "AIMBOT", "MODE", Settings::Aimbot::AimMethod);
-        configManager::putBoolean(config, "AIMBOT", "AIM_LINE", Settings::Aimbot::SilentAimSettings::AimingLine);
-        configManager::putBoolean(config, "AIMBOT", "VISCHECK", Settings::isVisibilityCheck);
-        configManager::putBoolean(config, "AIMBOT", "IGNOREBOTS", Settings::Aimbot::SilentAimSettings::Highprecisiontracking);
-        configManager::putBoolean(config, "AIMBOT", "IGNOREKNOCKED", Settings::Aimbot::SilentAimSettings::AimKnocked);
-        configManager::putBoolean(config, "AIMBOT", "SHOWFOV", Settings::Aimbot::SilentAimSettings::EnableFov);
-        configManager::putBoolean(config, "AIMBOT", "PREDICTION", Settings::Aimbot::SilentAimSettings::Prediction);
-        configManager::putInteger(config, "AIMBOT", "TARGET", Settings::Aimbot::SilentAimSettings::Aimpositon);
-        configManager::putFloat(config, "AIMBOT", "FOV", Cross);
-        configManager::putFloat(config, "AIMBOT", "SILENT_DISTANCE", SilentAimMaxDistance);
-        configManager::putFloat(config, "AIMBOT", "SPEED", AimSmooth);
-        configManager::putFloat(config, "AIMBOT", "MAX_STEP", Settings::Aimbot::SilentAimSettings::MaxStepDeg);
-        configManager::putFloat(config, "AIMBOT", "HITPROB", 追踪概率);
-    }
-
-    static void applyAimPreset(int mode) {
-        Settings::Aimbot::AimMethod = ImClamp(mode, 0, 2);
-        if (mode != 2) {
-            const bool safe = mode == 0;
-            Cross = safe ? 80.f : 150.f;
-            AimSmooth = safe ? 18.f : 8.f;
-            SilentAimMaxDistance = safe ? 180.f : 250.f;
-            Settings::Aimbot::SilentAimSettings::MaxStepDeg = safe ? 1.5f : 4.f;
-            Settings::Aimbot::SilentAimSettings::Aimpositon = safe ? 1 : 4;
-            Settings::Aimbot::SilentAimSettings::AimKnocked = true;
-            Settings::Aimbot::SilentAimSettings::Highprecisiontracking = safe;
-            Settings::Aimbot::SilentAimSettings::Prediction = true;
-            Settings::isVisibilityCheck = true;
-            if (safe) Enable = false;
-        }
-        saveAimSettings();
-    }
 
     static void aim(const Canvas& c) {
         if (!c.dl) return;
-        heading(c, "AIM SETTINGS", 287, 164, 289);
-        heading(c, "AIM CONTROL", 603, 164, 365, List);
-        if (hit(c, "##aim_extra", 287, 164, 289, 35, true,
-                "Open existing SAFE / RISK / CUSTOM modes and additional settings"))
-            ImGui::OpenPopup("Aim options");
-        static bool absent = false;
-        struct Row {
-            const char* name;
-            const char* id;
-            bool* value;
-            int glyph;
-        };
-        Row rows[] = {
-            {"Aimbot", "##a_enable", &Settings::Aimbot::Tick, Target},
-            {"Silent Aim", "##a_silent", &Enable, Wand},
-            {"Macro", "##a_macro", nullptr, Bolt},
-            {"Aim Line", "##a_line", &Settings::Aimbot::SilentAimSettings::AimingLine, List},
-            {"Auto Fire", "##a_auto", &自动开火, Flame},
-            {"Visibility Check", "##a_vis", &Settings::isVisibilityCheck, Shield},
-            {"Ignore Bots", "##a_bot", &Settings::Aimbot::SilentAimSettings::Highprecisiontracking, Robot},
-            {"Ignore Knocked", "##a_knock", &Settings::Aimbot::SilentAimSettings::AimKnocked, Skull},
-            {"Enable FOV", "##a_fov", &Settings::Aimbot::SilentAimSettings::EnableFov, Fov},
-            {"Prediction", "##a_prediction", &Settings::Aimbot::SilentAimSettings::Prediction, PaperPlane}
-        };
-        for (int i = 0; i < 10; ++i) {
-            Row& row = rows[i];
-            const bool available = row.value && (i != 1 || (Settings::Aimbot::Tick && Settings::Aimbot::AimMethod != 0)) &&
-                                   (i != 4 || Settings::Aimbot::Tick);
-            if (toggle(c, row.name, row.id, row.value ? row.value : &absent, 287, 201 + i * 37.f,
-                       289, row.glyph, available,
-                       i == 1 ? "Enable Aimbot and select RISK or CUSTOM to use Silent Aim"
-                              : i == 4 ? "Enable Aimbot first" : "Not available in the current project")) {
-                if (i == 0 && !Settings::Aimbot::Tick) { Enable = false; 自动开火 = false; }
-                if (i == 5 || i == 6 || i == 7 || i == 9)
-                    Settings::Aimbot::AimMethod = 2;
-                saveAimSettings();
-            }
-        }
-        panel(c, 603, 201, 365, 43);
-        icon(c, List, 615, 213, 20);
-        c.text(643, 212, "Mode", 19, White, 119);
-        const char* modes[] = {"SAFE", "RISK", "CUSTOM"};
-        int mode = Settings::Aimbot::AimMethod;
-        if (combo(c, "##aim_mode", &mode, modes, 3, 785, 207, 169))
-            applyAimPreset(mode);
-        panel(c, 603, 250, 365, 43);
-        icon(c, Target, 615, 262, 20);
-        c.text(643, 261, "Aim Target", 19, White, 119);
-        const char* bones[] = {"Head", "Neck", "Body", "Pelvis", "Auto"};
-        if (combo(c, "##cyber_bone", &Settings::Aimbot::SilentAimSettings::Aimpositon, bones, 5,
-                  785, 256, 169)) {
-            Settings::Aimbot::AimMethod = 2;
-            saveAimSettings();
-        }
-        c.rect(603, 299, 365, 57, IM_COL32(11, 12, 16, 255));
-        const char* triggers[] = {"Fire", "ADS", "Fire + ADS", "Fire or ADS"};
-        const char* triggerIDs[] = {"##trigger_fire", "##trigger_ads", "##trigger_both", "##trigger_either"};
-        int triggerMode = Settings::Aimbot::TriggerMode.load(std::memory_order_relaxed);
-        for (int i = 0; i < 4; ++i) {
-            const float x = 630 + (i % 2) * 152, y = 303 + (i / 2) * 27;
-            if (hit(c, triggerIDs[i], x - 25, y - 2, 151, 26)) {
-                triggerMode = i;
-                Settings::Aimbot::TriggerMode.store(i, std::memory_order_relaxed);
-                configManager::putInteger(config, "AIMBOT", "TRIGGER_MODE", i);
-            }
-            const bool selected = triggerMode == i;
-            c.dl->AddCircle(c.p(x - 14, y + 10), 7 * c.scale,
-                           selected ? Red : IM_COL32(96, 38, 50, 255), 24, 1.2f * c.scale);
-            if (selected) c.dl->AddCircleFilled(c.p(x - 14, y + 10), 4.5f * c.scale, Red, 24);
-            c.text(x, y, triggers[i], 18, selected ? White : Muted, 126);
-        }
-        const bool enabled = Settings::Aimbot::Tick;
-        bool changed = slider(c, "##a_radius", "FOV", &Cross, 30, 300, 603, 365, 365, Target, enabled && !Enable, "FOV applies to camera aim");
-        changed = slider(c, "##a_range", "Distance", &SilentAimMaxDistance, 50, 355,
-                         603, 411, 365, PaperPlane, enabled) || changed;
-        changed = slider(c, "##a_speed", "Aim Speed", &AimSmooth, 2, 30,
-                         603, 457, 365, Gauge, enabled && !Enable, "Disable Silent Aim to adjust camera movement") || changed;
-        if (changed) {
-            Settings::Aimbot::AimMethod = 2;
-            saveAimSettings();
-        }
-        if (slider(c, "##a_probability", "Hit Probability", &追踪概率, 0, 100,
-                   603, 503, 365, Percent, enabled && Enable, "Enable Silent Aim to adjust hit probability"))
-            saveAimSettings();
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 12));
-        if (ImGui::BeginPopup("Aim options")) {
-            ImGui::BeginDisabled(!enabled || Enable);
-            if (MenuLocale::sliderFloat("Max step", &Settings::Aimbot::SilentAimSettings::MaxStepDeg,
-                                        .3f, 8.f, "%.1f deg"))
-                Settings::Aimbot::AimMethod = 2;
-            if (ImGui::IsItemDeactivatedAfterEdit()) saveAimSettings();
-            ImGui::EndDisabled();
-            if (MagicSDK) {
-                ImGui::BeginDisabled();
-                MenuLocale::sliderFloat("Magic X", &magicX, 0, 500);
-                MenuLocale::sliderFloat("Magic Y", &magicY, 0, 500);
-                MenuLocale::sliderFloat("Magic Z", &magicZ, 0, 500);
-                ImGui::EndDisabled();
-            }
+        panel(c, 12, 12, 232, 354);
+        heading(c, "Aim Settings", 20, 20, 216, Gear);
+        toggle(c, "Aimbot", "##cyber_aimbot", &Settings::Aimbot::Tick, 24, 57, 208, Target);
+        const bool aimReady = Settings::Aimbot::Tick;
+        const bool silentAllowed = aimReady && Settings::Aimbot::AimMethod != 0;
+        if (!silentAllowed && Enable)
+            Enable = false;
+        toggle(c, "Silent Aim", "##cyber_silent", &Enable, 24, 98, 208, Wand, silentAllowed,
+               "Enable Aimbot and select Risk or Custom to use Silent Aim");
+        bool macro = false;
+        toggle(c, "Macro", "##cyber_macro", &macro, 24, 139, 208, Flame);
+        toggle(c, "Aim Line", "##cyber_aimline", &Settings::Aimbot::SilentAimSettings::AimingLine, 24, 180,
+               208, Bolt);
+        toggle(c, "Auto Fire", "##cyber_autofire", &自动开火, 24, 221, 208, Skull);
+        toggle(c, "Visibility Check", "##cyber_vis", &Settings::isVisibilityCheck, 24, 262, 208, Eye);
+        toggle(c, "Ignore Bots", "##cyber_ibots", &Settings::Aimbot::SilentAimSettings::Highprecisiontracking,
+               24, 303, 208, Robot);
+        panel(c, 253, 12, 232, 354);
+        heading(c, "Aim Control", 261, 20, 216, Target);
+        toggle(c, "Ignore Knocked", "##cyber_iknocked", &Settings::Aimbot::SilentAimSettings::AimKnocked,
+               265, 57, 208, Skull);
+        toggle(c, "Enable FOV", "##cyber_efov", &Settings::Aimbot::SilentAimSettings::EnableFov, 265, 98,
+               208, Fov);
+        c.text(265, 141, "Aim Target", 18, White, 208);
+        static const char* targets[] = {"Head", "Neck", "Body", "Pelvis", "Auto"};
+        combo(c, "##cyber_target", &Settings::Aimbot::SilentAimSettings::Aimpositon, targets, 5, 265, 165,
+              208);
+        c.text(265, 205, "Trigger Mode", 18, White, 208);
+        static const char* triggers[] = {"Fire", "ADS", "Fire + ADS", "Fire or ADS"};
+        int trigger = Settings::Aimbot::TriggerMode.load(std::memory_order_relaxed);
+        if (combo(c, "##cyber_trigger", &trigger, triggers, 4, 265, 229, 208))
+            Settings::Aimbot::TriggerMode.store(trigger, std::memory_order_relaxed);
+        c.text(265, 269, "Aim Target", 18, White, 208);
+        combo(c, "##cyber_target_2", &Settings::Aimbot::SilentAimSettings::Aimpositon, targets, 5, 265, 293,
+              208);
+        panel(c, 494, 12, 232, 354);
+        slider(c, "##cyber_fov", "FOV", &Cross, 30, 300, 502, 20, 216, Fov, aimReady,
+               "Enable Aimbot first");
+        slider(c, "##cyber_dist", "Distance", &SilentAimMaxDistance, 50, 355, 502, 65, 216, Ruler, aimReady,
+               "Enable Aimbot first");
+        slider(c, "##cyber_speed", "Aim Speed", &AimSmooth, 2, 30, 502, 110, 216, Gauge,
+               aimReady && !Enable,
+               aimReady ? "Disable Silent Aim to adjust camera movement" : "Enable Aimbot first");
+        slider(c, "##cyber_prob", "Hit Probability", &追踪概率, 0, 100, 502, 155, 216, Percent,
+               aimReady && Enable,
+               aimReady ? "Enable Silent Aim to adjust hit probability" : "Enable Aimbot first");
+        panel(c, 502, 200, 216, 156);
+        c.text(512, 208, "Mode", 19, White, 196);
+        static const char* modes[] = {"Safe", "Risk", "Custom"};
+        combo(c, "##cyber_mode", &Settings::Aimbot::AimMethod, modes, 3, 512, 234, 196);
+        c.text(512, 274, "Open existing Safe / Risk / Custom modes and additional settings.", 13.5f, Muted,
+               196);
+        c.rect(512, 312, 196, 34, IM_COL32(28, 11, 18, 255), 4);
+        c.dl->AddRect(c.p(512, 312), c.p(708, 346), Red, 4 * c.scale, 0, 1.3f * c.scale);
+        c.text(534, 319, "Aim Settings", 18, White, 152);
+        if (hit(c, "##cyber_aim_settings", 512, 312, 196, 34))
+            ImGui::OpenPopup("##cyber_aim_settings_popup");
+        if (ImGui::BeginPopup("##cyber_aim_settings_popup")) {
+            MenuLocale::checkbox("Prediction", &Settings::Aimbot::SilentAimSettings::Prediction);
+            MenuLocale::sliderFloat("Max Step", &Settings::Aimbot::SilentAimSettings::MaxStepDeg, .3f, 8.f,
+                                    "%.2f deg");
+            MenuLocale::sliderFloat("Magic X", &magicX, -50.f, 50.f, "%.1f");
+            MenuLocale::sliderFloat("Magic Y", &magicY, -50.f, 50.f, "%.1f");
+            MenuLocale::sliderFloat("Magic Z", &magicZ, -50.f, 50.f, "%.1f");
             ImGui::EndPopup();
         }
-        ImGui::PopStyleVar();
     }
 
 // HMOOD__TG@i_8_f
 
+
     static void memory(const Canvas& c) {
         if (!c.dl) return;
-        static bool absent = false;
-        struct Row {
-            const char* label;
-            const char* id;
-            bool* value;
-            int glyph;
-            const char* key;
-        };
-        Row left[] = {{"Auto Tap", "##m_tap", nullptr, Flame, nullptr},
-                      {"Fast Shoot", "##m_shoot", &IsFastshoot, Bolt, "FASTSHOOT"},
-                      {"Fast Scope", "##m_scope", &MemoryFastScope, Eye, "FASTSCOPE"},
-                      {"Fast Gun", "##m_switch", &IsFastSwitch, Target, "FASTSWITCH"},
-                      {"Spin", "##m_spin", &isSpinning, Reset, "SPIN"},
-                      {"Zoom", "##m_zoom", &MemoryZoom, Fov, "ZOOM"},
-                      {"iPad", "##m_ipad", &WideView, Phone, nullptr}};
-        Row right[] = {{"No Recoil", "##m_recoil", &IsNorecoil2, Shield, "NORECOIL2"},
-                       {"No Shake", "##m_shake", &IsNocamerashake, Box, "NOCAMERASHAKE"},
-                       {"HitX", "##m_hitx", &HitX, Target, "HITX"},
-                       {"Damage", "##m_damage", &MemoryDamage, Health, "DAMAGE"},
-                       {"Small Cross", "##m_crosshair", &IsCrossHair, Target, "SMALLCROSS"},
-                       {"Rainbow", "##m_rainbow", &MemoryRainbow, Wand, "RAINBOW"},
-                       {"Cross Spin", "##m_cross_spin", &MemoryCrossSpin, Reset, "CROSSSPIN"}};
-        for (int column = 0; column < 2; ++column)
-            for (int i = 0; i < 7; ++i) {
-                Row& r = column ? right[i] : left[i];
-                const bool changed =
-                    toggle(c, r.label, r.id, r.value ? r.value : &absent, column ? 638.f : 287.f,
-                           164 + i * 37.f, 315.f, r.glyph, r.value != nullptr);
-                if (changed && r.key)
-                    configManager::putBoolean(config, "MEMORY", r.key, *r.value);
-                if (changed && r.value == &WideView)
-                    configManager::putBoolean(config, "SETTINGS", "IPADVIEW", WideView);
-            }
-         
-        if (WideView) {
-            float view = (float)WideValue;
-            const bool committed = slider(c, "##ipad_view_inline", "Wide", &view, 80.f, 160.f,
-                                           287, 430, 315, Phone);
-            WideValue = ImClamp((int)std::lround(view), 80, 160);
-            if (committed) configManager::putInteger(config, "SETTINGS", "TPP", WideValue);
-        }
-        float rightY = 430.f;
-        if (IsCrossHair) {
-            if (slider(c, "##memory_cross_size", "Cross Size", &crosshairSizeSlider, 0.f, 20.f,
-                       638, rightY, 315, Target))
-                configManager::putFloat(config, "MEMORY", "CROSSSIZE", crosshairSizeSlider);
-            rightY += 48.f;
-        }
-        if (MemoryRainbow) {
-            if (slider(c, "##memory_rainbow_speed", "Rainbow", &MemoryRainbowSpeed, .1f, 2.4f,
-                       638, rightY, 315, Wand))
-                configManager::putFloat(config, "MEMORY", "RAINBOW_SPEED", MemoryRainbowSpeed);
-            rightY += 48.f;
-        }
-        if (MemoryCrossSpin) {
-            if (slider(c, "##memory_cross_spin_speed", "Spin Speed", &MemoryCrossSpinSpeed, 0.f, 180.f,
-                       638, rightY, 315, Reset))
-                configManager::putFloat(config, "MEMORY", "CROSSSPIN_SPEED", MemoryCrossSpinSpeed);
-        }
-        icon(c, Gear, 576, 556, 18, Muted);
-        if (hit(c, "##memory_more", 564, 545, 38, 38, true, "More memory options"))
-            ImGui::OpenPopup("Memory options");
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(12, 12));
-        if (ImGui::BeginPopup("Memory options")) {
-            if (MemoryZoom) {
-                MenuLocale::sliderFloat("Zoom", &MemoryZoomFov, 20.f, 90.f, "%.0f deg");
-                if (ImGui::IsItemDeactivatedAfterEdit())
-                    configManager::putFloat(config, "MEMORY", "ZOOM_FOV", MemoryZoomFov);
-            }
-            if (featureCheckbox("Fast Drop", &IsFastDrop, Bolt))
-                configManager::putBoolean(config, "MEMORY", "FASTDROP", IsFastDrop);
-            if (featureCheckbox("Super Run", &chaynhanhv2, Player))
-                configManager::putBoolean(config, "MEMORY", "SUPERRUN", chaynhanhv2);
-            if (MenuLocale::sliderFloat("Spin speed", &tocdoquay, 0.f, 30.f, "%.1f"))
-                configManager::putFloat(config, "MEMORY", "SPINSPEED", tocdoquay);
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleVar();
+        panel(c, 12, 12, 232, 354);
+        bool autoTap = false;
+        toggle(c, "Auto Tap", "##cyber_autotap", &autoTap, 24, 20, 208, Bolt);
+        toggle(c, "Fast Shoot", "##cyber_fastshoot", &IsFastshoot, 24, 61, 208, Bolt);
+        toggle(c, "Fast Scope", "##cyber_fastscope", &MemoryFastScope, 24, 102, 208, Target);
+        toggle(c, "Fast Gun", "##cyber_fastgun", &IsFastSwitch, 24, 143, 208, Gear);
+        toggle(c, "Spin", "##cyber_spin", &isSpinning, 24, 184, 208, Reset);
+        toggle(c, "Zoom", "##cyber_zoom", &MemoryZoom, 24, 225, 208, Fov);
+        toggle(c, "iPad", "##cyber_ipad", &WideView, 24, 266, 208, Globe);
+        toggle(c, "No Recoil", "##cyber_recoil", &IsNorecoil2, 24, 307, 208, Shield);
+        panel(c, 253, 12, 232, 354);
+        toggle(c, "No Shake", "##cyber_shake", &IsNocamerashake, 265, 20, 208, Warning);
+        toggle(c, "HitX", "##cyber_hitx", &HitX, 265, 61, 208, Flame);
+        toggle(c, "Damage", "##cyber_damage", &MemoryDamage, 265, 102, 208, Skull);
+        toggle(c, "Small Cross", "##cyber_smcross", &IsCrossHair, 265, 143, 208, Cross);
+        toggle(c, "Rainbow", "##cyber_rainbow", &MemoryRainbow, 265, 184, 208, Wand);
+        toggle(c, "Cross Spin", "##cyber_crossspin", &MemoryCrossSpin, 265, 225, 208, Reset);
+        toggle(c, "Fast Drop", "##cyber_fastdrop", &IsFastDrop, 265, 266, 208, Bolt);
+        toggle(c, "Super Run", "##cyber_superrun", &chaynhanhv2, 265, 307, 208, Flame);
+        panel(c, 494, 12, 232, 354);
+        slider(c, "##cyber_spinspeed", "Spin Speed", &tocdoquay, 0, 360, 502, 20, 216, Gauge);
+        float wideFloat = (float)WideValue;
+        if (slider(c, "##cyber_ipadview", "iPad View", &wideFloat, 80, 160, 502, 65, 216, Eye))
+            WideValue = (int)std::round(wideFloat);
+        slider(c, "##cyber_crosssize", "Cross Size", &crosshairSizeSlider, 0, 20, 502, 110, 216, Fov);
+        panel(c, 502, 155, 216, 201);
+        c.text(512, 165, "More memory options", 19, White, 196);
+        c.text(512, 194,
+               "Current view, crosshair, fast scope, damage and spin controls are active above.",
+               14.5f, Muted, 196);
+        c.text(512, 250, "Memory", 17.5f, White, 196);
+        c.text(512, 274, "No extra memory sliders are included in this project.", 14.5f, Muted, 196);
     }
 
 // HMOOD__TG@i_8_f
@@ -2368,228 +2289,363 @@ namespace CyberMenu {
 
     static void settings(const Canvas& c) {
         if (!c.dl) return;
-        const Stats& st = stats();
-        panel(c, 278, 168, 329, 187);
-        panel(c, 626, 168, 350, 187);
-        panel(c, 278, 373, 329, 203);
-        panel(c, 626, 373, 350, 203);
-        icon(c, NameCard, 294, 184, 18, Cyan);
-        c.text(325, 182, "LICENSE", 18, Cyan, 260);
-        c.text(295, 226, "EXPIRES", 16, Muted, 106);
-        c.text(412, 226, "--", 16, White);
-        c.text(295, 264, "DEVICE", 16, Muted, 106);
-        c.text(412, 264, st.device.c_str(), 16, White, 180);
-        c.text(295, 303, "KEY", 16, Muted, 106);
-        c.text(412, 303, "NOT CONFIGURED", 15, Muted, 180);
-        icon(c, Gamepad, 645, 184, 18);
-        c.text(676, 182, "GAME MODE", 18, Red, 278);
-        c.text(645, 226, "LOCAL MODE", 19, White, 300);
-        c.text(645, 262, "NO LICENSE SERVICE", 17, Muted, 300);
-        panel(c, 644, 302, 313, 38);
-        icon(c, Gamepad, 656, 312, 17);
-        c.text(685, 311, "OPEN MODE", 17, Muted, 260);
-        hit(c, "##mode_absent", 644, 302, 313, 38, false, "No mode or licensing service is configured");
-        icon(c, Gauge, 295, 389, 19, Cyan);
-        c.text(325, 387, "RAM BOOSTER", 18, Cyan, 265);
-        char app[40], freeMem[40];
-        if (std::isfinite(st.appMB) && st.appMB >= 0)
-            snprintf(app, sizeof(app), "%.0f MB", st.appMB);
-        else
-            snprintf(app, sizeof(app), "--");
-        if (std::isfinite(st.freeGB) && st.freeGB >= 0)
-            snprintf(freeMem, sizeof(freeMem), "%.1f GB", st.freeGB);
-        else
-            snprintf(freeMem, sizeof(freeMem), "--");
-        c.text(295, 426, "App", 17, White, 102);
-        c.text(409, 426, app, 17, White);
-        c.text(295, 457, "Free", 17, White, 102);
-        c.text(409, 457, freeMem, 17, White);
-        panel(c, 294, 489, 135, 39);
-        char fps[32];
-        snprintf(fps, sizeof(fps), "%.0f FPS", std::isfinite(st.fps) ? st.fps : 0.f);
-        c.text(315, 500, fps, 17, White, 105);
-        panel(c, 440, 489, 151, 39);
-        icon(c, 7, 452, 499, 18);
-        c.text(482, 500, "PURGE", 16, Muted, 100);
-        hit(c, "##purge_absent", 440, 489, 151, 39, false,
-            "The current project has no memory purge operation");
-        panel(c, 294, 535, 297, 30);
-        c.text(315, 542, "AUTO-CLEAN: OFF", 16, Muted, 265);
-        hit(c, "##clean_absent", 294, 535, 297, 30, false, "Automatic cleaning is not configured");
-        icon(c, Gear, 645, 389, 19);
-        c.text(676, 387, "Preferences", 18, Red, 276);
-        panel(c, 644, 424, 313, 40);
-        icon(c, Eye, 656, 435, 18);
-        c.text(686, 435, hideHacker ? "STREAM: ON" : "STREAM: OFF", 18, White, 260);
-        if (hit(c, "##stream_mode", 644, 424, 313, 40)) {
-            hideHacker = !hideHacker;
-            notifyFeature("Stream", Eye, hideHacker);
-            configManager::putBoolean(config, "SYSTEM", "HIDERECORD", hideHacker);
-        }
-        panel(c, 644, 473, 313, 40);
-        icon(c, Globe, 656, 484, 18);
-        const int curLang = ImClamp(GetMenuLanguage(), 0, 6);
-        const std::string languageLabel = std::string(MenuLocale::tr("Language")) + ": " +
-                                          MenuLocale::languageNames[curLang];
-        c.text(686, 484, languageLabel.c_str(), 18, White, 260);
-        if (hit(c, "##language_select", 644, 473, 313, 40)) {
-            static const int order[] = {0, 4, 5, 2, 3, 1, 6};
-            int position = 0;
-            for (int i = 0; i < 7; ++i) if (order[i] == curLang) position = i;
-            const int next = order[(position + 1) % 7];
-            SetMenuLanguage(next);
-            configManager::putInteger(config, "SYSTEM", "LANGUAGE", next);
-            notifyFeature(MenuLocale::languageNames[next], Globe, true);
-        }
-        panel(c, 644, 522, 313, 40);
-        icon(c, Reset, 656, 533, 18);
-        c.text(686, 533, "RESET GUEST", 18, White, 260);
-        if (hit(c, "##reset_guest", 644, 522, 313, 40))
-            ImGui::OpenPopup("Reset guest account?");
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(16, 16));
-        if (ImGui::BeginPopupModal("Reset guest account?", nullptr,
-                                   ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar)) {
+        panel(c, 12, 12, 354, 354);
+        heading(c, "Preferences", 20, 20, 338, Gear);
+        toggle(c, hideHacker ? "Stream: ON" : "Stream: OFF", "##cyber_set_stream", &hideHacker, 24, 59,
+               330, Eye);
+        c.text(24, 106, "Language", 19, White, 330);
+        combo(c, "##cyber_set_lang", &MenuLocale::language, MenuLocale::languageNames, 7, 24, 132, 330);
+        c.rect(24, 184, 330, 40, IM_COL32(28, 11, 18, 255), 4);
+        c.dl->AddRect(c.p(24, 184), c.p(354, 224), Red, 4 * c.scale, 0, 1.3f * c.scale);
+        c.text(126, 193, "Reset Guest", 20, White, 190);
+        if (hit(c, "##cyber_set_reset", 24, 184, 330, 40))
+            ImGui::OpenPopup("##cyber_set_reset_popup");
+        ImGui::SetNextWindowPos(ImGui::GetIO().DisplaySize * .5f, ImGuiCond_Appearing, ImVec2(.5f, .5f));
+        if (ImGui::BeginPopupModal("##cyber_set_reset_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
             MenuLocale::text("Reset guest account?");
-            ImGui::Separator();
-            MenuLocale::text("This deletes local game data, settings and account data.", 340.f);
-            MenuLocale::text("The game will exit after the reset.", 340.f);
             ImGui::Spacing();
-            if (MenuLocale::button("Cancel", ImVec2(110, 30)))
-                ImGui::CloseCurrentPopup();
-            ImGui::SameLine();
-            if (MenuLocale::button("Reset guest", ImVec2(110, 30))) {
+            MenuLocale::text("This deletes local game data, settings and account data.");
+            MenuLocale::text("The game will exit after the reset.");
+            ImGui::Spacing();
+            if (MenuLocale::button("Reset Guest", ImVec2(120, 30))) {
                 ImGui::CloseCurrentPopup();
                 ResetGuestAccount();
             }
+            ImGui::SameLine();
+            if (MenuLocale::button("Cancel", ImVec2(100, 30)))
+                ImGui::CloseCurrentPopup();
             ImGui::EndPopup();
         }
-        ImGui::PopStyleVar();
+        panel(c, 375, 12, 351, 354);
+        heading(c, "GAME INFO", 383, 20, 335, Information);
+        const Stats& st = stats();
+        char line[128];
+        snprintf(line, sizeof(line), "DEVICE: %s", st.device.c_str());
+        c.text(387, 62, line, 18, White, 327);
+        snprintf(line, sizeof(line), "OS: iOS %s", st.ios.c_str());
+        c.text(387, 90, line, 18, White, 327);
+        snprintf(line, sizeof(line), "FPS: %.0f", st.fps);
+        c.text(387, 118, line, 18, st.fps >= 55 ? Green : Cyan, 327);
+        snprintf(line, sizeof(line), "APP RAM: %.0f MB", st.appMB);
+        c.text(387, 146, line, 18, White, 327);
+        snprintf(line, sizeof(line), "FREE RAM: %.1f GB", st.freeGB);
+        c.text(387, 174, line, 18, White, 327);
+        snprintf(line, sizeof(line), "TIME: %s", st.time.c_str());
+        c.text(387, 202, line, 18, White, 327);
+        snprintf(line, sizeof(line), "DATE: %s", st.date.c_str());
+        c.text(387, 230, line, 18, White, 327);
     }
 
 // HMOOD__TG@i_8_f
 
 
     static void render() {
-        if (!ImGui::GetCurrentContext()) return;
-        static PageMotion motion;
-        if (!MenDeal) {
-            motion.shown = false;
-            renderNotices();
+        if (!MenDeal || !ImGui::GetCurrentContext())
             return;
-        }
-        ImGuiIO& io = ImGui::GetIO();
-        if (io.DisplaySize.x < 1 || io.DisplaySize.y < 1)
-            return;
-         
+        MenuLocale::beginFrame();
         ImFont* activeFont = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
         if (activeFont) ImGui::PushFont(activeFont);
-        const float scale =
-            ImMin(ImMin(io.DisplaySize.x * .98f / 1024.f, io.DisplaySize.y * .98f / 676.f), 1.20f);
-        ImVec2 size(1024 * scale, 676 * scale);
-        ImGui::SetNextWindowPos({(io.DisplaySize.x - size.x) * .5f, (io.DisplaySize.y - size.y) * .5f},
-                                ImGuiCond_Always);
-        ImGui::SetNextWindowSize(size, ImGuiCond_Always);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0, 0));
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0);
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0, 0, 0, 0));
-        bool visible =
-            ImGui::Begin("##flexmenu", &MenDeal,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
-                             ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoScrollbar |
-                             ImGuiWindowFlags_NoScrollWithMouse | ImGuiWindowFlags_NoSavedSettings);
-        ImGui::PopStyleColor();
-        ImGui::PopStyleVar(3);
-        if (visible) {
-            ImDrawList* drawList = ImGui::GetWindowDrawList();
-            if (drawList) {
-                Canvas c{drawList, ImGui::GetWindowPos(), scale};
-                ImGui::SetWindowFontScale(ImClamp(scale * 1.5f, .7f, 1.5f));
-                static int page = 0;
+        const ImGuiIO& io = ImGui::GetIO();
+        if (io.DisplaySize.x < 1.f || io.DisplaySize.y < 1.f) {
+            if (activeFont) ImGui::PopFont();
+            return;
+        }
+        static int page = 0;
+        static PageMotion motion;
+        const float scale = ImMin(io.DisplaySize.x / 1024.f, io.DisplaySize.y / 676.f);
+        const ImVec2 winSize = {1024.f * scale, 676.f * scale};
+        ImGui::SetNextWindowSize(winSize, ImGuiCond_Always);
+        ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - winSize.x) * .5f, (io.DisplaySize.y - winSize.y) * .5f),
+                                ImGuiCond_FirstUseEver);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
+        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
+        ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
+        if (ImGui::Begin("##cyber_menu", nullptr,
+                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar |
+                             ImGuiWindowFlags_NoScrollWithMouse)) {
+            ImDrawList* dl = ImGui::GetWindowDrawList();
+            if (dl) {
+                Canvas c{dl, ImGui::GetWindowPos(), scale};
+                c.animationTime =
+                    std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
                 frame(c);
+                if (closeButton(c)) {
+                    [metalbiew showChange:NO];
+                    ImGui::End();
+                    ImGui::PopStyleColor();
+                    ImGui::PopStyleVar(2);
+                    if (activeFont) ImGui::PopFont();
+                    return;
+                }
                 navigation(c, page);
-                if (closeButton(c))
-                    MenDeal = false;
                 motion.update(page);
                 headerSweep(c, motion.age);
-                Canvas pageCanvas = c;
-                pageCanvas.origin.x += motion.offset() * scale;
-                pageCanvas.switchReveal = motion.switches();
-                pageCanvas.animationTime = motion.lastFrame;
-                Canvas content = pageCanvas;
-                if (highQualityFrame().texture) {
-                    content.stretchX = .954f;
-                    content.origin.x += 253.f * (1.f - content.stretchX) * scale;
-                    content.stretchY = .98f;
-                    content.origin.y += 164.f * (1.f - content.stretchY) * scale;
-                }
-                const int firstContentVertex = c.dl->VtxBuffer.Size;
+                Canvas content = c;
+                content.origin = c.p(251 + motion.offset(), 150);
+                content.scale = c.scale * (419.f / 373.f);
+                content.stretchX = (738.f / 604.f) / (419.f / 373.f);
+                content.stretchY = 1.f;
+                content.switchReveal = motion.switches();
+                const int first = dl->VtxBuffer.Size;
                 switch (page) {
-                case 0:
-                    home(pageCanvas);
-                    break;
-                case 1:
-                    visual(content);
-                    break;
-                case 2:
-                    aim(content);
-                    break;
-                case 3:
-                    memory(content);
-                    break;
-                default:
-                    settings(content);
-                    break;
+                    case 0:
+                        home(c);
+                        break;
+                    case 1:
+                        visual(content);
+                        break;
+                    case 2:
+                        aim(content);
+                        break;
+                    case 3:
+                        memory(content);
+                        break;
+                    case 4:
+                        settings(content);
+                        break;
                 }
-                fadeContent(c.dl, firstContentVertex, motion.opacity());
+                fadeContent(dl, first, motion.opacity());
+                dl->AddRect(c.p(10, 10), c.p(1014, 666), IM_COL32(7, 8, 11, 255), 14 * c.scale, 0,
+                            6 * c.scale);
             }
-            if (!MenDeal)
-                motion.shown = false;
         }
         ImGui::End();
+        ImGui::PopStyleColor();
+        ImGui::PopStyleVar(2);
         if (activeFont) ImGui::PopFont();
-        renderNotices();
     }
-}  
+
+} // namespace CyberMenu
 
 // HMOOD__TG@i_8_f
 
 
-void DrawMenuHudBadge(ImDrawList* draw, ImVec2 center, float diameter) {
-    if (!draw) return;
-    auto& badge = CyberMenu::artwork(2);
-    if (!badge.texture || diameter <= 0.f || !std::isfinite(diameter)) return;
-    const float radius = diameter * .5f;
-    draw->AddImage((__bridge ImTextureID)badge.texture,
-                   ImVec2(center.x - radius, center.y - radius),
-                   ImVec2(center.x + radius, center.y + radius));
-}
+static void RenderLicenseGate() {
+    if (!MenDeal || !ImGui::GetCurrentContext())
+        return;
 
-// HMOOD__TG@i_8_f
-void RenderMenu() {
-    if (!ImGui::GetCurrentContext()) return;
     MenuLocale::beginFrame();
+    ImFont* activeFont = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
+    if (activeFont) ImGui::PushFont(activeFont);
 
-    NSArray<UIWindow*>* windows = [UIApplication sharedApplication].windows;
-    if (windows && windows.count > 0) {
-        UIWindow* firstWin = windows[0];
-        UIView* rootView = firstWin.rootViewController.view;
-        if (rootView) {
-            CGFloat x = (rootView.frame.size.width - 360) / 2;
-            CGFloat y = (rootView.frame.size.height - 360) / 2;
-            (void)x;
-            (void)y;
+    const ImGuiIO& io = ImGui::GetIO();
+    if (io.DisplaySize.x < 1.f || io.DisplaySize.y < 1.f) {
+        if (activeFont) ImGui::PopFont();
+        return;
+    }
+
+    static char keyInputBuf[128] = {0};
+    static bool keyLoaded = false;
+    static std::string statusMessage = "";
+    static bool statusError = false;
+    static bool isVerifying = false;
+
+    if (!keyLoaded) {
+        keyLoaded = true;
+        NSString* savedKey = [[NSUserDefaults standardUserDefaults] stringForKey:@"DarkosSavedLicenseKey"];
+        if (savedKey.length > 0) {
+            snprintf(keyInputBuf, sizeof(keyInputBuf), "%s", savedKey.UTF8String);
         }
     }
 
-    ImGuiIO& Io = ImGui::GetIO();
-    ImVec2 scr = Io.DisplaySize;
-    ImVec2 winSz = ImVec2(635, 300);
+    const float scale = ImClamp(ImMin(io.DisplaySize.x / 520.f, io.DisplaySize.y / 320.f), 0.85f, 1.35f);
+    const ImVec2 winSize = ImVec2(480.f * scale, 265.f * scale);
 
-    ImGui::SetNextWindowPos(ImVec2(scr.x * 0.5f - winSz.x * 0.5f, scr.y * 0.5f - winSz.y * 0.5f),
-                            ImGuiCond_FirstUseEver);
+    ImGui::SetNextWindowSize(winSize, ImGuiCond_Always);
+    ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - winSize.x) * 0.5f,
+                                   (io.DisplaySize.y - winSize.y) * 0.5f),
+                           ImGuiCond_FirstUseEver);
 
-    ImGui::SetNextWindowSize(winSz, ImGuiCond_FirstUseEver);
-    ImGui::GetStyle().WindowRounding = 3.5;
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.f * scale);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.2f * scale);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(10, 11, 16, 250));
+    ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(195, 12, 41, 220));
+
+    if (ImGui::Begin("##darkos_key_login", nullptr,
+                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
+                         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar)) {
+        ImDrawList* dl = ImGui::GetWindowDrawList();
+        const ImVec2 pos = ImGui::GetWindowPos();
+        const ImVec2 size = ImGui::GetWindowSize();
+
+        // Başlıq paneli
+        dl->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + 44.f * scale),
+                          IM_COL32(22, 9, 15, 255), 10.f * scale, ImDrawCornerFlags_Top);
+        dl->AddLine(ImVec2(pos.x, pos.y + 44.f * scale),
+                    ImVec2(pos.x + size.x, pos.y + 44.f * scale),
+                    IM_COL32(195, 12, 41, 180), 1.2f * scale);
+
+        const float titleFontSize = 18.f * scale;
+        dl->AddText(activeFont, titleFontSize,
+                    ImVec2(pos.x + 18.f * scale, pos.y + 12.f * scale),
+                    IM_COL32(245, 245, 248, 255), "KEY LOGIN");
+
+        // Sağ yuxarı bağlama düyməsi
+        const float closeSize = 26.f * scale;
+        const ImVec2 closePos = ImVec2(pos.x + size.x - closeSize - 10.f * scale, pos.y + 9.f * scale);
+        ImGui::SetCursorScreenPos(closePos);
+        if (ImGui::InvisibleButton("##key_gate_close", ImVec2(closeSize, closeSize))) {
+            [metalbiew showChange:NO];
+        }
+        const bool closeHovered = ImGui::IsItemHovered();
+        dl->AddRectFilled(closePos, ImVec2(closePos.x + closeSize, closePos.y + closeSize),
+                          closeHovered ? IM_COL32(195, 12, 41, 240) : IM_COL32(45, 12, 20, 220),
+                          4.f * scale);
+        dl->AddText(activeFont, 15.f * scale,
+                    ImVec2(closePos.x + 8.f * scale, closePos.y + 5.f * scale),
+                    IM_COL32(255, 255, 255, 255), "X");
+
+        // Key daxiletmə yeri + Paste düyməsi
+        const float padX = 18.f * scale;
+        const float inputY = pos.y + 66.f * scale;
+        const float inputH = 38.f * scale;
+        const float pasteW = 84.f * scale;
+        const float gap = 8.f * scale;
+        const float inputW = size.x - padX * 2.f - pasteW - gap;
+
+        dl->AddText(activeFont, 13.f * scale,
+                    ImVec2(pos.x + padX, inputY - 18.f * scale),
+                    IM_COL32(165, 170, 182, 255), "License Key");
+
+        ImGui::SetCursorScreenPos(ImVec2(pos.x + padX, inputY));
+        ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(18, 20, 28, 255));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(24, 27, 38, 255));
+        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(28, 31, 44, 255));
+        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.f * scale);
+        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.f * scale, 9.f * scale));
+        ImGui::SetNextItemWidth(inputW);
+        ImGui::InputText("##darkos_key_field", keyInputBuf, sizeof(keyInputBuf));
+        ImGui::PopStyleVar(2);
+        ImGui::PopStyleColor(3);
+
+        // Paste düyməsi
+        const ImVec2 pastePos = ImVec2(pos.x + padX + inputW + gap, inputY);
+        ImGui::SetCursorScreenPos(pastePos);
+        if (ImGui::InvisibleButton("##darkos_paste_btn", ImVec2(pasteW, inputH))) {
+            NSString* clip = [UIPasteboard generalPasteboard].string;
+            if (clip.length > 0) {
+                NSString* trimmed = [clip stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+                snprintf(keyInputBuf, sizeof(keyInputBuf), "%s", trimmed.UTF8String);
+                statusMessage = "Key pasted from clipboard.";
+                statusError = false;
+            } else {
+                statusMessage = "Clipboard is empty.";
+                statusError = true;
+            }
+        }
+        const bool pasteHovered = ImGui::IsItemHovered();
+        dl->AddRectFilled(pastePos, ImVec2(pastePos.x + pasteW, pastePos.y + inputH),
+                          pasteHovered ? IM_COL32(42, 47, 64, 255) : IM_COL32(26, 30, 42, 255),
+                          5.f * scale);
+        dl->AddRect(pastePos, ImVec2(pastePos.x + pasteW, pastePos.y + inputH),
+                    IM_COL32(195, 12, 41, 160), 5.f * scale, 0, 1.f * scale);
+        dl->AddText(activeFont, 14.f * scale,
+                    ImVec2(pastePos.x + 22.f * scale, pastePos.y + 11.f * scale),
+                    IM_COL32(235, 238, 245, 255), "Paste");
+
+        // Login düyməsi (key yerinin altında)
+        const float loginY = inputY + inputH + 14.f * scale;
+        const float loginH = 40.f * scale;
+        const float fullW = size.x - padX * 2.f;
+        const ImVec2 loginPos = ImVec2(pos.x + padX, loginY);
+
+        ImGui::SetCursorScreenPos(loginPos);
+        ImGui::BeginDisabled(isVerifying);
+        const bool loginClicked = ImGui::InvisibleButton("##darkos_login_btn", ImVec2(fullW, loginH));
+        const bool loginHovered = ImGui::IsItemHovered();
+        ImGui::EndDisabled();
+
+        if (loginClicked && !isVerifying) {
+            NSString* entered = [[NSString stringWithUTF8String:keyInputBuf]
+                stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
+            if (entered.length == 0) {
+                statusMessage = "Please enter a license key.";
+                statusError = true;
+            } else {
+                isVerifying = true;
+                statusMessage = "Verifying key...";
+                statusError = false;
+                [[NSUserDefaults standardUserDefaults] setObject:entered forKey:@"DarkosSavedLicenseKey"];
+                [[NSUserDefaults standardUserDefaults] synchronize];
+
+                // DarkosLicenseAuth yoxlaması
+                BOOL ok = [[DarkosLicenseAuth sharedManager] verifyLicenseKey:entered errorMessage:nil];
+                if (!ok) {
+                    // Fallback: DarkosLicenseAuth-da verifyLicenseKey yoxdursa və ya false qaytarırsa,
+                    // yadda saxlanılan/aktiv tokeni yoxlayır
+                    ok = [DarkosLicenseAuth sharedManager].isAuthenticated;
+                }
+
+                isVerifying = false;
+                if (ok) {
+                    IsLogin = true;
+                    statusMessage = "Login successful!";
+                    statusError = false;
+                } else {
+                    IsLogin = false;
+                    statusMessage = "Invalid or expired key.";
+                    statusError = true;
+                }
+            }
+        }
+
+        dl->AddRectFilled(loginPos, ImVec2(loginPos.x + fullW, loginPos.y + loginH),
+                          isVerifying ? IM_COL32(110, 12, 28, 255)
+                                      : (loginHovered ? IM_COL32(220, 18, 50, 255) : IM_COL32(195, 12, 41, 255)),
+                          6.f * scale);
+        dl->AddText(activeFont, 15.f * scale,
+                    ImVec2(loginPos.x + fullW * 0.5f - 18.f * scale, loginPos.y + 12.f * scale),
+                    IM_COL32(255, 255, 255, 255), isVerifying ? "..." : "Login");
+
+        // Status mesajı
+        if (!statusMessage.empty()) {
+            dl->AddText(activeFont, 12.5f * scale,
+                        ImVec2(pos.x + padX, loginY + loginH + 8.f * scale),
+                        statusError ? IM_COL32(255, 72, 95, 255) : IM_COL32(37, 216, 125, 255),
+                        statusMessage.c_str());
+        }
+
+        // Sol alt küncdə Buy Key düyməsi -> https://t.me/DylibSafe
+        const float buyW = 104.f * scale;
+        const float buyH = 30.f * scale;
+        const ImVec2 buyPos = ImVec2(pos.x + padX, pos.y + size.y - buyH - 14.f * scale);
+        ImGui::SetCursorScreenPos(buyPos);
+        if (ImGui::InvisibleButton("##darkos_buy_key_btn", ImVec2(buyW, buyH))) {
+            dispatch_async(dispatch_get_main_queue(), ^{
+                NSURL* url = [NSURL URLWithString:@"https://t.me/DylibSafe"];
+                UIApplication* app = [UIApplication sharedApplication];
+                if (url && app) {
+                    [app openURL:url options:@{} completionHandler:nil];
+                }
+            });
+        }
+        const bool buyHovered = ImGui::IsItemHovered();
+        dl->AddRectFilled(buyPos, ImVec2(buyPos.x + buyW, buyPos.y + buyH),
+                          buyHovered ? IM_COL32(24, 58, 76, 255) : IM_COL32(15, 34, 48, 255),
+                          5.f * scale);
+        dl->AddRect(buyPos, ImVec2(buyPos.x + buyW, buyPos.y + buyH),
+                    IM_COL32(27, 205, 223, 210), 5.f * scale, 0, 1.f * scale);
+        dl->AddText(activeFont, 13.5f * scale,
+                    ImVec2(buyPos.x + 22.f * scale, buyPos.y + 8.f * scale),
+                    IM_COL32(130, 238, 250, 255), "Buy Key");
+    }
+
+    ImGui::End();
+    ImGui::PopStyleColor(2);
+    ImGui::PopStyleVar(2);
+    if (activeFont) ImGui::PopFont();
+}
+
+void RenderMenu() {
+    if (!MenDeal || !ImGui::GetCurrentContext())
+        return;
+
+    if (!IsLogin) {
+        RenderLicenseGate();
+        return;
+    }
+
     CyberMenu::render();
+    CyberMenu::renderNotices();
 }
