@@ -5,7 +5,7 @@
 #import "HeeNoScreenShotView.h"
 
 @implementation HideFunsion {
-    HeeeNoScreenShotView *_hideesp;
+    HeeNoScreenShotView *_hideesp;
 }
 
 + (instancetype)sharedManager {
@@ -21,7 +21,7 @@
 - (instancetype)initPrivate {
     self = [super init];
     if (self) {
-        _hideesp = [[HeeeNoScreenShotView alloc] initWithFrame:[UIScreen mainScreen].bounds];
+        _hideesp = [[HeeNoScreenShotView alloc] initWithFrame:[UIScreen mainScreen].bounds];
         [[UIApplication sharedApplication].windows[0].rootViewController.view addSubview:_hideesp];
         _hideesp.userInteractionEnabled = YES;  
         _hideesp.hidden = YES;  
