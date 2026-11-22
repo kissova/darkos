@@ -1,6 +1,6 @@
 #import "ESP/HeeNoScreenShotView.h"
 
-@interface HeeeNoScreenShotView ()
+@interface HeeNoScreenShotView ()
 @property (nonatomic, strong) UITextField *textField;
 @property (nonatomic, strong) UIView *clearView;
 @end
