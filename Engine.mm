@@ -37,7 +37,7 @@
 #import "UE4.h"
 #import "PubgLoad.h"
 #include "imgui.h"
-#import "HeeeNoScreenShotView.h"
+#import "ESP/HeeNoScreenShotView.h"
 #import "ini_rw.h"
 #import <libkern/OSCacheControl.h>
 
