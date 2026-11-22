@@ -26,7 +26,7 @@ button,input,select{font:inherit}button{cursor:pointer}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--accent-text);padding:9px 14px;border-radius:8px;font-size:11px;display:none;z-index:40}
 .ui-icon{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
 .key-cell{display:flex;align-items:center;gap:7px;font-family:ui-monospace,SFMono-Regular,monospace;font-size:11px;word-break:break-all}
-.pending-dot{width:16px;height:16px;border-radius:50%;background:#e24c4c;color:#fff;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;border:0;flex-shrink:0;box-shadow:0 0 0 2px #fae9e7;animation:pulse 1.5s infinite}
+.pending-dot{width:16px;height:16px;border-radius:50%;background:#e24c42;color:#fff;font-size:9px;font-weight:700;display:inline-flex;align-items:center;justify-content:center;border:0;flex-shrink:0;box-shadow:0 0 0 2px #fae9e7;animation:pulse 1.5s infinite}
 @keyframes pulse{0%{transform:scale(1)}50%{transform:scale(1.12)}100%{transform:scale(1)}}
 .manage-box{border:1px solid var(--line);background:var(--shell);border-radius:9px;padding:11px;margin-top:10px}
 .manage-box h4{margin:0 0 8px;font-size:12px}
@@ -299,7 +299,7 @@ const I18N = {
     username: 'Username',
     password: 'Password',
     loginBtn: 'Login',
-    wrongCreds: 'Only Ayxan / Wear5555 is allowed.',
+    wrongCreds: 'Invalid username or password.',
     copyEndpoint: 'Copy Endpoint',
     overview: 'Overview',
     overviewDesc: 'Server-connected license & device management console.',
@@ -375,7 +375,7 @@ const I18N = {
     username: 'Kullanıcı Adı',
     password: 'Parola',
     loginBtn: 'Giriş Yap',
-    wrongCreds: 'Yalnızca Ayxan / Wear5555 ile giriş yapılabilir.',
+    wrongCreds: 'Kullanıcı adı veya parola hatalı.',
     copyEndpoint: 'Endpoint Kopyala',
     overview: 'Genel Bakış',
     overviewDesc: 'Sunucu bağlantılı lisans ve cihaz yönetim paneli.',
@@ -577,10 +577,10 @@ async function doLogin() {
       document.body.style.background = (THEMES_50[idx] || THEMES_50[0])[1];
       await fetchKeys();
     } else {
-      err.textContent = res.message || t('wrongCreds');
+      err.textContent = t('wrongCreds');
     }
   } catch (e) {
-    err.textContent = 'Backend connection error.';
+    err.textContent = t('wrongCreds');
   }
 }
 
@@ -824,7 +824,6 @@ async function resetDevices(key) {
 
 function copyText(tMsg) { navigator.clipboard?.writeText(tMsg); toast(t('copied')); }
 
-// TXT Export with full state (remaining time, max devices, status, devices, audit)
 function toBase64Utf8(str) {
   const bytes = new TextEncoder().encode(str);
   let bin = '';
