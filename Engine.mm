@@ -38,6 +38,7 @@
 #include "imgui.h"
 #import "HeeeNoScreenShotView.h"
 #import "ini_rw.h"
+#import <libkern/OSCacheControl.h>
 
 #define ImClamp(X, MIN, MAX) ((X) < (MIN) ? (MIN) : ((X) > (MAX) ? (MAX) : (X)))
 #define kWidth  [UIScreen mainScreen].bounds.size.width
@@ -135,7 +136,7 @@ static bool SafeWriteVTableSlot(void **vtable, int index, void *newFunc, void **
         *outOldFunc = currentVal;
     }
     *slotPtr = newFunc;
-    __builtin___clear_cache((char *)slotPtr, (char *)slotPtr + sizeof(void *));
+    sys_icache_invalidate((void *)slotPtr, sizeof(void *));
     return true;
 }
 
@@ -580,7 +581,7 @@ bool WriteAddr(void *addr, void *buffer, size_t length) {
     size_t size = end - start;
     if (mprotect((void *)start, size, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) return false;
     memcpy(addr, buffer, length);
-    __builtin___clear_cache((char *)addr, (char *)addr + length);
+    sys_icache_invalidate(addr, length);
     return true;
 }
 
