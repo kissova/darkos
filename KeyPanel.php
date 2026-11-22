@@ -91,6 +91,16 @@ body{background:#080808}
 .key-row{word-break:break-all}.key-actions{display:flex;gap:6px}
 @media(max-width:700px){.login-screen{width:100vw;height:100vh;min-height:0;border:0;outline:0;grid-template-columns:1fr}.login-left{padding:35px 28px}.login-form{max-width:340px}.login-logo{margin-bottom:48px}.login-art{display:none}}
 
+
+.time-row{display:grid;grid-template-columns:1fr 2fr;align-items:center;gap:12px;margin-top:12px}
+.time-row label{margin:0}
+.time-row select{width:100%}
+#generatorModal .modal{max-width:470px}
+#keyToolsModal .modal{max-width:400px}
+#generatorModal .modal>label{margin-top:12px}
+#generatorModal .sub{line-height:1.45}
+@media(max-width:480px){.time-row{grid-template-columns:90px 1fr}}
+
 </style>
 </head>
 <body data-theme="light">
@@ -200,7 +210,7 @@ body{background:#080808}
  <div class="panel section-panel">
   <h3>Key Generator</h3>
   <p>Create keys with a duration and a custom device limit.</p>
-  <div class="toolbar"><button class="action" onclick="openModal('generatorModal')"><svg class="ui-icon"><use href="#i-plus"/></svg> Generate Key</button><button class="small-btn" onclick="exportKeys()">Export TXT</button><button class="small-btn" onclick="document.getElementById('importFile').click()">Import TXT</button><input id="importFile" type="file" accept=".txt,text/plain" hidden></div>
+  <div class="toolbar"><button class="action" onclick="openModal('generatorModal')"><svg class="ui-icon"><use href="#i-plus"/></svg> Generate Key</button><button class="small-btn" onclick="openModal('keyToolsModal')">Key Tools</button></div>
  </div>
  <div class="panel section-panel">
   <h3>Key List</h3>
@@ -236,17 +246,33 @@ body{background:#080808}
 </div>
 <div class="overlay" id="generatorModal"><div class="modal">
  <h2>Generate DARKIOS Key</h2>
- <label>Duration</label>
- <select class="field" id="durationType" style="width:100%">
-  <option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option><option value="hour">Hour</option><option value="minute">Minute</option>
- </select>
- <label>Amount</label><input class="field" id="durationAmount" type="number" min="1" value="1" style="width:100%">
- <label>Maximum devices</label><input class="field" id="deviceLimit" type="number" min="1" value="1" style="width:100%">
- <label>Custom key code (optional)</label><input class="field" id="customCode" placeholder="Leave empty to use duration code" style="width:100%">
- <p class="sub">Example: DARKIOS-1D-XXXXXXXXXXXX or DARKIOS-GGG-XXXXXXXXXXXX</p>
+ <label>Custom Key</label>
+ <input class="field" id="customCode" placeholder="Leave empty for automatic key" style="width:100%">
+ <div class="time-row">
+  <label for="durationType">Time</label>
+  <select class="field" id="durationType">
+   <option value="day">Day</option><option value="week">Week</option><option value="month">Month</option><option value="year">Year</option><option value="hour">Hour</option><option value="minute">Minute</option>
+  </select>
+ </div>
+ <label>Amount</label>
+ <input class="field" id="durationAmount" type="number" min="1" value="1" style="width:100%">
+ <label>Maximum devices</label>
+ <input class="field" id="deviceLimit" type="number" min="1" value="1" style="width:100%">
+ <p class="sub">Custom Key daxil edilərsə, nəticə həmin mətn olacaq. Boş saxlanarsa DARKIOS formatı yaradılacaq.</p>
  <div class="modal-actions"><button class="small-btn" onclick="closeModal('generatorModal')">Cancel</button><button class="action" onclick="generateKey()">Generate</button></div>
  </div></div>
+<div class="overlay" id="keyToolsModal"><div class="modal">
+ <h2>Key Tools</h2>
+ <p class="sub">Export və import əməliyyatlarını buradan idarə et.</p>
+ <div class="toolbar" style="flex-wrap:wrap">
+  <button class="action" onclick="exportKeys()">Export TXT</button>
+  <button class="small-btn" onclick="document.getElementById('importFile').click()">Import TXT</button>
+  <input id="importFile" type="file" accept=".txt,text/plain" hidden>
+ </div>
+ <div class="modal-actions"><button class="small-btn" onclick="closeModal('keyToolsModal')">Close</button></div>
+ </div></div>
 <div class="toast" id="toast"></div>
+
 
 <script>
 const navs=document.querySelectorAll('.nav[data-page]');
@@ -276,9 +302,9 @@ function generateKey(){
  const type=document.getElementById('durationType').value;
  const amount=Math.max(1,Math.floor(Number(document.getElementById('durationAmount').value)||1));
  const devices=Math.max(1,Math.floor(Number(document.getElementById('deviceLimit').value)||1));
- const custom=document.getElementById('customCode').value.trim().replace(/[^A-Za-z0-9_-]/g,'').toUpperCase();
- const code=custom||durationCode(type,amount);
- const key='DARKIOS-'+code+'-'+randomBlock();
+ const custom=document.getElementById('customCode').value.trim();
+ const code=durationCode(type,amount);
+ const key=custom ? custom : 'DARKIOS-'+code+'-'+randomBlock();
  if(keyRecords.some(k=>k.key===key)){toast('Duplicate key. Generate again.');return}
  keyRecords.unshift({key,duration:custom?'Custom':durationCode(type,amount),devices,created:new Date().toLocaleDateString(),status:'Active'});
  saveKeys();closeModal('generatorModal');toast('Key generated');
