@@ -1,4 +1,4 @@
-#import "DarkosLicenseAuth.h"
+#import "LicenseAuth.h"
 
 static NSString * const kDarkosAuthKeyDefaults = @"DarkosSavedLicenseKey";
 
