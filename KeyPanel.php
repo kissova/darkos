@@ -353,3 +353,105 @@ document.querySelectorAll('.theme-choice').forEach(btn=>btn.addEventListener('cl
 </script>
 </body>
 </html>
+
+
+<!--
+===============================================================================
+DARKIOS — FEATURE SPECIFICATION / PROJECT NOTES
+This comment block is documentation only. It does not execute and does not
+change the dashboard's existing HTML, CSS, JavaScript, storage, or behavior.
+===============================================================================
+
+A. CURRENT DASHBOARD FEATURES IN THIS FRONT-END BUILD
+- Login screen with the configured demo username/password check.
+- Overview page with shortcuts to Key Management and Settings.
+- Key Management page.
+- Key generator:
+  * Custom key text: when provided, the custom text is the entire key.
+  * Automatic DARKIOS key format when Custom Key is left empty.
+  * Duration units: day, week, month, year, hour, minute.
+  * Numeric duration field.
+  * Maximum-device limit field.
+- Key list with search.
+- Key export as TXT, one key per line.
+- TXT import; duplicate keys are skipped and existing keys are retained.
+- Key deletion.
+- Settings page with theme selection.
+- Browser-local storage for the current front-end demo.
+
+B. REQUESTED KEY MANAGEMENT FEATURES — IMPLEMENTATION SPECIFICATION
+Each existing key should have a Manage action opening its own detail window.
+The key's current settings and device state should be shown there.
+
+1. Increase device limit
+   - Show current maximum device count.
+   - Allow an administrator to enter a new limit.
+   - Do not allow the new limit to be lower than the number of already-approved
+     active devices unless the administrator confirms a forced removal.
+
+2. Extend key duration
+   - Show the current expiry date/time and remaining duration.
+   - Allow adding a chosen number of days, weeks, months, years, hours, or
+     minutes.
+   - Record the change in the key's activity history.
+
+3. Ban key
+   - Change the key status to Banned.
+   - Deny future activation and device approval while banned.
+   - Provide an administrator-only unban action.
+
+4. Temporary stop
+   - Pause a key without deleting it.
+   - While paused, deny new logins and new device approvals.
+   - Provide Resume and optional stop-until date/time actions.
+
+5. Connected-device list
+   - Show approved devices and their current session state.
+   - For each device, show only information the client has explicitly
+     permission to share: device label/name, battery level, approximate or
+     shared location, IP address, last-seen time, and active/inactive state.
+   - Do not silently collect location, battery, device identifiers, or IP
+     details. The app/client must disclose collection and obtain any required
+     permission/consent.
+
+6. New-device approval queue
+   - When a key has reached its device limit, a new device must not be allowed
+     in automatically.
+   - Add a pending request with the key name and the requesting device's
+     consented/shared details.
+   - Display a red circular pending-request indicator beside the key.
+   - Selecting the indicator opens the request details.
+   - Provide Accept and Decline actions.
+   - Pending means DENIED by default: if the administrator does nothing, the
+     requesting device remains blocked.
+   - Accept only if the administrator explicitly approves and the device
+     limit policy permits it (or the administrator explicitly raises the
+     limit).
+   - Decline keeps the device blocked and records the decision.
+
+7. Reset key devices
+   - Provide a Reset Devices action for each key.
+   - Revoke all active sessions/tokens for that key.
+   - Remove all approved device registrations for that key.
+   - All previously connected devices must authenticate and be approved again.
+   - Ask for confirmation before resetting.
+
+8. Audit history
+   - Record key creation, duration changes, device-limit changes, ban/unban,
+     pause/resume, approval/decline, and device reset events.
+   - Include timestamp and administrator action.
+
+C. IMPORTANT IMPLEMENTATION BOUNDARY
+The current HTML-only dashboard is a browser-side prototype. Browser localStorage
+cannot securely enforce a key limit across different users/devices, revoke
+sessions on other devices, verify a device's identity, or securely protect
+administrator actions. Real multi-device enforcement requires a backend API,
+database, authenticated admin sessions, server-side expiry/status checks,
+device registration, and revocable session tokens. Device details must come
+from an explicitly configured client/app and must respect user consent.
+Do not treat this documentation block as proof that backend enforcement exists.
+
+===============================================================================
+END OF DARKIOS FEATURE SPECIFICATION
+===============================================================================
+-->
