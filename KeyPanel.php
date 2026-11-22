@@ -15,13 +15,19 @@ button,input,select{font:inherit}button{cursor:pointer}
 .body{display:flex;min-height:0;flex:1}.rail{width:42px;border-right:1px solid var(--line);display:flex;align-items:center;flex-direction:column;gap:15px;padding:14px 0;color:var(--muted);flex-shrink:0}.rail button{border:0;background:none;color:inherit;font-size:17px;width:28px;height:24px;border-radius:6px}.rail button:hover{background:var(--line)}
 .sidebar{width:66px;border-right:1px solid var(--line);padding:10px 8px 8px;display:flex;flex-direction:column;gap:8px;overflow:auto;flex-shrink:0}
 .nav{display:flex;align-items:center;justify-content:center;width:100%;height:38px;border:0;background:transparent;padding:7px 8px;border-radius:7px;color:var(--text);font-size:12px;margin:2px 0}.nav:hover,.nav.active{background:var(--line)}.nav .ico{width:18px;height:18px;color:var(--muted);display:flex;align-items:center;justify-content:center}.nav .ico svg{width:17px;height:17px;stroke:currentColor;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
-.main{flex:1;min-width:0;overflow:auto;padding:14px 20px 22px}.content{max-width:960px;margin:0 auto}.page-title{font-size:14px;font-weight:600;margin:0 0 14px}
+.main{flex:1;min-width:0;overflow:auto;padding:14px 20px 22px}.content{max-width:980px;margin:0 auto}.page-title{font-size:14px;font-weight:600;margin:0 0 14px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:11px;box-shadow:var(--shadow)}
-.page{display:none}.page.active{display:block}.section-panel{padding:15px;margin-bottom:10px}.section-panel h3{font-size:13px;margin:0 0 12px}.section-panel p{font-size:11px;color:var(--muted)}
-.toolbar{display:flex;gap:8px;align-items:center;margin:12px 0;flex-wrap:wrap}.toolbar input{flex:1;min-width:120px}.field{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:8px 10px;font-size:11px;color:var(--text)}.action{background:var(--accent);color:var(--accent-text);border:0;border-radius:7px;padding:8px 12px;font-size:11px;display:inline-flex;align-items:center;gap:6px}.small-btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 9px;font-size:10px;color:var(--text)}.small-btn.danger{border-color:#efc7c4;color:#c24c42;background:#fff8f7}.small-btn.warn{border-color:#ecd9a2;color:#99750b;background:#fffdf5}
-.table{width:100%;border-collapse:collapse;font-size:11px}.table th{text-align:left;color:var(--muted);font-weight:500;padding:10px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.table td{padding:10px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
+.page{display:none}.page.active{display:block}.section-panel{padding:15px;margin-bottom:10px}.section-panel h3{font-size:13px;margin:0 0 10px}.section-panel p{font-size:11px;color:var(--muted)}
+.toolbar{display:flex;gap:8px;align-items:center;margin:10px 0;flex-wrap:wrap}.toolbar input{flex:1;min-width:120px}.field{border:1px solid var(--line);border-radius:7px;background:var(--panel);padding:8px 10px;font-size:11px;color:var(--text)}.action{background:var(--accent);color:var(--accent-text);border:0;border-radius:7px;padding:8px 12px;font-size:11px;display:inline-flex;align-items:center;gap:6px}.small-btn{border:1px solid var(--line);background:var(--panel);border-radius:6px;padding:5px 9px;font-size:10px;color:var(--text)}.small-btn.danger{border-color:#efc7c4;color:#c24c42;background:#fff8f7}.small-btn.warn{border-color:#ecd9a2;color:#99750b;background:#fffdf5}
+.table{width:100%;border-collapse:collapse;font-size:11px}.table th{text-align:left;color:var(--muted);font-weight:500;padding:9px 8px;border-bottom:1px solid var(--line);white-space:nowrap}.table td{padding:9px 8px;border-bottom:1px solid var(--line);vertical-align:middle}
 .pill{font-size:9px;border-radius:20px;padding:4px 8px;background:#e7f5ef;color:#07865f;display:inline-block;font-weight:600}.pill.warn{background:#fbf3d9;color:#99750b}.pill.red{background:#fae9e7;color:#c24c42}
 .stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:10px}.stat{padding:13px}.stat b{font-size:19px}.stat small{display:block;color:var(--muted);font-size:10px;margin-top:5px}
+.home-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:10px}
+.home-list-card{padding:13px;min-height:190px;display:flex;flex-direction:column}
+.home-list-card h4{margin:0 0 8px;font-size:12px;display:flex;justify-content:space-between;align-items:center}
+.mini-item{padding:6px 0;border-bottom:1px solid var(--line);font-size:11px;display:flex;justify-content:space-between;align-items:center;gap:6px}
+.mini-item:last-child{border-bottom:0}
+.timer-badge{font-family:ui-monospace,SFMono-Regular,monospace;font-size:10px;font-weight:600}
 .overlay{position:fixed;inset:0;background:#0006;display:none;align-items:center;justify-content:center;padding:18px;z-index:20}.overlay.show{display:flex}.modal{width:min(620px,100%);max-height:90vh;overflow:auto;background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:18px;box-shadow:0 20px 70px #0004;color:var(--text)}.modal h2{font-size:15px;margin:0 0 12px}.modal label{display:block;font-size:10px;color:var(--muted);margin:10px 0 4px}.modal input,.modal select{width:100%}.modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
 .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:var(--accent);color:var(--accent-text);padding:9px 14px;border-radius:8px;font-size:11px;display:none;z-index:40}
 .ui-icon{width:16px;height:16px;stroke:currentColor;fill:none;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round;vertical-align:middle}
@@ -35,7 +41,7 @@ button,input,select{font:inherit}button{cursor:pointer}
 .audit-item{font-size:10px;padding:5px 0;border-bottom:1px solid var(--line);color:var(--muted)}
 .time-combined-row{display:grid;grid-template-columns:62px minmax(0,1fr) minmax(76px,.72fr);align-items:center;gap:10px;margin-top:14px}
 .time-combined-row label{margin:0!important}
-.overview-welcome{min-height:180px;display:flex;flex-direction:column;justify-content:center}.overview-welcome h2{margin:0 0 8px;font-size:22px}.overview-welcome p{color:var(--muted);margin:0 0 18px}
+.overview-welcome{display:flex;flex-direction:column;justify-content:center}.overview-welcome h2{margin:0 0 6px;font-size:20px}.overview-welcome p{color:var(--muted);margin:0 0 12px}
 
 /* 50 Theme Grid */
 .theme-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:7px;margin-top:9px;max-height:340px;overflow:auto;padding-right:4px}
@@ -60,6 +66,7 @@ button,input,select{font:inherit}button{cursor:pointer}
 .pillar:after{content:"";position:absolute;left:-25%;bottom:0;width:150%;height:17%;background:radial-gradient(ellipse at center,#888 0 1px,transparent 1.5px) 0 0/5px 5px}
 .pillar.one{left:7%;height:100%;width:29%}.pillar.two{left:39%;height:81%;width:25%}.pillar.three{right:5%;height:100%;width:27%}
 
+@media(max-width:920px){.home-grid{grid-template-columns:1fr}}
 @media(max-width:800px){.theme-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:700px){body{padding:0}.app{height:100vh;min-height:0;border-radius:0}.login-screen{width:100vw;height:100vh;min-height:0;border:0;grid-template-columns:1fr}.login-art{display:none}.manage-grid{grid-template-columns:1fr}.rail{display:none}.sidebar{width:54px;padding:8px 4px}.main{padding:12px 9px}.theme-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 </style>
@@ -114,19 +121,37 @@ button,input,select{font:inherit}button{cursor:pointer}
     </aside>
     <main class="main"><div class="content">
 
+      <!-- MAIN PAGE (OVERVIEW) -->
       <section class="page active" id="page-overview">
         <h1 class="page-title" data-i18n="overview">Overview</h1>
         <div class="panel section-panel overview-welcome">
           <h2>DARKIOS Control Center</h2>
-          <p data-i18n="overviewDesc">Server-connected license & device management console.</p>
+          <p data-i18n="overviewDesc">Global key control, live timers, and key status lists.</p>
           <div class="toolbar">
-            <button class="action" onclick="openModal('generatorModal')"><svg class="ui-icon"><use href="#i-plus"/></svg> <span data-i18n="genKey">Generate Key</span></button>
+            <button class="small-btn warn" onclick="stopAllKeys()" data-i18n="stopAll">Stop All Keys</button>
+            <button class="action" onclick="resumeAllKeys()" data-i18n="resumeAll">Resume All Keys</button>
+            <button class="small-btn" onclick="openModal('generatorModal')"><svg class="ui-icon"><use href="#i-plus"/></svg> <span data-i18n="genKey">Generate Key</span></button>
             <button class="small-btn" onclick="showPage('keys')" data-i18n="openKeyList">Open Key List</button>
-            <button class="small-btn" onclick="showPage('general')" data-i18n="settings">Settings</button>
+          </div>
+        </div>
+
+        <div class="home-grid">
+          <div class="panel home-list-card">
+            <h4><span data-i18n="allKeysList">All Keys List</span> <span class="pill" id="homeAllCount">0</span></h4>
+            <div id="homeAllList"></div>
+          </div>
+          <div class="panel home-list-card">
+            <h4><span data-i18n="stoppedKeysList">Stopped Keys List</span> <span class="pill warn" id="homeStoppedCount">0</span></h4>
+            <div id="homeStoppedList"></div>
+          </div>
+          <div class="panel home-list-card">
+            <h4><span data-i18n="bannedKeysList">Banned Keys List</span> <span class="pill red" id="homeBannedCount">0</span></h4>
+            <div id="homeBannedList"></div>
           </div>
         </div>
       </section>
 
+      <!-- KEY MANAGEMENT PAGE -->
       <section class="page" id="page-keys">
         <h1 class="page-title" data-i18n="keyMgmt">Key Management</h1>
         <div class="stats">
@@ -139,6 +164,8 @@ button,input,select{font:inherit}button{cursor:pointer}
           <p data-i18n="keyGenDesc">Create keys with duration (DAY, WEEK, MONTH, YEAR, LIFETIME) and device limit.</p>
           <div class="toolbar">
             <button class="action" onclick="openModal('generatorModal')"><svg class="ui-icon"><use href="#i-plus"/></svg> <span data-i18n="genKey">Generate Key</span></button>
+            <button class="small-btn warn" onclick="stopAllKeys()" data-i18n="stopAll">Stop All Keys</button>
+            <button class="small-btn" onclick="resumeAllKeys()" data-i18n="resumeAll">Resume All Keys</button>
             <button class="small-btn" onclick="openModal('keyToolsModal')" data-i18n="keyTools">Key Tools</button>
             <button class="small-btn" onclick="fetchKeys()" data-i18n="syncServer">↻ Sync Server</button>
           </div>
@@ -154,7 +181,7 @@ button,input,select{font:inherit}button{cursor:pointer}
               <thead>
                 <tr>
                   <th data-i18n="thKey">Key</th>
-                  <th data-i18n="thDuration">Duration / Remaining</th>
+                  <th data-i18n="thDuration">Live Timer</th>
                   <th data-i18n="thDevices">Devices</th>
                   <th data-i18n="thStatus">Status</th>
                   <th data-i18n="thActions">Actions</th>
@@ -167,6 +194,7 @@ button,input,select{font:inherit}button{cursor:pointer}
         </div>
       </section>
 
+      <!-- SETTINGS PAGE -->
       <section class="page" id="page-general">
         <h1 class="page-title" data-i18n="generalSettings">General Settings</h1>
         <div class="panel section-panel">
@@ -302,7 +330,12 @@ const I18N = {
     wrongCreds: 'Invalid username or password.',
     copyEndpoint: 'Copy Endpoint',
     overview: 'Overview',
-    overviewDesc: 'Server-connected license & device management console.',
+    overviewDesc: 'Global key control, live timers, and key status lists.',
+    stopAll: 'Stop All Keys',
+    resumeAll: 'Resume All Keys',
+    allKeysList: 'All Keys List',
+    stoppedKeysList: 'Stopped Keys List',
+    bannedKeysList: 'Banned Keys List',
     genKey: 'Generate Key',
     openKeyList: 'Open Key List',
     settings: 'Settings',
@@ -319,11 +352,12 @@ const I18N = {
     importTxt: 'Import TXT',
     txtHint: 'Export/Import preserves remaining time, max devices, status (Active/Paused/Banned), and devices.',
     thKey: 'Key',
-    thDuration: 'Duration / Remaining',
+    thDuration: 'Live Timer',
     thDevices: 'Devices',
     thStatus: 'Status',
     thActions: 'Actions',
     noKeys: 'No keys yet. Generate a key or import a TXT file.',
+    emptyList: 'No keys in this list.',
     generalSettings: 'General Settings',
     workspacePrefs: 'Workspace preferences',
     language: 'Interface Language',
@@ -361,7 +395,7 @@ const I18N = {
     statusCtrl: 'Status Control',
     banKey: 'Ban Key',
     unbanKey: 'Unban Key',
-    tempStop: 'Temporary Stop',
+    tempStop: 'Stop Key',
     resumeKey: 'Resume Key',
     connDevs: 'Connected Devices',
     resetDevs: 'Reset Devices',
@@ -378,7 +412,12 @@ const I18N = {
     wrongCreds: 'Kullanıcı adı veya parola hatalı.',
     copyEndpoint: 'Endpoint Kopyala',
     overview: 'Genel Bakış',
-    overviewDesc: 'Sunucu bağlantılı lisans ve cihaz yönetim paneli.',
+    overviewDesc: 'Genel anahtar kontrolü, canlı sayaçlar ve anahtar durum listeleri.',
+    stopAll: 'Tüm Anahtarları Durdur',
+    resumeAll: 'Tüm Anahtarları Aç',
+    allKeysList: 'Tüm Anahtarlar Listesi',
+    stoppedKeysList: 'Durdurulan Anahtarlar Listesi',
+    bannedKeysList: 'Yasaklı Anahtarlar Listesi',
     genKey: 'Anahtar Oluştur',
     openKeyList: 'Anahtar Listesini Aç',
     settings: 'Ayarlar',
@@ -395,11 +434,12 @@ const I18N = {
     importTxt: 'TXT İçe Aktar',
     txtHint: 'TXT Dışa/İçe Aktarım kalan süreyi, cihaz limitini, durumu (Active/Paused/Banned) ve cihazları korur.',
     thKey: 'Anahtar',
-    thDuration: 'Süre / Kalan',
+    thDuration: 'Canlı Sayaç',
     thDevices: 'Cihazlar',
     thStatus: 'Durum',
     thActions: 'İşlemler',
     noKeys: 'Henüz anahtar yok. Anahtar oluşturun veya TXT dosyası içe aktarın.',
+    emptyList: 'Bu listede anahtar yok.',
     generalSettings: 'Genel Ayarlar',
     workspacePrefs: 'Çalışma alanı tercihleri',
     language: 'Arayüz Dili',
@@ -437,8 +477,8 @@ const I18N = {
     statusCtrl: 'Durum Kontrolü',
     banKey: 'Anahtarı Yasakla',
     unbanKey: 'Yasağı Kaldır',
-    tempStop: 'Geçici Durdur',
-    resumeKey: 'Devam Ettir',
+    tempStop: 'Durdur',
+    resumeKey: 'Aç',
     connDevs: 'Bağlı Cihazlar',
     resetDevs: 'Cihazları Sıfırla',
     auditHist: 'İşlem Geçmişi',
@@ -457,7 +497,7 @@ function setLanguage(lang){
   localStorage.setItem(LANG_STORE, currentLang);
   document.documentElement.lang = currentLang;
   applyLanguage();
-  renderKeys();
+  renderAllViews();
 }
 
 function applyLanguage(){
@@ -520,7 +560,12 @@ function renderThemeGrid(){
 let authCreds = { user: '', pass: '' };
 let keyRecords = [];
 let serverNow = Math.floor(Date.now() / 1000);
+let driftOffset = 0; // local clock vs serverNow
 let currentManageKey = null;
+
+function nowSec(){
+  return Math.floor(Date.now() / 1000) + driftOffset;
+}
 
 function esc(s) {
   return String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -588,29 +633,80 @@ async function fetchKeys() {
   const res = await api('list_keys');
   if (res.success) {
     keyRecords = res.keys || [];
-    serverNow = res.server_time || Math.floor(Date.now() / 1000);
-    renderKeys();
+    if (res.server_time) {
+      serverNow = Number(res.server_time);
+      driftOffset = serverNow - Math.floor(Date.now() / 1000);
+    }
+    renderAllViews();
     if (currentManageKey && document.getElementById('manageModal').classList.contains('show')) {
       openManage(currentManageKey);
     }
   }
 }
 
-function formatExpiry(k) {
-  if (k.lifetime || k.duration_label === 'LIFETIME') return t('lifetime');
-  if (!k.expires_at) return `${esc(k.duration_label)} (${t('notStarted')})`;
-  const rem = k.expires_at - serverNow;
-  if (rem <= 0) return t('expired');
-  const d = Math.floor(rem / 86400);
-  const h = Math.floor((rem % 86400) / 3600);
-  const m = Math.floor((rem % 3600) / 60);
-  return `${d}d ${h}h ${m}m`;
+function formatTimer(k) {
+  if (k.lifetime || k.duration_label === 'LIFETIME') {
+    return `<span class="timer-badge">${t('lifetime')}</span>`;
+  }
+  // İlk aktivasiya olunmayıbsa zamanlama başlamır
+  if (!k.activated || !k.expires_at) {
+    return `<span class="timer-badge" style="color:var(--muted)">${esc(k.duration_label)} · ${t('notStarted')}</span>`;
+  }
+  const rem = Number(k.expires_at) - nowSec();
+  if (rem <= 0) {
+    return `<span class="timer-badge" style="color:var(--red)">${t('expired')}</span>`;
+  }
+  let s = Math.floor(rem);
+  const y = Math.floor(s / 31536000); s %= 31536000;
+  const mo = Math.floor(s / 2592000); s %= 2592000;
+  const d = Math.floor(s / 86400); s %= 86400;
+  const h = Math.floor(s / 3600); s %= 3600;
+  const m = Math.floor(s / 60);
+  const sec = s % 60;
+
+  const parts = [];
+  if (y > 0) parts.push(`${y}Y`);
+  if (mo > 0 || y > 0) parts.push(`${mo}M`);
+  if (d > 0 || mo > 0 || y > 0) parts.push(`${d}D`);
+  parts.push(`${String(h).padStart(2,'0')}H`);
+  parts.push(`${String(m).padStart(2,'0')}M`);
+  parts.push(`${String(sec).padStart(2,'0')}S`);
+
+  return `<span class="timer-badge">${parts.join(' ')}</span>`;
 }
 
 function pillClass(st) {
   if (st === 'Active') return 'pill';
   if (st === 'Paused') return 'pill warn';
   return 'pill red';
+}
+
+function renderHomeLists() {
+  const allEl = document.getElementById('homeAllList');
+  const stopEl = document.getElementById('homeStoppedList');
+  const banEl = document.getElementById('homeBannedList');
+  if (!allEl || !stopEl || !banEl) return;
+
+  const stopped = keyRecords.filter(k => k.status === 'Paused');
+  const banned = keyRecords.filter(k => k.status === 'Banned');
+
+  document.getElementById('homeAllCount').textContent = keyRecords.length;
+  document.getElementById('homeStoppedCount').textContent = stopped.length;
+  document.getElementById('homeBannedCount').textContent = banned.length;
+
+  const rowHtml = (list, mode) => {
+    if (!list.length) return `<p class="sub" style="margin:6px 0">${t('emptyList')}</p>`;
+    return list.slice(0, 8).map(k => `
+      <div class="mini-item">
+        <span style="font-family:monospace;font-size:10px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(k.key)}</span>
+        ${mode === 'all' ? formatTimer(k) : `<button class="small-btn" onclick="openManage('${esc(k.key)}')">${t('manage')}</button>`}
+      </div>
+    `).join('');
+  };
+
+  allEl.innerHTML = rowHtml(keyRecords, 'all');
+  stopEl.innerHTML = rowHtml(stopped, 'stopped');
+  banEl.innerHTML = rowHtml(banned, 'banned');
 }
 
 function renderKeys() {
@@ -634,7 +730,7 @@ function renderKeys() {
           ${pendingCount > 0 ? `<button class="pending-dot" title="${pendingCount} pending" onclick="openManage('${esc(k.key)}')">${pendingCount}</button>` : ''}
         </div>
       </td>
-      <td>${formatExpiry(k)}</td>
+      <td>${formatTimer(k)}</td>
       <td>${approvedCount} / ${k.max_devices}</td>
       <td><span class="${pillClass(k.status)}">${esc(k.status)}</span></td>
       <td style="display:flex;gap:5px;flex-wrap:wrap">
@@ -650,6 +746,28 @@ function renderKeys() {
   document.getElementById('keyTotal').textContent = keyRecords.length;
   document.getElementById('keyActive').textContent = keyRecords.filter(k => k.status === 'Active').length;
   document.getElementById('keyPending').textContent = pendingTotal;
+}
+
+function renderAllViews() {
+  renderHomeLists();
+  renderKeys();
+}
+
+// Canlı saniye sayğacı
+setInterval(() => {
+  if (document.getElementById('appShell').style.display !== 'none' && keyRecords.length) {
+    renderAllViews();
+  }
+}, 1000);
+
+async function stopAllKeys() {
+  const res = await api('stop_all_keys');
+  if (res.success) { toast(`${t('stopAll')}: ${res.stopped}`); await fetchKeys(); }
+}
+
+async function resumeAllKeys() {
+  const res = await api('resume_all_keys');
+  if (res.success) { toast(`${t('resumeAll')}: ${res.resumed}`); await fetchKeys(); }
 }
 
 async function generateKey() {
@@ -711,7 +829,7 @@ function openManage(keyStr) {
   document.getElementById('manageContent').innerHTML = `
     <h2>${t('manageTitle')}</h2>
     <div style="font-family:monospace;font-size:12px;margin-bottom:8px"><b>${esc(k.key)}</b> · <span class="${pillClass(k.status)}">${esc(k.status)}</span></div>
-    <p style="font-size:11px;color:var(--muted);margin:0 0 10px">${t('thDuration')}: <b>${formatExpiry(k)}</b> · ${t('thDevices')}: <b>${approved.length} / ${k.max_devices}</b></p>
+    <p style="font-size:11px;color:var(--muted);margin:0 0 10px">${t('thDuration')}: ${formatTimer(k)} · ${t('thDevices')}: <b>${approved.length} / ${k.max_devices}</b></p>
 
     ${pending.length ? `<div class="manage-box" style="border-color:#e24c4c"><h4>${t('pendingQueue')} (${pending.length})</h4>${pendingHtml}</div>` : ''}
 
@@ -840,17 +958,21 @@ function fromBase64Utf8(b64) {
 
 function exportKeys() {
   if (!keyRecords.length) { toast(t('noKeys')); return; }
+  const cur = nowSec();
   const lines = keyRecords.map(k => {
-    const remSec = k.expires_at ? Math.max(0, Number(k.expires_at) - serverNow) : Number(k.duration_seconds || 0);
+    const remSec = (k.activated && k.expires_at) ? Math.max(0, Number(k.expires_at) - cur) : Number(k.duration_seconds || 0);
     const meta = {
       key: k.key,
       lifetime: !!k.lifetime || k.duration_label === 'LIFETIME',
+      activated: !!k.activated,
       duration_label: k.duration_label || '1DAY',
       duration_seconds: Number(k.duration_seconds || 0),
       remaining_seconds: remSec,
       expires_at: k.expires_at || null,
       max_devices: Number(k.max_devices || 1),
       status: k.status || 'Active',
+      manual_paused: !!k.manual_paused,
+      bulk_paused: !!k.bulk_paused,
       pause_until: Number(k.pause_until || 0),
       created: k.created || '',
       approved_devices: k.approved_devices || [],
