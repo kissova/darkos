@@ -12,6 +12,7 @@
 #import <Metal/Metal.h>
 #import <MetalKit/MetalKit.h>
 #import <mach-o/dyld.h>
+#import <mach/mach.h>
 #include "imgui/imgui.h"
 
 #ifndef kaddr
@@ -49,7 +50,8 @@ static uintptr_t Get_module_base() {
         if (!rawPath) continue;
         std::string path(rawPath);
         if (path.find("ShadowTrackerExtra.app/ShadowTrackerExtra") != std::string::npos) {
-            return (uintptr_t)_dyld_get_image_vmaddr_slide(i);
+            intptr_t slide = _dyld_get_image_vmaddr_slide(i);
+            return (uintptr_t)slide;
         }
     }
     return 0;
@@ -58,6 +60,40 @@ static uintptr_t Get_module_base() {
 // HMOOD__TG@i_8_f
 static inline bool IsValidAddress(kaddr addr) {
     return addr > 0x100000000ULL && addr < 0x2000000000ULL;
+}
+
+// HMOOD__TG@i_8_f
+static inline bool IsWritableSafeAddr(const void* ptr, size_t len = sizeof(void*)) {
+    if (!ptr || len == 0) return false;
+    uintptr_t addr = (uintptr_t)ptr;
+    if (!IsValidAddress(addr)) return false;
+    if (addr + len < addr) return false;
+
+    vm_address_t regionAddr = (vm_address_t)addr;
+    vm_size_t regionSize = 0;
+    vm_region_basic_info_data_64_t info;
+    mach_msg_type_number_t infoCount = VM_REGION_BASIC_INFO_COUNT_64;
+    mach_port_t objectName = MACH_PORT_NULL;
+
+    kern_return_t kr = vm_region_64(
+        mach_task_self(),
+        &regionAddr,
+        &regionSize,
+        VM_REGION_BASIC_INFO_64,
+        (vm_region_info_t)&info,
+        &infoCount,
+        &objectName
+    );
+    if (objectName != MACH_PORT_NULL) {
+        mach_port_deallocate(mach_task_self(), objectName);
+    }
+    if (kr != KERN_SUCCESS) return false;
+
+    uintptr_t regionStart = (uintptr_t)regionAddr;
+    uintptr_t regionEnd = regionStart + (uintptr_t)regionSize;
+    if (addr < regionStart || (addr + len) > regionEnd) return false;
+
+    return (info.protection & VM_PROT_READ) != 0;
 }
 
 extern bool aPVQRIF;
@@ -283,8 +319,6 @@ void InitializeMemoryProtection() {
 
 bool hideHacker = true;
 HeeNoScreenShotView* hideesp = nullptr;
-
-kaddr module = (kaddr)Get_module_base();
 
 namespace YN {
     int boxtype = 1;
