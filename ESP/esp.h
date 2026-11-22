@@ -5,6 +5,7 @@
 
 #include "../SDK.hpp"
 #include <vector>
+#include <cstdint>
 
  
 void Drawesp();
@@ -19,27 +20,47 @@ SDK::ASTExtraPlayerCharacter* GetTargetByCrossDist();
 
 using namespace SDK;
 
+namespace EspSafeInternal {
+    inline bool IsValidHeapOrObjPtr(const void* ptr) {
+        uintptr_t addr = reinterpret_cast<uintptr_t>(ptr);
+        if (addr < 0x10000ULL || addr > 0x0000FFFFFFFFFFFFULL)
+            return false;
+        if ((addr & (sizeof(void*) - 1ULL)) != 0ULL)
+            return false;
+        return true;
+    }
+}
+
 template <class T>
 inline void GetAllActors(std::vector<T*>& outActors) {
     outActors.clear();
-UKismetMathLibrary* UMC = (UKismetMathLibrary*)UKismetMathLibrary::StaticClass();
-    auto GWorld = GetFullWorld();
-    if (!GWorld || !GWorld->PersistentLevel) return;
 
-    UGameplayStatics* gGameplayStatics = (UGameplayStatics*)UGameplayStatics::StaticClass();
-    if (!gGameplayStatics) return;
+    auto GWorld = GetFullWorld();
+    if (!EspSafeInternal::IsValidHeapOrObjPtr(GWorld) ||
+        !EspSafeInternal::IsValidHeapOrObjPtr(GWorld->PersistentLevel)) {
+        return;
+    }
+
+    UClass* cls = T::StaticClass();
+    UGameplayStatics* gGameplayStatics = reinterpret_cast<UGameplayStatics*>(UGameplayStatics::StaticClass());
+    if (!EspSafeInternal::IsValidHeapOrObjPtr(cls) ||
+        !EspSafeInternal::IsValidHeapOrObjPtr(gGameplayStatics)) {
+        return;
+    }
 
     TArray<AActor*> found;
-    gGameplayStatics->GetAllActorsOfClass((UObject*)GWorld, T::StaticClass(), &found);
+    gGameplayStatics->GetAllActorsOfClass(reinterpret_cast<UObject*>(GWorld), cls, &found);
 
-    outActors.reserve(found.Num());
-    for (int i = 0; i < found.Num(); i++) {
+    int32_t count = found.Num();
+    if (count <= 0 || count > 65536 || !EspSafeInternal::IsValidHeapOrObjPtr(found.GetData())) {
+        return;
+    }
+
+    outActors.reserve(static_cast<size_t>(count));
+    for (int32_t i = 0; i < count; ++i) {
         AActor* a = found[i];
-        if (!a) continue;
-        if (!a->RootComponent) continue;
-        if ((uintptr_t)a < 0x10000) continue;                
-        if ((uintptr_t)a > 0xFFFFFFFFFFFF) continue;         
-        if (a == nullptr) continue;
-        outActors.push_back((T*)a);
+        if (!EspSafeInternal::IsValidHeapOrObjPtr(a)) continue;
+        if (!EspSafeInternal::IsValidHeapOrObjPtr(a->RootComponent)) continue;
+        outActors.push_back(reinterpret_cast<T*>(a));
     }
 }
