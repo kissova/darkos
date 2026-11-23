@@ -31,7 +31,7 @@ $(TWEAK_NAME)_FILES = \
 
 $(TWEAK_NAME)_CFLAGS = -fobjc-arc -w -I. -Isrc -IESP -IESP/imgui -ISDK
 $(TWEAK_NAME)_CCFLAGS = -std=c++17 -fobjc-arc -w -I. -Isrc -IESP -IESP/imgui -ISDK
-$(TWEAK_NAME)_LDFLAGS = -Wl,-w -lsubstrate
+$(TWEAK_NAME)_LDFLAGS = -Wl,-w
 $(TWEAK_NAME)_FRAMEWORKS = UIKit Foundation CoreGraphics Metal MetalKit QuartzCore Security WebKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk
