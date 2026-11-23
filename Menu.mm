@@ -1,6 +1,5 @@
 // HMOOD__TG@i_8_f
 
-
 #import <UIKit/UIKit.h>
 #import <Foundation/Foundation.h>
 #import <sys/utsname.h>
@@ -14,7 +13,7 @@
 #import "LicenseAuth.h"
 #import "Engine.h"
 #import "mahoa.h"
-#include "Tools.h"
+#import "Tools.h"
 #import "PubgLoad.h"
 #include "imgui.h"
 #include "imgui_internal.h"
@@ -39,7 +38,6 @@
 #include <mach/vm_statistics.h>
 
 // HMOOD__TG@i_8_f
-
 
 using namespace SDK;
 
@@ -88,6 +86,25 @@ extern ASTExtraPlayerController* localPlayerController;
 extern void ResetGuestAccount();
 extern ImFont* mainFont;
 
+namespace imgui {
+    extern bool ESP, Health, Line, Name, TeamID, Distance, EnemyCount, Weapon, Bone,
+                GameInfo, EnemyAiming, Alert360, Boxes, Items, Lootbox, Vehicle, HideBot;
+}
+
+namespace Settings {
+    extern bool isVisibilityCheck;
+    namespace Aimbot {
+        extern bool Tick;
+        extern int AimMethod;
+        extern std::atomic<int> TriggerMode;
+        extern bool SilentAim;
+        namespace SilentAimSettings {
+            extern bool AimingLine, EnableFov, Prediction, AimKnocked, Highprecisiontracking;
+            extern int Aimpositon;
+            extern float MaxStepDeg;
+        }
+    }
+}
 
 bool MenDeal = false;
 bool IsLogin = false;
@@ -137,7 +154,6 @@ UIImage* GetMenuBadgeImage() {
 
 // HMOOD__TG@i_8_f
 
-
 typedef int (*ptrace_ptr_t)(int, pid_t, caddr_t, int);
 #define PT_DENY_ATTACH 31
 static void pg_deny_debugger(void) {
@@ -160,7 +176,6 @@ static void pg_deny_debugger(void) {
 @end
 
 // HMOOD__TG@i_8_f
-
 
 namespace ImGui {
     inline void MergeIconsWithLatestFont(float font_size, bool FontDataOwnedByAtlas = false) {
@@ -304,7 +319,6 @@ void InitializeMenuFonts(ImGuiIO& io) {
 
 // HMOOD__TG@i_8_f
 
-
 void ApplyImGuiStyle() {
     if (!ImGui::GetCurrentContext()) return;
     ImGuiStyle& s = ImGui::GetStyle();
@@ -367,7 +381,6 @@ void ApplyImGuiStyle() {
 }
 
 // HMOOD__TG@i_8_f
-
 
 namespace MenuLocale {
     static int language = 0;
@@ -684,11 +697,11 @@ namespace MenuLocale {
     }
 }
 
-extern "C" void SetMenuLanguage(int language) {
+void SetMenuLanguage(int language) {
     MenuLocale::language = (language >= 0 && language <= 6) ? language : 0;
 }
 
-extern "C" const char* TranslateMenuText(const char* value) {
+const char* TranslateMenuText(const char* value) {
     return MenuLocale::tr(value);
 }
 
@@ -730,14 +743,12 @@ static bool DrawCyberSelectable(const char* label, bool selected, ImGuiSelectabl
 }
 
 static void DrawCyberTooltip(const char* label) {
-    if (ImGui::BeginTooltip()) {
-        MenuLocale::text(label, 280.f);
-        ImGui::EndTooltip();
-    }
+    ImGui::BeginTooltip();
+    MenuLocale::text(label, 280.f);
+    ImGui::EndTooltip();
 }
 
 // HMOOD__TG@i_8_f
-
 
 namespace CyberMenu {
 
