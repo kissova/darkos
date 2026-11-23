@@ -36,6 +36,14 @@ extern bool Enable;
 extern int IsStyle;
 extern ImU32 COLOR_Distance;
 
+extern FVector GetBoneLocationByName(ASTExtraPlayerCharacter *Actor, const char *BoneName);
+extern ASTExtraPlayerCharacter* GetTargetByCrossDist();
+extern const char *GetVehicleName(ASTExtraVehicleBase *Vehicle);
+extern UWorld *GetFullWorld();
+
+template <typename T>
+extern void GetAllActors(std::vector<T*>& outActors);
+
 namespace imgui {
     extern bool ESP,HideBot,Health,Line,Name,TeamID,Distance,EnemyCount,Boxes;
     extern bool Weapon,Bone,GameInfo,Alert360,EnemyAiming;
@@ -734,6 +742,7 @@ void DrawPlayerName(ASTExtraPlayerCharacter* p, ImDrawList* d, bool textBorder)
 
 void DrawTeamID(ASTExtraPlayerCharacter* p, ImDrawList* d, ImVec2 healthPos, bool textBorder)
 {
+    (void)healthPos;
     ImFont* font = GetActiveEspFont();
     if (!IsValidPtr(p) || !IsValidPtr(p->RootComponent) || !d || !font) return;
 
@@ -1214,7 +1223,7 @@ void Drawesp() {
     float now = ImGui::GetTime();
     std::vector<ASTExtraPlayerCharacter*> tmp;
 
-    if (now - lastUpdate > 0.7f) {
+    if (now - lastUpdate > 0.7f || cache.empty()) {
         GetAllActors(tmp);
         cache.clear();
         for (auto* a : tmp) {
@@ -1288,10 +1297,6 @@ void Drawesp() {
         }
         if (imgui::Distance && feetOk)
             DrawPlayerDistance(d, ImVec2(footScreen.X, footScreen.Y), distVal);
-
-        float asize = 80.0f / (distVal > 0 ? distVal : 1.0f);
-        if (asize > 1.0f) asize = 1.0f;
-        if (asize < 0.3f) asize = 0.3f;
 
         isVisible = false;
         const char* checkBones[] = {"Head", "neck_01", "pelvis", "spine_03"};
