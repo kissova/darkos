@@ -107,7 +107,7 @@ namespace Settings {
 }
 
 bool MenDeal = false;
-bool IsLogin = false;
+extern bool IsLogin;
 ImFont* cyberMenuFont = nullptr;
 
 static ImFont* SafeMenuFont() {
