@@ -1757,10 +1757,13 @@ void RenderMenu() {
     if (!MenDeal) return;
 
     if (!IsLogin) {
-        if (DarkosLicenseAuth::IsAuthenticated()) {
+        if ([DarkosLicenseAuth respondsToSelector:@selector(isAuthenticated)] &&
+            [DarkosLicenseAuth isAuthenticated]) {
             IsLogin = true;
         } else {
-            DarkosLicenseAuth::RenderLoginWindow(&IsLogin);
+            if ([DarkosLicenseAuth respondsToSelector:@selector(renderLoginWindow:)]) {
+                [DarkosLicenseAuth renderLoginWindow:&IsLogin];
+            }
             return;
         }
     }
