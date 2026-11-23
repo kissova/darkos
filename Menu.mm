@@ -22,7 +22,6 @@
 #include "fa_solid_900.h"
 #include "ini_rw.h"
 #include "menu.h"
-#import "LicenseAuth.h"
 #import <sys/sysctl.h>
 #import <sys/stat.h>
 #include <dlfcn.h>
@@ -86,63 +85,12 @@ extern ImU32 COLOR_Distance;
 extern ImColor bgColor;
 extern INI* config;
 extern ASTExtraPlayerController* localPlayerController;
-
-namespace Settings {
-    extern int Tab;
-    extern bool isVisibilityCheck;
-    namespace SettingsTab {
-        extern bool BypassMode;
-    }
-    namespace Aimbot {
-        extern bool Tick;
-        extern int AimMethod;
-        extern std::atomic<int> TriggerMode;
-        extern bool MemoryAimbot;
-        extern bool SilentAim;
-        namespace SilentAimSettings {
-            extern bool AimKnocked;
-            extern bool Highprecisiontracking;
-            extern int Aimpositon;
-            extern bool Prediction;
-            extern bool EnableFov;
-            extern bool BypassFOVLimit;
-            extern bool AimingLine;
-            extern float MaxStepDeg;
-            extern int LegitTrackSwitchrate;
-        }
-    }
-}
-
-namespace imgui {
-    extern bool ESP;
-    extern bool Boxes;
-    extern bool HideBot;
-    extern bool Health;
-    extern bool Line;
-    extern bool Name;
-    extern bool TeamID;
-    extern bool Distance;
-    extern bool EnemyCount;
-    extern bool Weapon;
-    extern bool Bone;
-    extern bool GameInfo;
-    extern bool Alert360;
-    extern bool EnemyAiming;
-    extern bool Items;
-    extern bool Lootbox;
-    extern bool Vehicle;
-}
-
- 
 extern void ResetGuestAccount();
-
 extern ImFont* mainFont;
 
-// HMOOD__TG@i_8_f
 
-
-bool MenDeal;
-static bool IsLogin = false;
+bool MenDeal = false;
+bool IsLogin = false;
 ImFont* cyberMenuFont = nullptr;
 
 static ImFont* SafeMenuFont() {
@@ -214,8 +162,6 @@ static void pg_deny_debugger(void) {
 // HMOOD__TG@i_8_f
 
 
- 
- 
 namespace ImGui {
     inline void MergeIconsWithLatestFont(float font_size, bool FontDataOwnedByAtlas = false) {
         if (!GetIO().Fonts || GetIO().Fonts->Fonts.empty()) return;
@@ -292,7 +238,7 @@ void InitializeMenuFonts(ImGuiIO& io) {
 
     NSString* FontPath = @"/System/Library/Fonts/Core/AvenirNext.ttc";
     io.ConfigWindowsMoveFromTitleBarOnly = true;
-     
+
     constexpr float menuFontBakeSize = 48.f;
     font_cfg.OversampleH = 2;
     font_cfg.OversampleV = 2;
@@ -308,8 +254,7 @@ void InitializeMenuFonts(ImGuiIO& io) {
         mainFont->Scale = 13.f / menuFontBakeSize;
 
     ImGui::MergeIconsWithLatestFont(12.f * menuFontBakeSize / 13.f, false);
-     
-     
+
     NSString* homePath = nil;
     int homeFace = -1;
     NSArray<NSString*>* homeCandidates = @[
@@ -325,7 +270,6 @@ void InitializeMenuFonts(ImGuiIO& io) {
         }
     }
     if (homeFace < 0) {
-         
         NSString* directory = @"/System/Library/Fonts";
         NSDirectoryEnumerator* entries = [[NSFileManager defaultManager] enumeratorAtPath:directory];
         for (NSString* relative in entries) {
@@ -425,8 +369,6 @@ void ApplyImGuiStyle() {
 // HMOOD__TG@i_8_f
 
 
- 
-// HMOOD__TG@i_8_f
 namespace MenuLocale {
     static int language = 0;
     static const char* languageNames[] = {"English", "کوردی (سۆرانی)", "简体中文", "Русский", "العربية", "हिन्दी", "Türkçe"};
@@ -619,2042 +561,1198 @@ namespace MenuLocale {
         auto& cache = textCache();
         const auto found = cache.find(cacheKey);
         if (found != cache.end()) return found->second;
-        TextImage result;
-        @autoreleasepool {
-            NSString* string = [NSString stringWithUTF8String:value ? value : ""];
-            UIFont* font = [UIFont fontWithName:@"Helvetica-Bold" size:points * .5f];
-            if (!font) font = [UIFont boldSystemFontOfSize:points * .5f];
-            NSMutableParagraphStyle* paragraph = [NSMutableParagraphStyle new];
-            paragraph.baseWritingDirection = rtl() ? NSWritingDirectionRightToLeft : NSWritingDirectionNatural;
-            paragraph.alignment = NSTextAlignmentNatural;
-            paragraph.lineBreakMode = NSLineBreakByWordWrapping;
-            NSAttributedString* text = [[NSAttributedString alloc] initWithString:string ?: @""
-                attributes:@{NSFontAttributeName: font, NSForegroundColorAttributeName: UIColor.whiteColor,
-                             NSParagraphStyleAttributeName: paragraph}];
-            const NSStringDrawingOptions options = NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading;
-            CGRect bounds = [text boundingRectWithSize:CGSizeMake(wrapPoints > 0 ? wrapPoints : 4096.f, CGFLOAT_MAX)
-                                               options:options context:nil];
-            result.content = ImVec2(fmaxf(1.f, ceilf(bounds.size.width)), fmaxf(1.f, ceilf(bounds.size.height)));
-            CGSize size = CGSizeMake(result.content.x + result.padding * 2.f, result.content.y + result.padding * 2.f);
-            UIGraphicsImageRendererFormat* format = [UIGraphicsImageRendererFormat defaultFormat];
-            format.scale = 2.f;
-            format.opaque = NO;
-            UIGraphicsImageRenderer* renderer = [[UIGraphicsImageRenderer alloc] initWithSize:size format:format];
-            const float padding = result.padding;
-            const CGFloat contentWidth = result.content.x, contentHeight = result.content.y;
-            UIImage* bitmap = renderer ? [renderer imageWithActions:^(UIGraphicsImageRendererContext* context) {
-                (void)context;
-                [text drawWithRect:CGRectMake(padding - bounds.origin.x, padding - bounds.origin.y,
-                                             contentWidth, contentHeight)
-                           options:options context:nil];
-            }] : nil;
-            CGImageRef source = bitmap.CGImage;
-            static id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-            if (source && device) {
-                const size_t width = CGImageGetWidth(source), height = CGImageGetHeight(source);
-                if (width > 0 && height > 0 && width <= 8192 && height <= 8192) {
-                    std::vector<uint8_t> rgba(width * height * 4, 0);
-                    CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-                    CGContextRef context = space ? CGBitmapContextCreate(rgba.data(), width, height, 8, width * 4,
-                        space, kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big) : nullptr;
-                    if (context) {
-                        CGContextDrawImage(context, CGRectMake(0, 0, width, height), source);
-                        CGContextFlush(context);
-                        for (size_t i = 0; i < width * height; ++i)
-                            rgba[i * 4] = rgba[i * 4 + 1] = rgba[i * 4 + 2] = 255;
-                        MTLTextureDescriptor* descriptor = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                            width:width height:height mipmapped:NO];
-                        descriptor.usage = MTLTextureUsageShaderRead;
-                        descriptor.storageMode = MTLStorageModeShared;
-                        result.texture = [device newTextureWithDescriptor:descriptor];
-                        if (result.texture) {
-                            [result.texture replaceRegion:MTLRegionMake2D(0, 0, width, height) mipmapLevel:0
-                                                 withBytes:rgba.data() bytesPerRow:width * 4];
-                        }
-                        CGContextRelease(context);
-                    }
-                    if (space) CGColorSpaceRelease(space);
+        TextImage item;
+        item.padding = 3.f;
+        NSString* text = [NSString stringWithUTF8String:value ? value : ""];
+        if (!text || text.length == 0) {
+            cache[cacheKey] = item;
+            return cache[cacheKey];
+        }
+        id<MTLDevice> device = MTLCreateSystemDefaultDevice();
+        if (!device) {
+            cache[cacheKey] = item;
+            return cache[cacheKey];
+        }
+        UIFont* font = [UIFont systemFontOfSize:(CGFloat)points weight:UIFontWeightMedium];
+        NSMutableParagraphStyle* style = [[NSMutableParagraphStyle alloc] init];
+        style.alignment = rtl() ? NSTextAlignmentRight : NSTextAlignmentLeft;
+        style.lineBreakMode = NSLineBreakByWordWrapping;
+        NSDictionary* attributes = @{
+            NSFontAttributeName: font,
+            NSForegroundColorAttributeName: [UIColor whiteColor],
+            NSParagraphStyleAttributeName: style
+        };
+        CGSize maxSize = CGSizeMake(wrapPoints > 0 ? (CGFloat)wrapPoints * 2.f : 2048.f, 2048.f);
+        CGRect bounds = [text boundingRectWithSize:maxSize
+                                           options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                                        attributes:attributes
+                                           context:nil];
+        const int pixelW = ImMax(2, (int)ceil(bounds.size.width + item.padding * 4.f));
+        const int pixelH = ImMax(2, (int)ceil(bounds.size.height + item.padding * 4.f));
+        CGColorSpaceRef space = CGColorSpaceCreateDeviceRGB();
+        CGContextRef ctx = CGBitmapContextCreate(nullptr, pixelW, pixelH, 8, pixelW * 4, space,
+                                                 kCGImageAlphaPremultipliedLast);
+        if (ctx) {
+            CGContextTranslateCTM(ctx, 0.0, (CGFloat)pixelH);
+            CGContextScaleCTM(ctx, 1.0, -1.0);
+            UIGraphicsPushContext(ctx);
+            [text drawWithRect:CGRectMake(item.padding * 2.f, item.padding * 2.f,
+                                          bounds.size.width + 2.f, bounds.size.height + 2.f)
+                       options:NSStringDrawingUsesLineFragmentOrigin | NSStringDrawingUsesFontLeading
+                    attributes:attributes
+                       context:nil];
+            UIGraphicsPopContext();
+            const void* pixels = CGBitmapContextGetData(ctx);
+            if (pixels) {
+                MTLTextureDescriptor* desc = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                              width:pixelW
+                                                                                             height:pixelH
+                                                                                          mipmapped:NO];
+                desc.usage = MTLTextureUsageShaderRead;
+                id<MTLTexture> tex = [device newTextureWithDescriptor:desc];
+                if (tex) {
+                    [tex replaceRegion:MTLRegionMake2D(0, 0, pixelW, pixelH)
+                               mipmapLevel:0
+                                 withBytes:pixels
+                               bytesPerRow:pixelW * 4];
+                    item.texture = tex;
+                    item.content = ImVec2((float)pixelW * .5f, (float)pixelH * .5f);
                 }
             }
+            CGContextRelease(ctx);
         }
-        return cache.emplace(cacheKey, std::move(result)).first->second;
+        CGColorSpaceRelease(space);
+        cache[cacheKey] = item;
+        return cache[cacheKey];
     }
-    static ImVec2 measure(const char* value, float fontSize, float wrap = 0.f) {
-        const char* label = tr(value);
-        if (!native(label)) {
-            ImFont* f = SafeMenuFont();
-            return f ? f->CalcTextSizeA(fontSize, FLT_MAX, wrap, label) : ImVec2(0.f, 0.f);
+    static ImVec2 measure(const char* value, float fontSize = 0.f, float wrap = 0.f) {
+        const char* text = tr(value);
+        const float size = fontSize > 0.f ? fontSize : ImGui::GetFontSize();
+        if (native(text)) {
+            const TextImage& item = image(text, size, wrap);
+            if (item.texture)
+                return ImVec2(ImMax(0.f, item.content.x - item.padding * 2.f),
+                              ImMax(0.f, item.content.y - item.padding * 2.f));
         }
-        return image(label, fontSize, wrap).content;
+        ImFont* f = SafeMenuFont();
+        return f ? f->CalcTextSizeA(size, FLT_MAX, wrap, text) : ImVec2(0, size);
     }
-    static void draw(ImDrawList* list, const char* value, ImVec2 position, float fontSize, ImU32 color,
-                      float maxWidth = 0.f, bool rightAlign = false, float wrap = 0.f) {
-        if (!list) return;
-        const char* label = tr(value);
-        if (!native(label)) {
-            ImFont* f = SafeMenuFont();
-            if (!f) return;
-            const float width = measure(label, fontSize).x;
-            if (maxWidth > 0.f && width > maxWidth && width > 0.f) fontSize *= maxWidth / width;
-            list->AddText(f, fontSize, position, color, label);
-            return;
+    static void drawText(const char* value, ImVec2 pos, ImU32 color, float fontSize = 0.f, float wrap = 0.f) {
+        const char* text = tr(value);
+        const float size = fontSize > 0.f ? fontSize : ImGui::GetFontSize();
+        ImDrawList* draw = ImGui::GetWindowDrawList();
+        if (!draw) return;
+        if (native(text)) {
+            const TextImage& item = image(text, size, wrap);
+            if (item.texture) {
+                const float x = rtl() ? pos.x - item.content.x + item.padding : pos.x - item.padding;
+                const float y = pos.y - item.padding;
+                draw->AddImage((ImTextureID)(__bridge void*)item.texture,
+                               ImVec2(x, y), ImVec2(x + item.content.x, y + item.content.y),
+                               ImVec2(0, 0), ImVec2(1, 1), color);
+                return;
+            }
         }
-        const TextImage& text = image(label, fontSize, wrap);
-        if (!text.texture) return;
-        const float factor = (maxWidth > 0.f && text.content.x > maxWidth && text.content.x > 0.f) ? maxWidth / text.content.x : 1.f;
-        if (rightAlign && maxWidth > 0.f) position.x += maxWidth - text.content.x * factor;
-        const float padding = text.padding * factor;
-        list->AddImage((__bridge ImTextureID)text.texture,
-            ImVec2(position.x - padding, position.y - padding),
-            ImVec2(position.x + text.content.x * factor + padding, position.y + text.content.y * factor + padding),
-            ImVec2(0, 0), ImVec2(1, 1), color);
+        ImFont* f = SafeMenuFont();
+        if (f) draw->AddText(f, size, pos, color, text, nullptr, wrap);
     }
     static void text(const char* value, float wrap = 0.f) {
-        const char* label = tr(value);
-        if (!native(label)) { ImGui::TextUnformatted(label); return; }
-        const float fs = ImGui::GetFontSize();
-        const ImVec2 size = measure(value, fs, wrap), position = ImGui::GetCursorScreenPos();
-        ImGui::Dummy(size);
-        draw(ImGui::GetWindowDrawList(), value, position, fs, ImGui::GetColorU32(ImGuiCol_Text), wrap,
-             rtl(), wrap);
+        const char* text = tr(value);
+        if (native(text)) {
+            const TextImage& item = image(text, ImGui::GetFontSize(), wrap);
+            if (item.texture) {
+                const ImVec2 size(ImMax(0.f, item.content.x - item.padding * 2.f),
+                                  ImMax(0.f, item.content.y - item.padding * 2.f));
+                ImVec4 col = ImGui::GetStyle().Colors[ImGuiCol_Text];
+                ImGui::Image((ImTextureID)(__bridge void*)item.texture, size,
+                             ImVec2(0.5f / item.content.x, 0.5f / item.content.y),
+                             ImVec2(1.f - 0.5f / item.content.x, 1.f - 0.5f / item.content.y), col);
+                return;
+            }
+        }
+        ImGui::TextUnformatted(text);
     }
-    static void tooltip(const char* value) {
-        if (!native(tr(value))) { ImGui::SetTooltip("%s", tr(value)); return; }
-        ImGui::BeginTooltip();
-        text(value, ImMin(360.f, ImGui::GetIO().DisplaySize.x * .75f));
+    static void textDisabled(const char* value, float wrap = 0.f) {
+        ImGui::PushStyleColor(ImGuiCol_Text, ImGui::GetStyle().Colors[ImGuiCol_TextDisabled]);
+        text(value, wrap);
+        ImGui::PopStyleColor();
+    }
+    static void textColored(ImVec4 color, const char* value, float wrap = 0.f) {
+        ImGui::PushStyleColor(ImGuiCol_Text, color);
+        text(value, wrap);
+        ImGui::PopStyleColor();
+    }
+}
+
+extern "C" void SetMenuLanguage(int language) {
+    MenuLocale::language = (language >= 0 && language <= 6) ? language : 0;
+}
+
+extern "C" const char* TranslateMenuText(const char* value) {
+    return MenuLocale::tr(value);
+}
+
+static bool DrawCyberButton(const char* label, const ImVec2& size_arg = ImVec2(0, 0)) {
+    const char* translated = MenuLocale::tr(label);
+    if (!MenuLocale::native(translated))
+        return ImGui::Button(translated, size_arg);
+    const ImVec2 labelSize = MenuLocale::measure(label);
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const ImVec2 size = ImGui::CalcItemSize(size_arg, labelSize.x + style.FramePadding.x * 2.f,
+                                            ImMax(labelSize.y, ImGui::GetFontSize()) + style.FramePadding.y * 2.f);
+    const bool clicked = ImGui::Button("", size);
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (!window || window->SkipItems) return clicked;
+    const ImRect rect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+    const float y = rect.Min.y + (rect.GetHeight() - labelSize.y) * .5f;
+    const float x = MenuLocale::rtl() ? rect.Max.x - style.FramePadding.x
+                                      : rect.Min.x + (rect.GetWidth() - labelSize.x) * .5f;
+    MenuLocale::drawText(label, ImVec2(x, y), ImGui::GetColorU32(ImGuiCol_Text));
+    return clicked;
+}
+
+static bool DrawCyberSelectable(const char* label, bool selected, ImGuiSelectableFlags flags = 0, const ImVec2& size_arg = ImVec2(0, 0)) {
+    const char* translated = MenuLocale::tr(label);
+    if (!MenuLocale::native(translated))
+        return ImGui::Selectable(translated, selected, flags, size_arg);
+    const ImVec2 labelSize = MenuLocale::measure(label);
+    const ImGuiStyle& style = ImGui::GetStyle();
+    const ImVec2 size = ImGui::CalcItemSize(size_arg, labelSize.x + style.ItemSpacing.x,
+                                            ImMax(labelSize.y, ImGui::GetFontSize()) + style.ItemSpacing.y * .5f);
+    const bool clicked = ImGui::Selectable("", selected, flags, size);
+    ImGuiWindow* window = ImGui::GetCurrentWindow();
+    if (!window || window->SkipItems) return clicked;
+    const ImRect rect(ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+    const float y = rect.Min.y + (rect.GetHeight() - labelSize.y) * .5f;
+    const float x = MenuLocale::rtl() ? rect.Max.x - style.FramePadding.x : rect.Min.x + style.FramePadding.x;
+    MenuLocale::drawText(label, ImVec2(x, y), ImGui::GetColorU32(ImGuiCol_Text));
+    return clicked;
+}
+
+static void DrawCyberTooltip(const char* label) {
+    if (ImGui::BeginTooltip()) {
+        MenuLocale::text(label, 280.f);
         ImGui::EndTooltip();
-    }
-    static bool selectable(const char* value, bool selected) {
-        const char* label = tr(value);
-        if (!native(label)) return ImGui::Selectable(label, selected);
-        const ImVec2 position = ImGui::GetCursorScreenPos();
-        const float fs = ImGui::GetFontSize(), height = ImGui::GetFrameHeight() * 1.2f;
-        const float width = ImMax(190.f, measure(value, fs).x + 20.f);
-        const std::string id = "##locale_select_" + std::string(value ? value : "");
-        const bool pressed = ImGui::Selectable(id.c_str(), selected, 0, ImVec2(width, height));
-        draw(ImGui::GetWindowDrawList(), value, ImVec2(position.x + 5.f, position.y + (height - measure(value, fs).y) * .5f),
-             fs, ImGui::GetColorU32(ImGuiCol_Text), width - 10.f, rtl());
-        return pressed;
-    }
-    static void widgetLabel(const char* value) {
-        const float width = ImGui::GetFontSize() * 12.f;
-        const ImVec2 position = ImGui::GetCursorScreenPos();
-        ImGui::Dummy(ImVec2(width, ImGui::GetFrameHeight()));
-        draw(ImGui::GetWindowDrawList(), value, ImVec2(position.x, position.y + ImGui::GetStyle().FramePadding.y),
-             ImGui::GetFontSize(), ImGui::GetColorU32(ImGuiCol_Text), width, rtl());
-    }
-    static bool checkbox(const char* value, bool* state) {
-        if (!state) return false;
-        if (!native(tr(value))) return ImGui::Checkbox(value, state);
-        ImGui::PushID(value);
-        ImGui::BeginGroup();
-        bool changed = ImGui::Checkbox("##check", state);
-        ImGui::SameLine();
-        const float width = ImMax(160.f, measure(value, ImGui::GetFontSize()).x);
-        const ImVec2 position = ImGui::GetCursorScreenPos();
-        if (ImGui::InvisibleButton("##label", ImVec2(width, ImGui::GetFrameHeight()))) {
-            *state = !*state;
-            changed = true;
-        }
-        draw(ImGui::GetWindowDrawList(), value, ImVec2(position.x, position.y + ImGui::GetStyle().FramePadding.y),
-             ImGui::GetFontSize(), ImGui::GetColorU32(ImGuiCol_Text), width, rtl());
-        ImGui::EndGroup();
-        ImGui::PopID();
-        return changed;
-    }
-    static bool sliderFloat(const char* label, float* value, float low, float high, const char* format = "%.3f") {
-        if (!value) return false;
-        if (!native(tr(label))) return ImGui::SliderFloat(label, value, low, high, format);
-        ImGui::PushID(label);
-        ImGui::BeginGroup();
-        ImGui::SetNextItemWidth(ImGui::GetFontSize() * 14.f);
-        const bool changed = ImGui::SliderFloat("##value", value, low, high, format);
-        ImGui::SameLine();
-        widgetLabel(label);
-        ImGui::EndGroup();
-        ImGui::PopID();
-        return changed;
-    }
-    static bool sliderInt(const char* label, int* value, int low, int high) {
-        if (!value) return false;
-        if (!native(tr(label))) return ImGui::SliderInt(label, value, low, high);
-        ImGui::PushID(label);
-        ImGui::BeginGroup();
-        ImGui::SetNextItemWidth(ImGui::GetFontSize() * 14.f);
-        const bool changed = ImGui::SliderInt("##value", value, low, high);
-        ImGui::SameLine();
-        widgetLabel(label);
-        ImGui::EndGroup();
-        ImGui::PopID();
-        return changed;
-    }
-    static bool colorEdit(const char* label, float* value) {
-        if (!value) return false;
-        if (!native(tr(label))) return ImGui::ColorEdit4(label, value);
-        ImGui::PushID(label);
-        ImGui::BeginGroup();
-        if (ImGui::ColorButton("##color", ImVec4(value[0], value[1], value[2], value[3]),
-                                ImGuiColorEditFlags_NoTooltip, ImVec2(52.f, ImGui::GetFrameHeight())))
-            ImGui::OpenPopup("##colors");
-        ImGui::SameLine();
-        widgetLabel(label);
-        bool changed = false;
-        if (ImGui::BeginPopup("##colors")) {
-            const char* components[] = {"Red", "Green", "Blue", "Opacity"};
-            for (int i = 0; i < 4; ++i)
-                changed = sliderFloat(components[i], &value[i], 0.f, 1.f, "%.2f") || changed;
-            ImGui::EndPopup();
-        }
-        ImGui::EndGroup();
-        ImGui::PopID();
-        return changed;
-    }
-    static bool combo(const char* label, int* value, const char* const* choices, int count) {
-        if (!value || !choices || count <= 0) return false;
-        if (language == 0) return ImGui::Combo(label, value, choices, count);
-        ImGui::PushID(label);
-        ImGui::BeginGroup();
-        const ImVec2 position = ImGui::GetCursorScreenPos();
-        const float width = ImGui::GetFontSize() * 14.f;
-        ImDrawList* owner = ImGui::GetWindowDrawList();
-        ImGui::SetNextItemWidth(width);
-        const bool open = ImGui::BeginCombo("##choice", "");
-        draw(owner, choices[ImClamp(*value, 0, count - 1)],
-             ImVec2(position.x + 5.f, position.y + ImGui::GetStyle().FramePadding.y), ImGui::GetFontSize(),
-             ImGui::GetColorU32(ImGuiCol_Text), width - ImGui::GetFrameHeight() - 10.f, rtl());
-        bool changed = false;
-        if (open) {
-            for (int i = 0; i < count; ++i)
-                if (selectable(choices[i], *value == i)) { *value = i; changed = true; }
-            ImGui::EndCombo();
-        }
-        ImGui::SameLine();
-        widgetLabel(label);
-        ImGui::EndGroup();
-        ImGui::PopID();
-        return changed;
-    }
-    static bool button(const char* label, ImVec2 size) {
-        if (!native(tr(label))) return ImGui::Button(label, size);
-        const ImVec2 position = ImGui::GetCursorScreenPos();
-        const std::string id = "##locale_button_" + std::string(label ? label : "");
-        const bool pressed = ImGui::Button(id.c_str(), size);
-        const ImVec2 textSize = measure(label, ImGui::GetFontSize());
-        const float factor = (textSize.x > size.x - 12.f && textSize.x > 0.f) ? (size.x - 12.f) / textSize.x : 1.f;
-        draw(ImGui::GetWindowDrawList(), label,
-             ImVec2(position.x + (size.x - textSize.x * factor) * .5f,
-                    position.y + (size.y - textSize.y * factor) * .5f),
-             ImGui::GetFontSize(), ImGui::GetColorU32(ImGuiCol_Text), size.x - 12.f);
-        return pressed;
     }
 }
 
 // HMOOD__TG@i_8_f
-void SetMenuLanguage(int language) { MenuLocale::language = language < 0 ? 0 : language > 6 ? 6 : language; }
-int GetMenuLanguage() { return MenuLocale::language; }
-const char* TranslateMenuText(const char* value) { return MenuLocale::tr(value); }
 
 
 namespace CyberMenu {
-// HMOOD__TG@i_8_f
 
+static ImU32 U32(ImVec4 c) { return ImGui::ColorConvertFloat4ToU32(c); }
+static ImVec4 RGBA(int r, int g, int b, float a = 1.f) { return ImVec4(r/255.f, g/255.f, b/255.f, a); }
 
-    static const ImU32 Red = IM_COL32(195, 12, 41, 255);
-    static const ImU32 White = IM_COL32(203, 204, 209, 255);
-    static const ImU32 Muted = IM_COL32(112, 120, 130, 255);
-    static const ImU32 Cyan = IM_COL32(17, 178, 201, 255);
-    static const ImU32 Green = IM_COL32(37, 216, 125, 255);
+static ImVec4 g_Accent = RGBA(209, 18, 48, 1.f);
+static ImVec4 g_BgMain = RGBA(8, 9, 14, 0.96f);
+static ImVec4 g_BgPanel = RGBA(13, 15, 22, 1.f);
+static ImVec4 g_BgCard = RGBA(19, 21, 31, 1.f);
+static ImVec4 g_BgHover = RGBA(28, 31, 45, 1.f);
+static ImVec4 g_Border = RGBA(38, 42, 62, 0.75f);
+static ImVec4 g_TextMain = RGBA(242, 244, 250, 1.f);
+static ImVec4 g_TextDim = RGBA(135, 142, 165, 1.f);
+static ImVec4 g_TextMuted = RGBA(88, 94, 115, 1.f);
+static ImVec4 g_Green = RGBA(45, 215, 120, 1.f);
+static ImVec4 g_Yellow = RGBA(245, 190, 45, 1.f);
+static ImVec4 g_Red = RGBA(235, 55, 75, 1.f);
+static ImVec4 g_Cyan = RGBA(55, 195, 240, 1.f);
 
-    struct Canvas {
-        ImDrawList* dl;
-        ImVec2 origin;
-        float scale;
-        float stretchX = 1.f;
-        float stretchY = 1.f;
-        float switchReveal = 1.f;
-        double animationTime = 0.0;
-        ImVec2 p(float x, float y) const {
-            return {origin.x + x * scale * stretchX, origin.y + y * scale * stretchY};
-        }
-        ImVec2 size(float w, float h) const {
-            return {w * scale * stretchX, h * scale * stretchY};
-        }
-        void rect(float x, float y, float w, float h, ImU32 color, float radius = 0.f) const {
-            if (!dl) return;
-            dl->AddRectFilled(p(x, y), p(x + w, y + h), color, radius * scale);
-        }
-        void line(float x, float y, float xx, float yy, ImU32 color, float width = 1.f) const {
-            if (!dl) return;
-            dl->AddLine(p(x, y), p(xx, yy), color, width * scale);
-        }
-        void text(float x, float y, const char* label, float height = 20.f, ImU32 color = White,
-                  float maxWidth = 0.f) const {
-            if (!dl || !label) return;
-            float fs = height * scale;
-            if (MenuLocale::native(MenuLocale::tr(label))) {
-                MenuLocale::draw(dl, label, p(x, y), fs, color,
-                                  maxWidth > 0.f ? maxWidth * scale * stretchX : 0.f, MenuLocale::rtl());
-                return;
+struct State {
+    int tab = 0;
+    int espSubTab = 0;
+    int aimSubTab = 0;
+    int memSubTab = 0;
+    int setSubTab = 0;
+
+    int espStyle = 1;
+    bool espPlayer = true;
+    bool espName = true;
+    bool espWeapon = false;
+    bool espGameInfo = false;
+    bool espDist = true;
+    bool espHealth = true;
+    bool esp360 = true;
+    bool espLine = false;
+    bool espBox = false;
+    bool espBone = true;
+    bool espIgnoreBot = false;
+    bool espEnemyCount = true;
+    bool espTeamId = false;
+    bool espEnemyAim = true;
+    bool espLootBox = false;
+    bool espItems = false;
+    bool espVehicle = false;
+
+    float espDistMax = 300.f;
+    float espHpScale = 1.0f;
+    float esp360Radius = 80.f;
+    float espStroke = 1.0f;
+    bool espTextBorder = true;
+    bool espHideName = false;
+    float espDistCol[4] = {1.f, 0.85f, 0.2f, 1.f};
+    float espBorderCol[4] = {0.05f, 0.78f, 0.95f, 0.85f};
+
+    bool aimEnable = false;
+    bool aimSilent = false;
+    bool aimMacro = false;
+    bool aimLine = false;
+    bool aimAutoFire = false;
+    bool aimVisCheck = true;
+    bool aimIgnoreBot = false;
+    bool aimIgnoreKnocked = false;
+    bool aimShowFov = true;
+    int aimTarget = 0;
+    int aimTrigger = 3;
+    float aimFov = 120.f;
+    float aimDist = 250.f;
+    float aimSpeed = 6.f;
+    float aimHitProb = 100.f;
+    int aimMode = 0;
+    bool aimPredict = true;
+    float aimMaxStep = 3.5f;
+    float magicX = 0.f, magicY = 0.f, magicZ = 0.f;
+
+    bool memAutoTap = false;
+    bool memFastShoot = false;
+    bool memFastScope = false;
+    bool memFastGun = false;
+    bool memSpin = false;
+    bool memZoom = false;
+    bool memIpad = false;
+    bool memNoRecoil = false;
+    bool memNoShake = false;
+    bool memHitX = false;
+    bool memDamage = false;
+    bool memSmallCross = false;
+    bool memRainbow = false;
+    bool memCrossSpin = false;
+    bool memFastDrop = false;
+    bool memSuperRun = false;
+    float memSpinSpeed = 10.f;
+    float memIpadVal = 120.f;
+    float memCrossSize = 4.f;
+
+    bool setStreamHide = false;
+    int setLang = 0;
+    bool confirmGuestReset = false;
+
+    char toast[128] = "";
+    float toastTimer = 0.f;
+    ImVec4 toastCol = g_Green;
+};
+
+static State& S() { static State s; return s; }
+
+static void Toast(const char* msg, ImVec4 col = g_Green) {
+    snprintf(S().toast, sizeof(S().toast), "%s", MenuLocale::tr(msg));
+    S().toastTimer = 2.2f;
+    S().toastCol = col;
+}
+
+static void SyncFromGlobals() {
+    State& s = S();
+    s.espStyle = IsStyle;
+    s.espPlayer = imgui::ESP;
+    s.espName = imgui::Name;
+    s.espWeapon = imgui::Weapon;
+    s.espGameInfo = imgui::GameInfo;
+    s.espDist = imgui::Distance;
+    s.espHealth = imgui::Health;
+    s.esp360 = imgui::Alert360;
+    s.espLine = imgui::Line;
+    s.espBox = imgui::Boxes;
+    s.espBone = imgui::Bone;
+    s.espIgnoreBot = imgui::HideBot;
+    s.espEnemyCount = imgui::EnemyCount;
+    s.espTeamId = imgui::TeamID;
+    s.espEnemyAim = imgui::EnemyAiming;
+    s.espLootBox = imgui::Lootbox;
+    s.espItems = imgui::Items;
+    s.espVehicle = imgui::Vehicle;
+
+    s.espDistMax = ESPMaxDistance;
+    s.espHpScale = globalHpAlphaF;
+    s.esp360Radius = AlertRadius;
+    s.espStroke = strokeIntensity;
+    s.espTextBorder = textBorder;
+    s.espHideName = hideNameKillMsg;
+
+    ImVec4 dc = ImGui::ColorConvertU32ToFloat4(COLOR_Distance);
+    s.espDistCol[0] = dc.x; s.espDistCol[1] = dc.y; s.espDistCol[2] = dc.z; s.espDistCol[3] = dc.w;
+    s.espBorderCol[0] = bgColor.Value.x; s.espBorderCol[1] = bgColor.Value.y;
+    s.espBorderCol[2] = bgColor.Value.z; s.espBorderCol[3] = bgColor.Value.w;
+
+    s.aimEnable = Settings::Aimbot::Tick;
+    s.aimSilent = Enable;
+    s.aimLine = Settings::Aimbot::SilentAimSettings::AimingLine;
+    s.aimAutoFire = 自动开火;
+    s.aimVisCheck = Settings::isVisibilityCheck;
+    s.aimIgnoreBot = Settings::Aimbot::SilentAimSettings::Highprecisiontracking;
+    s.aimIgnoreKnocked = Settings::Aimbot::SilentAimSettings::AimKnocked;
+    s.aimShowFov = Settings::Aimbot::SilentAimSettings::EnableFov;
+    s.aimTarget = Settings::Aimbot::SilentAimSettings::Aimpositon;
+    s.aimTrigger = Settings::Aimbot::TriggerMode.load(std::memory_order_relaxed);
+    s.aimFov = Cross;
+    s.aimDist = SilentAimMaxDistance;
+    s.aimSpeed = AimSmooth;
+    s.aimHitProb = 追踪概率;
+    s.aimMode = Settings::Aimbot::AimMethod;
+    s.aimPredict = Settings::Aimbot::SilentAimSettings::Prediction;
+    s.aimMaxStep = Settings::Aimbot::SilentAimSettings::MaxStepDeg;
+    s.magicX = magicX; s.magicY = magicY; s.magicZ = magicZ;
+
+    s.memFastShoot = IsFastshoot;
+    s.memFastScope = MemoryFastScope;
+    s.memFastGun = IsFastSwitch;
+    s.memSpin = isSpinning;
+    s.memZoom = MemoryZoom;
+    s.memIpad = WideView;
+    s.memNoRecoil = IsNorecoil2;
+    s.memNoShake = IsNocamerashake;
+    s.memHitX = HitX;
+    s.memDamage = MemoryDamage;
+    s.memSmallCross = IsCrossHair;
+    s.memRainbow = MemoryRainbow;
+    s.memCrossSpin = MemoryCrossSpin;
+    s.memFastDrop = IsFastDrop;
+    s.memSuperRun = chaynhanhv2;
+    s.memSpinSpeed = tocdoquay;
+    s.memIpadVal = (float)WideValue;
+    s.memCrossSize = crosshairSizeSlider;
+
+    s.setStreamHide = hideHacker;
+    s.setLang = MenuLocale::language;
+}
+
+static void SyncToGlobals() {
+    State& s = S();
+    IsStyle = s.espStyle;
+    imgui::ESP = s.espPlayer;
+    imgui::Name = s.espName;
+    imgui::Weapon = s.espWeapon;
+    imgui::GameInfo = s.espGameInfo;
+    imgui::Distance = s.espDist;
+    imgui::Health = s.espHealth;
+    imgui::Alert360 = s.esp360;
+    imgui::Line = s.espLine;
+    imgui::Boxes = s.espBox;
+    imgui::Bone = s.espBone;
+    imgui::HideBot = s.espIgnoreBot;
+    imgui::EnemyCount = s.espEnemyCount;
+    imgui::TeamID = s.espTeamId;
+    imgui::EnemyAiming = s.espEnemyAim;
+    imgui::Lootbox = s.espLootBox;
+    imgui::Items = s.espItems;
+    imgui::Vehicle = s.espVehicle;
+
+    ESPMaxDistance = s.espDistMax;
+    globalHpAlphaF = s.espHpScale;
+    AlertRadius = s.esp360Radius;
+    strokeIntensity = s.espStroke;
+    textBorder = s.espTextBorder;
+    hideNameKillMsg = s.espHideName;
+
+    COLOR_Distance = ImGui::ColorConvertFloat4ToU32(ImVec4(s.espDistCol[0], s.espDistCol[1], s.espDistCol[2], s.espDistCol[3]));
+    bgColor = ImColor(s.espBorderCol[0], s.espBorderCol[1], s.espBorderCol[2], s.espBorderCol[3]);
+
+    Settings::Aimbot::Tick = s.aimEnable;
+    Settings::Aimbot::AimMethod = s.aimMode;
+    Enable = s.aimSilent && s.aimEnable && s.aimMode != 0;
+    Settings::Aimbot::SilentAim = Enable;
+    Settings::Aimbot::SilentAimSettings::AimingLine = s.aimLine;
+    自动开火 = s.aimAutoFire && s.aimEnable;
+    Settings::isVisibilityCheck = s.aimVisCheck;
+    Settings::Aimbot::SilentAimSettings::Highprecisiontracking = s.aimIgnoreBot;
+    Settings::Aimbot::SilentAimSettings::AimKnocked = s.aimIgnoreKnocked;
+    Settings::Aimbot::SilentAimSettings::EnableFov = s.aimShowFov;
+    Settings::Aimbot::SilentAimSettings::Aimpositon = s.aimTarget;
+    Settings::Aimbot::TriggerMode.store(s.aimTrigger, std::memory_order_relaxed);
+    Cross = s.aimFov;
+    SilentAimMaxDistance = s.aimDist;
+    AimSmooth = s.aimSpeed;
+    追踪概率 = s.aimHitProb;
+    Settings::Aimbot::SilentAimSettings::Prediction = s.aimPredict;
+    Settings::Aimbot::SilentAimSettings::MaxStepDeg = s.aimMaxStep;
+    magicX = s.magicX; magicY = s.magicY; magicZ = s.magicZ;
+
+    IsFastshoot = s.memFastShoot;
+    MemoryFastScope = s.memFastScope;
+    IsFastSwitch = s.memFastGun;
+    isSpinning = s.memSpin;
+    MemoryZoom = s.memZoom;
+    WideView = s.memIpad;
+    IsNorecoil2 = s.memNoRecoil;
+    IsNocamerashake = s.memNoShake;
+    HitX = s.memHitX;
+    MemoryDamage = s.memDamage;
+    IsCrossHair = s.memSmallCross;
+    MemoryRainbow = s.memRainbow;
+    MemoryCrossSpin = s.memCrossSpin;
+    IsFastDrop = s.memFastDrop;
+    chaynhanhv2 = s.memSuperRun;
+    tocdoquay = s.memSpinSpeed;
+    WideValue = (int)s.memIpadVal;
+    crosshairSizeSlider = s.memCrossSize;
+
+    hideHacker = s.setStreamHide;
+    MenuLocale::language = s.setLang;
+}
+
+static bool SwitchRow(const char* label, bool* v, const char* hint = nullptr) {
+    ImGuiWindow* win = ImGui::GetCurrentWindow();
+    if (win->SkipItems) return false;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    float w = ImGui::GetContentRegionAvail().x;
+    float h = 28.f;
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImRect bb(pos, ImVec2(pos.x + w, pos.y + h));
+
+    ImGui::ItemSize(bb, style.FramePadding.y);
+    ImGuiID id = win->GetID(label);
+    if (!ImGui::ItemAdd(bb, id)) return false;
+
+    bool hovered = false, held = false;
+    bool pressed = ImGui::ButtonBehavior(bb, id, &hovered, &held);
+    if (pressed && v) {
+        *v = !(*v);
+        SyncToGlobals();
+        Toast(label, *v ? g_Green : g_TextDim);
+    }
+
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    bool active = v ? *v : false;
+
+    ImU32 rowBg = hovered ? U32(g_BgHover) : U32(g_BgCard);
+    dl->AddRectFilled(bb.Min, bb.Max, rowBg, 5.f);
+
+    float swW = 34.f, swH = 18.f;
+    float swX = bb.Max.x - swW - 8.f;
+    float swY = bb.Min.y + (h - swH) * 0.5f;
+    ImVec2 swMin(swX, swY), swMax(swX + swW, swY + swH);
+
+    ImU32 trackCol = active ? U32(g_Accent) : U32(RGBA(42, 46, 66, 1.f));
+    dl->AddRectFilled(swMin, swMax, trackCol, swH * 0.5f);
+
+    float rad = swH * 0.5f - 2.5f;
+    float knobX = active ? (swMax.x - rad - 2.5f) : (swMin.x + rad + 2.5f);
+    dl->AddCircleFilled(ImVec2(knobX, swMin.y + swH * 0.5f), rad, U32(g_TextMain), 16);
+
+    float textRight = swMin.x - 8.f;
+    float textY = bb.Min.y + (h - MenuLocale::measure(label).y) * 0.5f;
+    ImU32 txtCol = active ? U32(g_TextMain) : U32(RGBA(185, 192, 212, 1.f));
+    if (MenuLocale::rtl()) {
+        MenuLocale::drawText(label, ImVec2(textRight, textY), txtCol);
+    } else {
+        MenuLocale::drawText(label, ImVec2(bb.Min.x + 10.f, textY), txtCol);
+    }
+
+    if (hovered && hint) {
+        DrawCyberTooltip(hint);
+    }
+    return pressed;
+}
+
+static bool SliderRow(const char* label, float* v, float vMin, float vMax, const char* fmt = "%.1f", const char* hint = nullptr) {
+    ImGuiWindow* win = ImGui::GetCurrentWindow();
+    if (win->SkipItems) return false;
+
+    ImGuiStyle& style = ImGui::GetStyle();
+    float w = ImGui::GetContentRegionAvail().x;
+    float h = 38.f;
+    ImVec2 pos = ImGui::GetCursorScreenPos();
+    ImRect bb(pos, ImVec2(pos.x + w, pos.y + h));
+
+    ImGui::ItemSize(bb, style.FramePadding.y);
+    ImGuiID id = win->GetID(label);
+    if (!ImGui::ItemAdd(bb, id)) return false;
+
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(bb.Min, bb.Max, U32(g_BgCard), 5.f);
+
+    char valBuf[32];
+    snprintf(valBuf, sizeof(valBuf), fmt, v ? *v : 0.f);
+    ImVec2 valSz = ImGui::CalcTextSize(valBuf);
+
+    float topY = bb.Min.y + 5.f;
+    if (MenuLocale::rtl()) {
+        dl->AddText(ImVec2(bb.Min.x + 10.f, topY), U32(g_Cyan), valBuf);
+        MenuLocale::drawText(label, ImVec2(bb.Max.x - 10.f, topY), U32(g_TextMain));
+    } else {
+        MenuLocale::drawText(label, ImVec2(bb.Min.x + 10.f, topY), U32(g_TextMain));
+        dl->AddText(ImVec2(bb.Max.x - valSz.x - 10.f, topY), U32(g_Cyan), valBuf);
+    }
+
+    float barX0 = bb.Min.x + 10.f;
+    float barX1 = bb.Max.x - 10.f;
+    float barY = bb.Max.y - 10.f;
+    float barH = 5.f;
+
+    ImRect barBB(ImVec2(barX0, barY - 5.f), ImVec2(barX1, barY + barH + 5.f));
+    bool hovered = ImGui::IsMouseHoveringRect(bb.Min, bb.Max);
+    bool held = false;
+    if (ImGui::IsMouseHoveringRect(barBB.Min, barBB.Max) && ImGui::IsMouseClicked(0)) {
+        ImGui::SetActiveID(id, win);
+    }
+    if (ImGui::GetActiveID() == id) {
+        if (ImGui::IsMouseDown(0)) {
+            held = true;
+            float t = ImClamp((ImGui::GetIO().MousePos.x - barX0) / ImMax(1.f, barX1 - barX0), 0.f, 1.f);
+            if (v) {
+                *v = vMin + t * (vMax - vMin);
+                SyncToGlobals();
             }
-            ImFont* font = SafeMenuFont();
-            if (!font) return;
-            if (maxWidth > 0.f) {
-                float width = font->CalcTextSizeA(fs, FLT_MAX, 0.f, label).x;
-                if (width > maxWidth * scale * stretchX && width > 0.f)
-                    fs *= maxWidth * scale * stretchX / width;
-            }
-            dl->AddText(font, fs, p(x, y), color, label);
-        }
-    };
-
-// HMOOD__TG@i_8_f
-
-
-     
-     
-    struct PageMotion {
-        int page = -1;
-        bool shown = false;
-        bool opening = false;
-        double started = 0.0;
-        double lastFrame = 0.0;
-        float age = 0.f;
-
-        void update(int selected) {
-            const double now =
-                std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
-            if (!shown || selected != page) {
-                opening = !shown;
-                page = selected;
-                started = now;
-            }
-            age = ImMax(0.f, (float)(now - started));
-            shown = true;
-            lastFrame = now;
-        }
-
-        float offset() const {
-            if (opening && page == 0)
-                return 0.f;
-             
-             
-            static const float residual[] = {1.f,   .707f,  .467f,  .280f,  .147f,  .080f,
-                                             .013f, -.013f, -.013f, -.013f, -.013f, 0.f};
-            const int last = (int)(sizeof(residual) / sizeof(residual[0])) - 1;
-            const float sample = age * 60.f;
-            if (sample >= last)
-                return 0.f;
-            const int index = (int)sample;
-            const float t = sample - index;
-            return -88.f * (residual[index] + (residual[index + 1] - residual[index]) * t);
-        }
-
-        float opacity() const {
-            if (page != 0 && page != 4)
-                return 1.f;
-            const float t = ImClamp(age / .20f, 0.f, 1.f);
-            const float fade = 1.f - (1.f - t) * (1.f - t);
-            return opening && page == 0 ? .72f + .28f * fade : fade;
-        }
-
-        float switches() const {
-            return age >= .08f ? 1.f : 1.f - std::exp(-age * 80.f);
-        }
-    };
-
-    static void fadeContent(ImDrawList* draw, int first, float opacity) {
-        if (!draw || opacity >= 1.f)
-            return;
-        const int clampedFirst = ImClamp(first, 0, draw->VtxBuffer.Size);
-        for (int i = clampedFirst; i < draw->VtxBuffer.Size; ++i) {
-            ImU32& color = draw->VtxBuffer[i].col;
-            const ImU32 alpha = (color & IM_COL32_A_MASK) >> IM_COL32_A_SHIFT;
-            color = (color & ~IM_COL32_A_MASK) | ((ImU32)(alpha * opacity + .5f) << IM_COL32_A_SHIFT);
-        }
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    struct Reference {
-        id<MTLTexture> texture;
-        float w, h, x, y;
-    };
-
-     
-     
-     
-    static Reference& artwork(int index) {
-        static Reference textures[3] = {};
-        static bool attempted[3] = {};
-        if (index < 0 || index >= 3) return textures[0];
-        Reference& result = textures[index];
-        if (attempted[index])
-            return result;
-        attempted[index] = true;
-        @autoreleasepool {
-            const char* bytes[] = {kCyberDetailedFrame, kCyberDetailedBrand, kCyberDetailedBrand};
-            const CGRect crops[] = {CGRectMake(8, 8, 1528, 978), CGRectMake(60, 156, 2060, 403), CGRectMake(0, 0, 448, 448)};
-            if (!bytes[index]) return result;
-            NSString* encoded = [[NSString alloc] initWithUTF8String:bytes[index]];
-            NSData* data = [[NSData alloc] initWithBase64EncodedString:encoded options:0];
-            UIImage* decoded = index == 2 ? GetMenuBadgeImage() : (data ? [UIImage imageWithData:data] : nil);
-            CGImageRef image =
-                decoded.CGImage ? CGImageCreateWithImageInRect(decoded.CGImage, crops[index]) : nullptr;
-            id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-            if (!image || !device) {
-                if (image)
-                    CGImageRelease(image);
-                return result;
-            }
-            const size_t width = CGImageGetWidth(image), height = CGImageGetHeight(image);
-            if (width == 0 || height == 0 || width > 8192 || height > 8192) {
-                CGImageRelease(image);
-                return result;
-            }
-            std::vector<uint8_t> rgba(width * height * 4, 0);
-            CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-            CGContextRef context =
-                space ? CGBitmapContextCreate(rgba.data(), width, height, 8, width * 4, space,
-                                              kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big)
-                      : nullptr;
-            if (context) {
-                CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
-                CGContextFlush(context);
-                for (size_t i = 0; i < width * height; ++i) {
-                    uint8_t* pixel = rgba.data() + i * 4;
-                    const unsigned alpha = pixel[3];
-                    if (alpha < 4) {
-                        pixel[0] = pixel[1] = pixel[2] = pixel[3] = 0;
-                        continue;
-                    }
-                    for (int k = 0; k < 3; ++k)
-                        pixel[k] = (uint8_t)ImMin(255u, (pixel[k] * 255u + alpha / 2u) / alpha);
-                }
-                MTLTextureDescriptor* descriptor =
-                    [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
-                                                                       width:width
-                                                                      height:height
-                                                                   mipmapped:NO];
-                descriptor.usage = MTLTextureUsageShaderRead;
-                descriptor.storageMode = MTLStorageModeShared;
-                result.texture = [device newTextureWithDescriptor:descriptor];
-                if (result.texture)
-                    [result.texture replaceRegion:MTLRegionMake2D(0, 0, width, height)
-                                      mipmapLevel:0
-                                        withBytes:rgba.data()
-                                      bytesPerRow:width * 4];
-                result.w = (float)width;
-                result.h = (float)height;
-                CGContextRelease(context);
-            }
-            if (space)
-                CGColorSpaceRelease(space);
-            CGImageRelease(image);
-        }
-        return result;
-    }
-
-    static Reference& highQualityFrame() {
-        return artwork(0);
-    }
-
-     
-     
-    static Reference& navigationTexture(int tab, bool selected) {
-        static Reference faces[5][2] = {};
-        static bool attempted[5][2] = {};
-        if (tab < 0 || tab >= 5) return faces[0][0];
-        const int state = selected ? 1 : 0;
-        Reference& face = faces[tab][state];
-        if (attempted[tab][state])
-            return face;
-        attempted[tab][state] = true;
-        @autoreleasepool {
-            if (!kCyberNavigation9230) return face;
-            NSString* encoded = [[NSString alloc] initWithUTF8String:kCyberNavigation9230];
-            NSData* data = [[NSData alloc] initWithBase64EncodedString:encoded options:0];
-            UIImage* source = data ? [UIImage imageWithData:data] : nil;
-            const CGRect crop = CGRectMake(49, 20 + tab * 150, 295, 139);
-            CGImageRef own = source.CGImage ? CGImageCreateWithImageInRect(source.CGImage, crop) : nullptr;
-            id<MTLDevice> device = MTLCreateSystemDefaultDevice();
-            if (!own || !device) {
-                if (own)
-                    CGImageRelease(own);
-                return face;
-            }
-            const size_t width = CGImageGetWidth(own), height = CGImageGetHeight(own);
-            if (width == 0 || height == 0 || width > 8192 || height > 8192) {
-                CGImageRelease(own);
-                return face;
-            }
-            MTKTextureLoader* loader = [[MTKTextureLoader alloc] initWithDevice:device];
-            NSDictionary* options = @{
-                MTKTextureLoaderOptionSRGB : @NO,
-                MTKTextureLoaderOptionOrigin : MTKTextureLoaderOriginTopLeft,
-                MTKTextureLoaderOptionTextureUsage : @(MTLTextureUsageShaderRead)
-            };
-            face.w = (float)width;
-            face.h = (float)height;
-            const bool nativeState = (tab == 3) == selected;
-            if (nativeState)
-                face.texture = [loader newTextureWithCGImage:own options:options error:nil];
-            else {
-                CGColorSpaceRef space = CGColorSpaceCreateWithName(kCGColorSpaceSRGB);
-                auto pixels = [&](CGImageRef image, std::vector<uint8_t>& buffer) -> bool {
-                    buffer.assign(width * height * 4, 0);
-                    CGContextRef context =
-                        space
-                            ? CGBitmapContextCreate(buffer.data(), width, height, 8, width * 4, space,
-                                                    kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big)
-                            : nullptr;
-                    if (!context)
-                        return false;
-                    CGContextDrawImage(context, CGRectMake(0, 0, width, height), image);
-                    CGContextFlush(context);
-                    CGContextRelease(context);
-                    return true;
-                };
-                 
-                 
-                CGImageRef plate = CGImageCreateWithImageInRect(
-                    source.CGImage, CGRectMake(49, selected ? 470 : 20, 295, 139));
-                std::vector<uint8_t> foreground, composed;
-                if (plate && pixels(own, foreground) && pixels(plate, composed)) {
-                    for (size_t y = 0; y < height; ++y)
-                        for (size_t x = 0; x < width; ++x) {
-                            const bool body = x >= 23 && x < 270 && y >= 33 && y < 109;
-                            const bool tallIcon = x >= 23 && x < 106 && y >= 28 && y < 109;
-                            if (!body && !tallIcon)
-                                continue;
-                            const size_t offset = (y * width + x) * 4;
-                            uint8_t* pixel = composed.data() + offset;
-                            for (int k = 0; k < 4; ++k)
-                                pixel[k] = foreground[offset + k];
-                            if (!selected) {
-                                 
-                                 
-                                if (pixel[1] > pixel[0] + 6 || pixel[2] > pixel[0] + 6) {
-                                    const uint8_t neutral =
-                                        (uint8_t)(pixel[0] * .30f + pixel[1] * .52f + pixel[2] * .18f);
-                                    pixel[0] = pixel[1] = pixel[2] = neutral;
-                                }
-                            } else if (ImMax(pixel[0], ImMax(pixel[1], pixel[2])) > 110) {
-                                pixel[0] = (uint8_t)(pixel[0] * .95f);
-                                pixel[2] = (uint8_t)(pixel[2] * .96f);
-                            }
-                        }
-                    CGContextRef context =
-                        CGBitmapContextCreate(composed.data(), width, height, 8, width * 4, space,
-                                              kCGImageAlphaPremultipliedLast | kCGBitmapByteOrder32Big);
-                    CGImageRef result = context ? CGBitmapContextCreateImage(context) : nullptr;
-                    if (result) {
-                        face.texture = [loader newTextureWithCGImage:result options:options error:nil];
-                        CGImageRelease(result);
-                    }
-                    if (context)
-                        CGContextRelease(context);
-                }
-                if (plate)
-                    CGImageRelease(plate);
-                if (space)
-                    CGColorSpaceRelease(space);
-            }
-            CGImageRelease(own);
-        }
-        return face;
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static bool hit(const Canvas& c, const char* id, float x, float y, float w, float h,
-                    bool available = true, const char* reason = nullptr) {
-        if (!id) return false;
-        ImGui::SetCursorScreenPos(c.p(x, y));
-        ImGui::BeginDisabled(!available);
-        bool clicked = ImGui::InvisibleButton(id, c.size(w, h));
-        bool hovered = ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled);
-        ImGui::EndDisabled();
-        if (hovered && reason)
-            MenuLocale::tooltip(reason);
-        return clicked;
-    }
-
-     
-     
-     
-    enum IconKind {
-        Player = 0,
-        Target,
-        List,
-        Box,
-        Warning,
-        Group,
-        Ruler,
-        Bolt,
-        NameCard,
-        Question,
-        Information,
-        Health,
-        Compass,
-        Bone,
-        Robot,
-        Shield,
-        Loot,
-        Items,
-        Car,
-        Wand,
-        Flame,
-        Skull,
-        Fov,
-        Gauge,
-        Percent,
-        PaperPlane,
-        Headset,
-        Link,
-        Cloud,
-        Eye,
-        Gear,
-        Globe,
-        Reset,
-        Gamepad,
-        Phone,
-        Calendar,
-        Check,
-        Database,
-        MemoryChip
-    };
-
-    static void icon(const Canvas& c, int kind, float x, float y, float size, ImU32 color = Red) {
-        if (!c.dl || kind < 0)
-            return;
-        static const char* const symbols[] = {ICON_FA_USER,
-                                              ICON_FA_CROSSHAIRS,
-                                              ICON_FA_LIST,
-                                              ICON_FA_VECTOR_SQUARE,
-                                              ICON_FA_EXCLAMATION_TRIANGLE,
-                                              ICON_FA_USERS,
-                                              ICON_FA_RULER,
-                                              ICON_FA_BOLT,
-                                              ICON_FA_ADDRESS_CARD,
-                                              ICON_FA_QUESTION,
-                                              ICON_FA_INFO_CIRCLE,
-                                              ICON_FA_HEARTBEAT,
-                                              ICON_FA_COMPASS,
-                                              ICON_FA_BONE,
-                                              ICON_FA_ROBOT,
-                                              ICON_FA_SHIELD_ALT,
-                                              ICON_FA_BOX_OPEN,
-                                              ICON_FA_BOXES,
-                                              ICON_FA_CAR,
-                                              ICON_FA_MAGIC,
-                                              ICON_FA_FIRE,
-                                              ICON_FA_SKULL,
-                                              ICON_FA_EXPAND,
-                                              ICON_FA_TACHOMETER_ALT,
-                                              ICON_FA_PERCENT,
-                                              ICON_FA_PAPER_PLANE,
-                                              ICON_FA_HEADSET,
-                                              ICON_FA_LINK,
-                                              ICON_FA_CLOUD,
-                                              ICON_FA_EYE,
-                                              ICON_FA_COG,
-                                              ICON_FA_GLOBE,
-                                              ICON_FA_SYNC_ALT,
-                                              ICON_FA_GAMEPAD,
-                                              ICON_FA_MOBILE_ALT,
-                                              ICON_FA_CALENDAR_ALT,
-                                              ICON_FA_CHECK_CIRCLE,
-                                              ICON_FA_DATABASE,
-                                              ICON_FA_MEMORY};
-        if (kind >= IM_ARRAYSIZE(symbols) || !symbols[kind])
-            return;
-        const unsigned char* utf8 = (const unsigned char*)symbols[kind];
-        const ImWchar code = (ImWchar)(((utf8[0] & 15) << 12) | ((utf8[1] & 63) << 6) | (utf8[2] & 63));
-        ImFont* font = SafeMenuFont();
-        if (!font) return;
-        const ImFontGlyph* glyph = font->FindGlyphNoFallback(code);
-        if (!glyph) {
-             
-            c.dl->AddCircle(c.p(x + size * .5f, y + size * .5f), size * .36f * c.scale, color, 24,
-                            1.8f * c.scale);
-            return;
-        }
-        const float width = glyph->X1 - glyph->X0, height = glyph->Y1 - glyph->Y0;
-        if (width <= 0 || height <= 0)
-            return;
-        const float fit = ImMin(size * c.scale * c.stretchX / width, size * c.scale * c.stretchY / height);
-        const ImVec2 origin = c.p(x, y);
-        const ImVec2 position = {
-            origin.x + (size * c.scale * c.stretchX - width * fit) * .5f - glyph->X0 * fit,
-            origin.y + (size * c.scale * c.stretchY - height * fit) * .5f - glyph->Y0 * fit};
-        c.dl->AddText(font, font->FontSize * fit, position, color, symbols[kind]);
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void panel(const Canvas& c, float x, float y, float w, float h, ImU32 accent = Red) {
-        if (!c.dl) return;
-        c.dl->AddRectFilledMultiColor(c.p(x, y), c.p(x + w, y + h), IM_COL32(16, 8, 13, 255),
-                                      IM_COL32(12, 8, 12, 255), IM_COL32(8, 9, 12, 255),
-                                      IM_COL32(8, 9, 12, 255));
-        c.dl->AddRect(c.p(x, y), c.p(x + w, y + h), IM_COL32(59, 13, 28, 210), 4 * c.scale, 0,
-                      1.1f * c.scale);
-        c.dl->AddRect(c.p(x + 2, y + 2), c.p(x + w - 2, y + h - 2), IM_COL32(37, 16, 24, 110), 3 * c.scale, 0,
-                      .6f * c.scale);
-        (void)accent;
-    }
-
-    static void heading(const Canvas& c, const char* title, float x, float y, float w, int glyph = Target) {
-        panel(c, x, y, w, 29);
-        c.rect(x + 1, y + 3, 3, 23, Red, 1);
-        icon(c, glyph, x + 12, y + 6, 16, White);
-        c.text(x + 38, y + 4, title, 19, White, w - 48);
-    }
-
-// HMOOD__TG@i_8_f
-
-
-     
-     
-    struct FeatureNotice {
-        std::string label;
-        int glyph;
-        bool enabled;
-        double started;
-        float y = -1.f;
-    };
-    static std::vector<FeatureNotice>& notices() {
-        static std::vector<FeatureNotice> items;
-        return items;
-    }
-    static void notifyFeature(const char* label, int glyph, bool enabled) {
-        if (!ImGui::GetCurrentContext()) return;
-        auto& items = notices();
-        if (items.size() >= 8)
-            items.erase(items.begin());
-        items.push_back({label ? label : "", glyph, enabled, ImGui::GetTime(), -1.f});
-    }
-    static bool featureCheckbox(const char* label, bool* value, int glyph) {
-        if (!value) return false;
-        const bool changed = MenuLocale::checkbox(label, value);
-        if (changed)
-            notifyFeature(label, glyph, *value);
-        return changed;
-    }
-    static void renderNotices() {
-        if (!ImGui::GetCurrentContext()) return;
-        auto& items = notices();
-        const double now = ImGui::GetTime();
-        for (auto i = items.begin(); i != items.end();) {
-            if (now - i->started >= 2.25)
-                i = items.erase(i);
-            else
-                ++i;
-        }
-        if (items.empty())
-            return;
-        const ImGuiIO& io = ImGui::GetIO();
-        if (io.DisplaySize.x < 1.f || io.DisplaySize.y < 1.f)
-            return;
-        const float scale = ImClamp(io.DisplaySize.y / 592.f, .55f, 1.4f);
-        const float width = ImMin(265.f * scale, io.DisplaySize.x - 24.f * scale);
-        const float height = 44.f * scale, spacing = 8.f * scale;
-        const float top =
-            ImMin((items.back().glyph == Globe ? 40.f : 62.f) * scale, ImMax(8.f * scale, io.DisplaySize.y - 4 * (height + spacing) - 8.f * scale));
-        ImFont* activeFont = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
-        if (activeFont) ImGui::PushFont(activeFont);
-        ImDrawList* draw = ImGui::GetForegroundDrawList();
-        if (!draw) {
-            if (activeFont) ImGui::PopFont();
-            return;
-        }
-        draw->PushClipRect(ImVec2(0, 0), io.DisplaySize, true);
-        for (size_t i = 0; i < items.size() && i < 4; ++i) {
-            FeatureNotice& n = items[i];
-            const float age = (float)(now - n.started);
-            const float enter = ImClamp(age / .28f, 0.f, 1.f);
-            const float fade = 1.f - ImClamp((age - 1.95f) / .30f, 0.f, 1.f);
-            const float remaining = 1.f - enter;
-            const float offset = (width + 24.f * scale) * remaining * remaining * remaining;
-            const float desired = top + i * (height + spacing);
-            if (n.y < 0)
-                n.y = desired;
-            n.y += (desired - n.y) * (1.f - std::exp(-ImMin(io.DeltaTime, .1f) * 20.f));
-            const float x = io.DisplaySize.x - 20.f * scale - width + offset;
-            Canvas c{draw, ImVec2(x, n.y), scale};
-            const float w = width / scale;
-            const int first = draw->VtxBuffer.Size;
-            const ImU32 accent = n.enabled ? IM_COL32(0, 238, 155, 255) : IM_COL32(233, 21, 57, 255);
-            c.rect(-1, 1, w + 2, 45, IM_COL32(0, 0, 0, 45), 7);
-            c.rect(0, 0, w, 44, n.enabled ? IM_COL32(3, 19, 15, 235) : IM_COL32(25, 5, 10, 235), 6);
-            draw->AddRect(c.p(0, 0), c.p(w, 44),
-                          n.enabled ? IM_COL32(9, 156, 110, 225) : IM_COL32(144, 16, 40, 225), 6 * scale, 0,
-                          1.3f * scale);
-            c.rect(3, 5, 5, 34, n.enabled ? IM_COL32(0, 226, 136, 45) : IM_COL32(255, 12, 52, 45), 2);
-            c.rect(4, 5, 3, 34, accent, 1.5f);
-            icon(c, n.glyph, 16, 7, 16, accent);
-            c.text(40, 6, n.label.c_str(), 14, IM_COL32(234, 238, 239, 255), w - 50);
-            c.text(40, 24, n.enabled ? "ENABLED" : "DISABLED", 11.5f, accent, w - 50);
-            fadeContent(draw, first, fade);
-        }
-        draw->PopClipRect();
-        if (activeFont) ImGui::PopFont();
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    struct SwitchMotion {
-        float value = 0.f;
-        float from = 0.f;
-        bool target = false;
-        double started = 0.;
-        int frame = -2;
-    };
-
-    static float switchPosition(ImGuiID key, bool enabled, double now) {
-        static std::unordered_map<ImGuiID, SwitchMotion> motions;
-        SwitchMotion& motion = motions[key];
-        const int frame = ImGui::GetFrameCount();
-        if (motion.frame < frame - 1) {
-            motion.value = motion.from = enabled ? 1.f : 0.f;
-            motion.target = enabled;
-            motion.started = now - .14;
-        }
-        const float elapsed = ImClamp((float)((now - motion.started) / .14), 0.f, 1.f);
-        const float eased = 1.f - (1.f - elapsed) * (1.f - elapsed) * (1.f - elapsed);
-        motion.value = motion.from + ((motion.target ? 1.f : 0.f) - motion.from) * eased;
-        if (enabled != motion.target) {
-            motion.from = motion.value;
-            motion.target = enabled;
-            motion.started = now;
-        }
-        motion.frame = frame;
-        return motion.value;
-    }
-
-    static bool toggle(const Canvas& c, const char* label, const char* id, bool* value, float x, float y,
-                       float w, int glyph, bool available = true,
-                       const char* reason = "Not available in the current project") {
-        if (!c.dl || !value) return false;
-        bool changed = hit(c, id, x, y, w, 36, available, available ? nullptr : reason);
-        const bool pressed = available && ImGui::IsItemActive();
-        const bool hovered = available && ImGui::IsItemHovered();
-        if (changed) {
-            *value = !*value;
-            notifyFeature(label, glyph, *value);
-        }
-        ImU32 fg = available ? White : IM_COL32(106, 107, 113, 255);
-        icon(c, glyph, x + 3, y + 6, 23, available ? Red : IM_COL32(104, 20, 38, 255));
-        const float switchX = x + w - 52;
-        c.text(x + 37, y + 4, label, 23, fg, w - 96);
-        const ImGuiID key = ImGui::GetID(id ? id : label);
-        const float position = switchPosition(key, *value, c.animationTime) * c.switchReveal;
-        const float light = available ? position : 0.f;
-        const float cy = y + 18.5f;
-        for (int layer = 4; layer >= 1; --layer) {
-            const float spread = layer * 1.05f;
-            c.rect(switchX - spread, y + 5 - spread, 49 + spread * 2, 27 + spread * 2,
-                   IM_COL32(255, 0, 43, (int)((5 - layer) * 4.f * light)), 13.5f + spread);
-        }
-         
-         
-        const ImU32 track =
-            IM_COL32((int)(35 + 214 * light), (int)(37 * (1.f - light)), (int)(44 - 2 * light), 255);
-        c.rect(switchX, y + 5, 49, 27, track, 13.5f);
-        const float pressRim = pressed ? 118.f : (hovered ? 74.f : 0.f);
-        const float rimAlpha = ImMax(55.f * light, pressRim);
-        if (rimAlpha > 0.f) {
-            c.dl->AddRect(c.p(switchX - .8f, y + 4.2f), c.p(switchX + 49.8f, y + 32.8f),
-                          IM_COL32(227, 23, 52, (int)(rimAlpha * .30f)), 14.3f * c.scale, 0, 2.3f * c.scale);
-            c.dl->AddRect(c.p(switchX + .4f, y + 5.4f), c.p(switchX + 48.6f, y + 31.6f),
-                          IM_COL32(242, 32, 61, (int)rimAlpha), 13 * c.scale, 0, .9f * c.scale);
-        }
-        const float knobX = switchX + 12 + 25 * position;
-        c.dl->AddCircleFilled(c.p(knobX, cy + .7f), 11.2f * c.scale, IM_COL32(0, 0, 0, 65), 32);
-        c.dl->AddCircleFilled(c.p(knobX, cy), 12.7f * c.scale, IM_COL32(255, 220, 226, (int)(45 * light)),
-                              32);
-        c.dl->AddCircleFilled(c.p(knobX, cy), 11.2f * c.scale, IM_COL32(220, 222, 226, available ? 110 : 40),
-                              32);
-        c.dl->AddCircleFilled(c.p(knobX, cy), 10.2f * c.scale,
-                              available ? IM_COL32(253, 253, 253, 255) : IM_COL32(133, 134, 137, 255), 32);
-        return changed;
-    }
-
-    static bool slider(const Canvas& c, const char* id, const char* label, float* value, float low,
-                       float high, float x, float y, float w, int glyph, bool available = true,
-                       const char* disabledReason = "Not available, or controlled by the selected preset") {
-        if (!c.dl || !value) return false;
-        if (!std::isfinite(*value)) *value = low;
-        const float span = high - low;
-        const bool hasSpan = std::isfinite(span) && fabsf(span) > 1e-6f;
-        panel(c, x, y, w, 37);
-        icon(c, glyph, x + 10, y + 9, 19, available ? Red : IM_COL32(103, 23, 40, 255));
-        c.text(x + 37, y + 9, label, glyph == Percent ? 12.5f : 17.f, available ? White : Muted, 77);
-        const float tx = x + 124, tw = w - 142, cy = y + 19;
-        float t = hasSpan ? ImClamp((*value - low) / span, 0.f, 1.f) : 0.f;
-        const float knob = tx + tw * t;
-        hit(c, id, tx - 8, y, tw + 16, 37, available,
-            available ? nullptr : disabledReason);
-        ImGuiID key = ImGui::GetID(id ? id : label);
-        ImGuiStorage* storage = ImGui::GetStateStorage();
-        if (ImGui::IsItemActivated() && storage) {
-            float dx = ImGui::GetIO().MousePos.x - c.p(knob, cy).x;
-            storage->SetFloat(key, std::fabs(dx) <= 14 * c.scale ? dx : 0.f);
-        }
-        if (available && ImGui::IsItemActive() && ImGui::GetIO().MouseDown[0] && hasSpan && storage) {
-            const float denom = tw * c.scale * c.stretchX;
-            float pos = fabsf(denom) > 1e-6f ? (ImGui::GetIO().MousePos.x - storage->GetFloat(key) - c.p(tx, cy).x) / denom : 0.f;
-            float next = low + span * ImClamp(pos, 0.f, 1.f);
-            if (std::isfinite(next) && next != *value) {
-                *value = next;
-                ImGui::MarkItemEdited(key);
-            }
-            t = ImClamp((*value - low) / span, 0.f, 1.f);
-            char hint[256];
-            snprintf(hint, sizeof(hint), "%s: %.1f", MenuLocale::tr(label), *value);
-            MenuLocale::tooltip(hint);
-        }
-        bool committed = ImGui::IsItemDeactivatedAfterEdit();
-        c.rect(tx, cy - 2.25f, tw, 4.5f, IM_COL32(41, 26, 33, 255), 3);
-        c.rect(tx, cy - 2.25f, tw * t, 4.5f, available ? Red : IM_COL32(115, 23, 42, 255), 3);
-        c.dl->AddCircleFilled(c.p(tx + tw * t, cy), 6.3f * c.scale, IM_COL32(237, 236, 239, 255), 20);
-        c.dl->AddCircleFilled(c.p(tx + tw * t, cy), 3.2f * c.scale, Red, 16);
-        return committed;
-    }
-
-    static bool combo(const Canvas& c, const char* id, int* current, const char* const* items, int count,
-                      float x, float y, float w, float h = 32.f) {
-        if (!c.dl || !current || !items || count <= 0 || !id) return false;
-        c.rect(x, y, w, h, IM_COL32(18, 12, 18, 255), 3);
-        c.dl->AddRect(c.p(x, y), c.p(x + w, y + h), IM_COL32(74, 23, 39, 255), 3 * c.scale, 0,
-                      1.5f * c.scale);
-        const int selected = ImClamp(*current, 0, count - 1);
-        c.text(x + 11, y + 5, items[selected], 19, White, w - 42);
-        c.dl->AddTriangleFilled(c.p(x + w - 23, y + h * .42f), c.p(x + w - 11, y + h * .42f),
-                                c.p(x + w - 17, y + h * .65f), Red);
-        if (hit(c, id, x, y, w, h))
-            ImGui::OpenPopup(id);
-        bool changed = false;
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(8, 8));
-        if (ImGui::BeginPopup(id)) {
-            for (int i = 0; i < count; ++i)
-                if (MenuLocale::selectable(items[i], *current == i)) {
-                    *current = i;
-                    changed = true;
-                }
-            ImGui::EndPopup();
-        }
-        ImGui::PopStyleVar();
-        return changed;
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void frame(const Canvas& c) {
-        if (!c.dl) return;
-        c.rect(39, 30, 956, 597, IM_COL32(7, 8, 11, 255), 9);
-        Reference& chrome = highQualityFrame();
-        if (chrome.texture)
-            c.dl->AddImage((__bridge ImTextureID)chrome.texture, c.p(0, 0), c.p(1024, 676));
-        else {
-            for (int i = 0; i < 5; ++i)
-                c.dl->AddRect(c.p(8 + i * 5, 8 + i * 5), c.p(1016 - i * 5, 668 - i * 5),
-                              i % 2 ? IM_COL32(77, 81, 89, 255) : Red, 16 * c.scale, 0, 5 * c.scale);
-            c.line(44, 139, 991, 139, Red, 5);
-            c.line(245, 145, 245, 612, Red, 5);
-        }
-        Reference& brand = artwork(1);
-        if (brand.texture && brand.w > 0.f) {
-            const float width = 610.f, height = width * brand.h / brand.w;
-            c.dl->AddImage((__bridge ImTextureID)brand.texture, c.p(220, 27), c.p(220 + width, 27 + height),
-                           {0, 0}, {1, 1}, IM_COL32(225, 227, 232, 255));
         } else {
-            ImFont* f = SafeMenuFont();
-            const float titleSize = 44.f;
-            const float textWidth = f ? f->CalcTextSizeA(titleSize, FLT_MAX, 0, "HMOOD VIP").x : 0.f;
-            c.text(540.f - textWidth * .5f, 60, "HMOOD VIP", titleSize, White);
+            ImGui::ClearActiveID();
         }
     }
 
-    static bool closeButton(const Canvas& c) {
-        if (!c.dl) return false;
-        const bool clicked = hit(c, "##cyber_close", 899, 38, 44, 44, true, "Close menu");
-        const bool hovered = ImGui::IsItemHovered();
-        c.rect(906, 44, 30, 29, hovered ? IM_COL32(107, 6, 25, 245) : IM_COL32(55, 5, 15, 235), 3);
-        c.dl->AddRect(c.p(906, 44), c.p(936, 73),
-                      hovered ? IM_COL32(220, 16, 44, 230) : IM_COL32(148, 9, 32, 180), 3 * c.scale, 0,
-                      .8f * c.scale);
-        const ImU32 color = hovered ? IM_COL32(255, 57, 77, 255) : IM_COL32(239, 19, 46, 255);
-        constexpr float pi = 3.14159265f;
-        const float cx = 921.f, cy = 59.f, r = 7.8f, start = -pi * .5f + .68f, end = pi * 1.5f - .68f;
-        c.dl->PathArcTo(c.p(cx, cy), r * c.scale, start, end, 28);
-        c.dl->PathStroke(color, 0, 2.4f * c.scale);
-        c.line(cx, cy - 9.6f, cx, cy - 1.4f, color, 2.5f);
-        c.dl->AddCircleFilled(c.p(cx, cy - 9.6f), 1.25f * c.scale, color, 12);
-        c.dl->AddCircleFilled(c.p(cx, cy - 1.4f), 1.25f * c.scale, color, 12);
-        return clicked;
-    }
+    float frac = v ? ImClamp((*v - vMin) / ImMax(0.0001f, vMax - vMin), 0.f, 1.f) : 0.f;
+    float fillX = barX0 + frac * (barX1 - barX0);
 
-    static void navigation(const Canvas& c, int& page) {
-        if (!c.dl) return;
-        if (!highQualityFrame().texture)
-            c.rect(52, 151, 185, 453, IM_COL32(8, 10, 13, 255));
-        const float dstY[] = {159, 247, 335, 423, 511};
-        const char* ids[] = {"##cyber_home", "##cyber_visual", "##cyber_aim", "##cyber_memory",
-                             "##cyber_settings"};
-        const char* labels[] = {"HOME", "ESP RADAR", "AIMBOT", "Memory", "SETTINGS"};
-         
-        for (int i = 0; i < 5; ++i)
-            if (hit(c, ids[i], 64, dstY[i], 166, 79))
-                page = i;
-        for (int i = 0; i < 5; ++i) {
-            const bool selected = page == i;
-            Reference& face = navigationTexture(i, selected);
-            if (face.texture) {
-                c.dl->AddImage((__bridge ImTextureID)face.texture, c.p(64, dstY[i]), c.p(230, dstY[i] + 79));
-                if (MenuLocale::language != 0) {
-                    const float left = 121.f, top = dstY[i] + 22.f, width = 101.f, height = 36.f;
-                    c.rect(left, top, width, height,
-                           selected ? IM_COL32(5, 17, 13, 255) : IM_COL32(11, 8, 12, 255), 2.f);
-                    c.dl->PushClipRect(c.p(left, top), c.p(left + width, top + height), true);
-                    for (int offset = -36; offset < 110; offset += 5)
-                        c.line(left + offset, top + height, left + offset + height, top,
-                               IM_COL32(48, 53, 54, 32), .7f);
-                    c.dl->PopClipRect();
-                    c.text(left + 4.f, top + 6.f, labels[i], 18.f, selected ? Green : White, width - 8.f);
+    dl->AddRectFilled(ImVec2(barX0, barY), ImVec2(barX1, barY + barH), U32(RGBA(35, 39, 58, 1.f)), 2.5f);
+    if (fillX > barX0) {
+        dl->AddRectFilled(ImVec2(barX0, barY), ImVec2(fillX, barY + barH), U32(g_Accent), 2.5f);
+    }
+    dl->AddCircleFilled(ImVec2(fillX, barY + barH * 0.5f), (held || hovered) ? 6.5f : 5.5f, U32(g_TextMain), 14);
+
+    if (hovered && hint) {
+        DrawCyberTooltip(hint);
+    }
+    return held;
+}
+
+static void SectionHeader(const char* title) {
+    ImGui::Spacing();
+    float y = ImGui::GetCursorScreenPos().y;
+    float x = ImGui::GetCursorScreenPos().x;
+    float w = ImGui::GetContentRegionAvail().x;
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    if (MenuLocale::rtl()) {
+        dl->AddRectFilled(ImVec2(x + w - 3.f, y + 2.f), ImVec2(x + w, y + 14.f), U32(g_Accent), 1.5f);
+        MenuLocale::drawText(title, ImVec2(x + w - 9.f, y + 1.f), U32(g_TextDim), 11.5f);
+    } else {
+        dl->AddRectFilled(ImVec2(x, y + 2.f), ImVec2(x + 3.f, y + 14.f), U32(g_Accent), 1.5f);
+        MenuLocale::drawText(title, ImVec2(x + 9.f, y + 1.f), U32(g_TextDim), 11.5f);
+    }
+    ImGui::Dummy(ImVec2(w, 18.f));
+}
+
+static bool SubTabBar(const char* const* labels, int count, int* current) {
+    bool changed = false;
+    float avail = ImGui::GetContentRegionAvail().x;
+    float gap = 6.f;
+    float btnW = (avail - gap * (count - 1)) / ImMax(1, count);
+    float btnH = 26.f;
+
+    for (int i = 0; i < count; ++i) {
+        if (i > 0) ImGui::SameLine(0.f, gap);
+        bool sel = (*current == i);
+        ImGui::PushStyleColor(ImGuiCol_Button, sel ? g_Accent : g_BgCard);
+        ImGui::PushStyleColor(ImGuiCol_ButtonHovered, sel ? g_Accent : g_BgHover);
+        ImGui::PushStyleColor(ImGuiCol_ButtonActive, g_Accent);
+        ImGui::PushStyleColor(ImGuiCol_Text, sel ? g_TextMain : g_TextDim);
+        if (DrawCyberButton(labels[i], ImVec2(btnW, btnH))) {
+            *current = i;
+            changed = true;
+        }
+        ImGui::PopStyleColor(4);
+    }
+    ImGui::Spacing();
+    return changed;
+}
+
+static void DrawBadgeIcon(ImDrawList* dl, ImVec2 center, float radius) {
+    UIImage* badge = GetMenuBadgeImage();
+    if (badge && badge.CGImage) {
+        static id<MTLTexture> s_badgeTex = nil;
+        static dispatch_once_t once;
+        dispatch_once(&once, ^{
+            id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+            if (!dev) return;
+            const int w = 128, h = 128;
+            CGColorSpaceRef sp = CGColorSpaceCreateDeviceRGB();
+            CGContextRef ctx = CGBitmapContextCreate(nullptr, w, h, 8, w * 4, sp, kCGImageAlphaPremultipliedLast);
+            if (ctx) {
+                CGContextTranslateCTM(ctx, 0, h);
+                CGContextScaleCTM(ctx, 1, -1);
+                UIGraphicsPushContext(ctx);
+                [badge drawInRect:CGRectMake(0, 0, w, h)];
+                UIGraphicsPopContext();
+                const void* px = CGBitmapContextGetData(ctx);
+                if (px) {
+                    MTLTextureDescriptor* td = [MTLTextureDescriptor texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                                                                                                  width:w height:h mipmapped:NO];
+                    td.usage = MTLTextureUsageShaderRead;
+                    s_badgeTex = [dev newTextureWithDescriptor:td];
+                    if (s_badgeTex) {
+                        [s_badgeTex replaceRegion:MTLRegionMake2D(0, 0, w, h) mipmapLevel:0 withBytes:px bytesPerRow:w * 4];
+                    }
                 }
-            } else {
-                panel(c, 64, dstY[i], 166, 79, selected ? Green : Red);
-                c.dl->AddRect(c.p(66, dstY[i] + 3), c.p(228, dstY[i] + 76),
-                              selected ? IM_COL32(78, 99, 94, 255) : Red, 7 * c.scale, 0, 2 * c.scale);
-                if (selected) {
-                    c.rect(64, dstY[i] + 7, 3, 65, Cyan, 1);
-                    c.rect(125, dstY[i] + 68, 42, 3, Green, 1);
-                }
-                c.text(80, dstY[i] + 26, labels[i], 22, selected ? Green : White, 142);
+                CGContextRelease(ctx);
             }
-        }
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    struct Stats {
-        std::string device, ios, time, date;
-        float fps = 0, appMB = -1, freeGB = -1, totalGB = 0, battery = -1;
-    };
-    static const Stats& stats() {
-        static Stats st;
-        static double last = -10;
-        if (!ImGui::GetCurrentContext()) return st;
-        if (ImGui::GetTime() - last < 1.0)
-            return st;
-        last = ImGui::GetTime();
-        struct utsname si;
-        memset(&si, 0, sizeof(si));
-        uname(&si);
-        st.device = si.machine[0] ? si.machine : "iPhone";
-        NSString* sysVer = [UIDevice currentDevice].systemVersion;
-        st.ios = sysVer ? sysVer.UTF8String : "";
-        [UIDevice currentDevice].batteryMonitoringEnabled = YES;
-        st.battery = [UIDevice currentDevice].batteryLevel;
-        st.fps = ImGui::GetIO().Framerate;
-        st.totalGB = (float)[NSProcessInfo processInfo].physicalMemory / (1024.f * 1024.f * 1024.f);
-        mach_task_basic_info_data_t task = {};
-        mach_msg_type_number_t count = MACH_TASK_BASIC_INFO_COUNT;
-        if (task_info(mach_task_self(), MACH_TASK_BASIC_INFO, (task_info_t)&task, &count) == KERN_SUCCESS)
-            st.appMB = task.resident_size / (1024.f * 1024.f);
-        host_t host = mach_host_self();
-        vm_statistics64_data_t vm = {};
-        count = HOST_VM_INFO64_COUNT;
-        vm_size_t page = 0;
-        if (host_page_size(host, &page) == KERN_SUCCESS && page > 0 &&
-            host_statistics64(host, HOST_VM_INFO64, (host_info64_t)&vm, &count) == KERN_SUCCESS)
-            st.freeGB = (vm.free_count + vm.inactive_count) * (double)page / (1024. * 1024. * 1024.);
-        mach_port_deallocate(mach_task_self(), host);
-        static NSDateFormatter* tf = nil;
-        static NSDateFormatter* df = nil;
-        if (!tf) {
-            tf = [NSDateFormatter new];
-            tf.dateFormat = @"HH:mm";
-            df = [NSDateFormatter new];
-            df.dateFormat = @"yyyy/MM/dd";
-        }
-        NSDate* now = [NSDate date];
-        NSString* tStr = now ? [tf stringFromDate:now] : nil;
-        NSString* dStr = now ? [df stringFromDate:now] : nil;
-        st.time = tStr ? tStr.UTF8String : "--:--";
-        st.date = dStr ? dStr.UTF8String : "----/--/--";
-        return st;
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static const ImU32 HomeCyan = IM_COL32(27, 205, 223, 255);
-    static const ImU32 HomeLabel = IM_COL32(141, 150, 159, 255);
-
-     
-    static ImVec2 rimPoint(float x, float y, float w, float h, float radius, float distance) {
-        constexpr float pi = 3.14159265f;
-        const float r = ImMax(0.001f, ImMin(radius, ImMin(w, h) * .5f));
-        const float horizontal = ImMax(0.f, w - 2.f * r), vertical = ImMax(0.f, h - 2.f * r), arc = pi * r * .5f;
-        const float perimeter = 2.f * (horizontal + vertical) + 4.f * arc;
-        if (perimeter <= 1e-5f) return {x, y};
-        float d = std::fmod(distance, perimeter);
-        if (d < 0.f)
-            d += perimeter;
-        if (d <= horizontal)
-            return {x + r + d, y};
-        d -= horizontal;
-        if (d <= arc) {
-            const float a = -pi * .5f + d / r;
-            return {x + w - r + std::cos(a) * r, y + r + std::sin(a) * r};
-        }
-        d -= arc;
-        if (d <= vertical)
-            return {x + w, y + r + d};
-        d -= vertical;
-        if (d <= arc) {
-            const float a = d / r;
-            return {x + w - r + std::cos(a) * r, y + h - r + std::sin(a) * r};
-        }
-        d -= arc;
-        if (d <= horizontal)
-            return {x + w - r - d, y + h};
-        d -= horizontal;
-        if (d <= arc) {
-            const float a = pi * .5f + d / r;
-            return {x + r + std::cos(a) * r, y + h - r + std::sin(a) * r};
-        }
-        d -= arc;
-        if (d <= vertical)
-            return {x, y + h - r - d};
-        d -= vertical;
-        const float a = pi + d / r;
-        return {x + r + std::cos(a) * r, y + r + std::sin(a) * r};
-    }
-
-    static void movingRim(const Canvas& c, float x, float y, float w, float h, float radius, ImU32 tint) {
-        if (!c.dl) return;
-        constexpr float pi = 3.14159265f;
-        const float r = ImMin(radius, ImMin(w, h) * .5f);
-        const float perimeter = 2.f * (w + h - 4.f * r) + 2.f * pi * r;
-        if (perimeter <= 1e-5f) return;
-        const float phase = (float)std::fmod(c.animationTime * .32 + (x + y * .37f) * .003, 1.0);
-        const float head = phase * perimeter;
-        const float trail = ImMin(76.f, perimeter * .14f);
-        const int red = (tint >> IM_COL32_R_SHIFT) & 255, green = (tint >> IM_COL32_G_SHIFT) & 255,
-                  blue = (tint >> IM_COL32_B_SHIFT) & 255;
-        for (int i = 0; i < 18; ++i) {
-            const float t = (i + 1.f) / 18.f;
-            const ImVec2 a = rimPoint(x, y, w, h, r, head - trail + i * trail / 18.f);
-            const ImVec2 b = rimPoint(x, y, w, h, r, head - trail + (i + 1.f) * trail / 18.f);
-            const float intensity = t * t;
-            c.line(a.x, a.y, b.x, b.y, IM_COL32(red, green, blue, (int)(24 * intensity)), 3.5f);
-            c.line(a.x, a.y, b.x, b.y, IM_COL32(red, green, blue, (int)(210 * intensity)), .9f);
-        }
-    }
-
-     
-     
-    static void headerSweep(const Canvas& c, float age) {
-        if (!c.dl || age < 0.f || age >= .17f)
-            return;
-        const float t = ImClamp(age / .20f, 0.f, 1.f);
-        const float progress = 1.f - (1.f - t) * (1.f - t) * (1.f - t);
-        const float x = 350.f + 614.f * progress, y = 125.5f;
-        const float fade = age > .135f ? ImClamp((.17f - age) / .035f, 0.f, 1.f) : 1.f;
-        const ImU32 clear = IM_COL32(10, 111, 255, 0);
-        const ImU32 blue = IM_COL32(29, 142, 255, (int)(165 * fade));
-        const ImU32 cyan = IM_COL32(99, 239, 255, (int)(230 * fade));
-        c.dl->PushClipRect(c.p(305, 117), c.p(977, 135), true);
-        c.dl->AddRectFilledMultiColor(c.p(x - 76, y - 2), c.p(x, y + 2), clear,
-                                      IM_COL32(25, 151, 255, (int)(36 * fade)),
-                                      IM_COL32(25, 151, 255, (int)(36 * fade)), clear);
-        c.dl->AddRectFilledMultiColor(c.p(x - 72, y - .65f), c.p(x, y + .65f), clear, blue, blue, clear);
-        c.dl->AddRectFilledMultiColor(c.p(x, y - .5f), c.p(x + 44, y + .5f), cyan, clear, clear, cyan);
-        c.dl->AddCircleFilled(c.p(x, y), 4.f * c.scale, IM_COL32(27, 181, 255, (int)(22 * fade)), 16);
-        c.dl->AddCircleFilled(c.p(x, y), 2.f * c.scale, cyan, 16);
-        c.dl->AddCircleFilled(c.p(x, y), .85f * c.scale, IM_COL32(213, 255, 255, (int)(240 * fade)), 12);
-        c.dl->PopClipRect();
-    }
-
-     
-     
-    static void homeText(const Canvas& c, float x, float y, const char* text, float nominalSize, ImU32 color,
-                         float maxWidth = 0.f, float visibleCap = 0.f, bool centered = false) {
-        if (!c.dl || !text) return;
-        if (MenuLocale::native(MenuLocale::tr(text))) {
-            const float fs = (visibleCap > 0.f ? visibleCap / .76f : nominalSize) * c.scale;
-            ImVec2 position = c.p(x, y);
-            const float room = maxWidth > 0.f ? maxWidth * c.scale * c.stretchX : 0.f;
-            const ImVec2 measured = MenuLocale::measure(text, fs);
-            if (centered) position.x -= (room > 0.f ? ImMin(measured.x, room) : measured.x) * .5f;
-            MenuLocale::draw(c.dl, text, position, fs, color, room, MenuLocale::rtl() && !centered);
-            return;
-        }
-        ImFont* font = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
-        if (!font) return;
-        const ImFontGlyph* capital = font->FindGlyphNoFallback('H');
-        if (!capital || capital->Y1 <= capital->Y0) {
-            c.text(x, y, text, nominalSize, color, maxWidth);
-            return;
-        }
-        const float cap = visibleCap > 0 ? visibleCap : nominalSize * .76f;
-        const float ratio = cap * c.scale / (capital->Y1 - capital->Y0);
-        const float fontSize = font->FontSize * ratio;
-        const float naturalWidth = font->CalcTextSizeA(fontSize, FLT_MAX, 0, text).x;
-        const float horizontal = (maxWidth > 0 && naturalWidth > 0)
-                                     ? ImMin(1.f, maxWidth * c.scale * c.stretchX / naturalWidth)
-                                     : 1.f;
-        ImVec2 origin = c.p(x, y);
-        if (centered)
-            origin.x -= naturalWidth * horizontal * .5f;
-        const float anchor = origin.x;
-        origin.y += capital->Y0 * (nominalSize * c.scale / font->FontSize - ratio);
-        const int first = c.dl->VtxBuffer.Size;
-        c.dl->AddText(font, fontSize, origin, color, text);
-        if (horizontal < 1.f)
-            for (int i = first; i < c.dl->VtxBuffer.Size; ++i)
-                c.dl->VtxBuffer[i].pos.x = anchor + (c.dl->VtxBuffer[i].pos.x - anchor) * horizontal;
-    }
-
-     
-     
-    static void homePanel(const Canvas& c, float x, float y, float w, float h) {
-        if (!c.dl) return;
-        const float r = 4.5f;
-        c.rect(x, y, w, h, IM_COL32(10, 8, 12, 255), r);
-        c.dl->AddRectFilledMultiColor(c.p(x + 3, y + 3), c.p(x + w - 3, y + h - 3), IM_COL32(18, 8, 13, 255),
-                                      IM_COL32(15, 8, 12, 255), IM_COL32(8, 9, 11, 255),
-                                      IM_COL32(8, 9, 11, 255));
-        const float band = h > 120 ? 35.f : 20.f;
-        c.dl->AddRectFilledMultiColor(c.p(x + 3, y + 3), c.p(x + w - 3, y + band), IM_COL32(30, 7, 13, 255),
-                                      IM_COL32(23, 7, 12, 255), IM_COL32(13, 8, 12, 255),
-                                      IM_COL32(17, 8, 12, 255));
-        c.dl->AddRect(c.p(x - .8f, y - .8f), c.p(x + w + .8f, y + h + .8f), IM_COL32(4, 4, 6, 240),
-                      (r + .8f) * c.scale, 0, 1.1f * c.scale);
-        c.dl->AddRect(c.p(x, y), c.p(x + w, y + h), IM_COL32(65, 14, 29, 210), r * c.scale, 0,
-                      .85f * c.scale);
-        c.dl->AddRect(c.p(x + 1.5f, y + 1.5f), c.p(x + w - 1.5f, y + h - 1.5f), IM_COL32(23, 11, 17, 245),
-                      (r - 1) * c.scale, 0, .75f * c.scale);
-        c.dl->AddRect(c.p(x + 3, y + 3), c.p(x + w - 3, y + h - 3), IM_COL32(40, 11, 22, 120),
-                      (r - 2) * c.scale, 0, .55f * c.scale);
-         
-        for (int pass = 0; pass < 2; ++pass) {
-            const ImU32 color = pass ? IM_COL32(191, 16, 47, 180) : IM_COL32(177, 9, 41, 24);
-            const float width = (pass ? .8f : 3.f) * c.scale;
-            c.dl->AddBezierCubic(c.p(x + .6f, y + 18), c.p(x + .6f, y + 2), c.p(x + 2, y + .6f),
-                                 c.p(x + 18, y + .6f), color, width, 12);
-            c.dl->AddBezierCubic(c.p(x + .6f, y + h - 19), c.p(x + .6f, y + h - 2), c.p(x + 2, y + h - .6f),
-                                 c.p(x + 19, y + h - .6f), color, width, 12);
-            c.dl->AddBezierCubic(c.p(x + w - 17, y + h - .6f), c.p(x + w - 2, y + h - .6f),
-                                 c.p(x + w - .6f, y + h - 2), c.p(x + w - .6f, y + h - 18), color, width, 12);
-        }
-        c.line(x + 13, y + .6f, x + w * .27f, y + .6f, IM_COL32(167, 24, 46, 190), .85f);
-        c.line(x + w * .6f, y + .6f, x + w - 14, y + .6f, IM_COL32(66, 16, 29, 150), .7f);
-        c.line(x + 16, y + h - .6f, x + w * .42f, y + h - .6f, IM_COL32(110, 16, 37, 180), .7f);
-        c.line(x + 4, y + 19, x + 4, y + 31, IM_COL32(104, 14, 36, 125), .65f);
-        movingRim(c, x, y, w, h, r, IM_COL32(231, 13, 52, 255));
-    }
-
-    static void homeAction(const Canvas& c, float x, float y, float w, float h) {
-        if (!c.dl) return;
-        const float r = 3.f;
-        c.rect(x, y, w, h, IM_COL32(26, 8, 14, 255), r);
-        c.dl->AddRectFilledMultiColor(c.p(x + 2, y + 2), c.p(x + w - 2, y + h - 2), IM_COL32(43, 9, 17, 255),
-                                      IM_COL32(37, 8, 16, 255), IM_COL32(27, 8, 14, 255),
-                                      IM_COL32(32, 9, 16, 255));
-        c.dl->AddRect(c.p(x - .8f, y - .8f), c.p(x + w + .8f, y + h + .8f), IM_COL32(5, 5, 8, 230),
-                      4 * c.scale, 0, 1 * c.scale);
-        c.dl->AddRect(c.p(x, y), c.p(x + w, y + h), IM_COL32(80, 12, 29, 195), r * c.scale, 0,
-                      .85f * c.scale);
-        c.dl->AddRect(c.p(x + 1.5f, y + 1.5f), c.p(x + w - 1.5f, y + h - 1.5f), IM_COL32(119, 13, 36, 95),
-                      1.8f * c.scale, 0, .65f * c.scale);
-        c.line(x + 7, y + 2, x + w - 7, y + 2, IM_COL32(132, 16, 38, 90), .6f);
-        c.line(x + 7, y + h - 1, x + w - 7, y + h - 1, IM_COL32(69, 10, 27, 155), .7f);
-        c.line(x + 2, y + 6, x + 2, y + h - 6, IM_COL32(151, 13, 40, 105), .65f);
-        movingRim(c, x, y, w, h, r, IM_COL32(220, 11, 48, 255));
-    }
-
-    static void statusTile(const Canvas& c, float x, float y, float w, const char* title, const char* value,
-                           ImU32 accent, int glyph) {
-        if (!c.dl) return;
-        const bool status = glyph < 0, active = accent == Green;
-        const float r = 4.f;
-        const ImU32 rim = status ? IM_COL32(58, 164, 100, 225) : IM_COL32(17, 43, 59, 220);
-        c.dl->AddRect(c.p(x - .5f, y - .5f), c.p(x + w + .5f, y + 39.5f),
-                      status ? IM_COL32(25, 201, 113, 13) : IM_COL32(3, 87, 116, 9), (r + .5f) * c.scale, 0,
-                      2 * c.scale);
-        c.rect(x, y, w, 39, status ? IM_COL32(5, 25, 18, 255) : IM_COL32(6, 17, 26, 255), r);
-        c.dl->AddRectFilledMultiColor(c.p(x + 2, y + 2), c.p(x + w - 2, y + 37),
-                                      status ? IM_COL32(7, 30, 21, 255) : IM_COL32(8, 23, 32, 255),
-                                      status ? IM_COL32(6, 26, 20, 255) : IM_COL32(7, 19, 28, 255),
-                                      status ? IM_COL32(4, 20, 15, 255) : IM_COL32(5, 14, 22, 255),
-                                      status ? IM_COL32(4, 23, 16, 255) : IM_COL32(5, 16, 24, 255));
-        c.dl->AddRect(c.p(x, y), c.p(x + w, y + 39), rim, r * c.scale, 0, .85f * c.scale);
-        c.dl->AddRect(c.p(x + 1.8f, y + 1.8f), c.p(x + w - 1.8f, y + 37.2f),
-                      status ? IM_COL32(17, 69, 42, 170) : IM_COL32(9, 33, 47, 160), 2.5f * c.scale, 0,
-                      .65f * c.scale);
-        c.line(x + 6, y + 1, x + w * .4f, y + 1,
-               status ? IM_COL32(83, 181, 117, 120) : IM_COL32(26, 64, 81, 105), .6f);
-        c.line(x + w * .6f, y + 38, x + w - 6, y + 38,
-               status ? IM_COL32(38, 131, 76, 130) : IM_COL32(14, 44, 60, 115), .6f);
-        movingRim(c, x, y, w, 39, r, status ? IM_COL32(67, 217, 124, 255) : IM_COL32(23, 125, 159, 255));
-        if (status) {
-            if (active)
-                c.dl->AddCircleFilled(c.p(x + 13, y + 20), 6 * c.scale, IM_COL32(23, 228, 126, 28), 24);
-            c.dl->AddCircleFilled(c.p(x + 13, y + 20), 3.5f * c.scale, accent, 24);
-        } else
-            icon(c, glyph, x + 7.5f, y + 13, 13, glyph == Shield ? Green : glyph == Link ? HomeCyan : accent);
-        homeText(c, x + 29, y + (status ? 4.f : 8.f), title, 9, HomeLabel, w - 35);
-        const ImU32 valueColor = accent == Muted ? IM_COL32(159, 166, 173, 255)
-                                 : accent == Cyan || accent == HomeCyan || accent == White
-                                     ? IM_COL32(213, 216, 220, 255)
-                                     : accent;
-        homeText(c, x + 29, y + (status ? 19.f : 23.f), value, 11.8f, valueColor, w - 35, 8.5f);
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void openChannel() {
-        dispatch_async(dispatch_get_main_queue(), ^{
-            NSURL* url = [NSURL URLWithString:@"https://t.me/DylibSafe"];
-            UIApplication* app = [UIApplication sharedApplication];
-            if (url && app) {
-                [app openURL:url options:@{} completionHandler:nil];
-            }
+            CGColorSpaceRelease(sp);
         });
-    }
-
-    static void home(const Canvas& canvas) {
-        if (!canvas.dl) return;
-        Canvas c = canvas;
-        c.origin = canvas.p(261, 158);
-        c.scale = canvas.scale * (419.f / 373.f);
-        c.stretchX = (699.f / 604.f) / (419.f / 373.f);
-        c.stretchY = 1.f;
-        const Stats& st = stats();
-        char fps[32];
-        snprintf(fps, sizeof(fps), "%.0f FPS", std::isfinite(st.fps) ? st.fps : 0.f);
-        homePanel(c, 12, 15, 328, 219);
-        homePanel(c, 355, 15, 240, 219);
-         
-        c.dl->AddRectFilledMultiColor(c.p(17, 22), c.p(335, 59), IM_COL32(23, 7, 13, 255),
-                                      IM_COL32(25, 7, 14, 255), IM_COL32(31, 6, 14, 255),
-                                      IM_COL32(28, 6, 13, 255));
-        c.dl->AddRectFilledMultiColor(c.p(17, 59), c.p(335, 64), IM_COL32(28, 6, 13, 150),
-                                      IM_COL32(31, 6, 14, 150), IM_COL32(12, 8, 12, 0),
-                                      IM_COL32(12, 8, 12, 0));
-        homeText(c, 28, 31, "HMOOD VIP", 17.5f, White, 274);
-         
-        c.dl->AddCircleFilled(c.p(308.5f, 39.5f), 9 * c.scale, IM_COL32(0, 235, 126, 14), 28);
-        c.dl->AddCircleFilled(c.p(308.5f, 39.5f), 7.5f * c.scale, IM_COL32(0, 235, 126, 24), 28);
-        icon(c, Check, 302, 33, 13, IM_COL32(0, 224, 119, 255));
-         
-         
-        c.line(337.4f, 160, 337.4f, 224, IM_COL32(6, 5, 9, 235), 1.f);
-        for (int pass = 0; pass < 3; ++pass) {
-            const ImU32 edge = pass == 0   ? IM_COL32(226, 7, 44, 16)
-                               : pass == 1 ? IM_COL32(216, 10, 43, 55)
-                                           : IM_COL32(192, 16, 44, 210);
-            const float width = pass == 0 ? 5.f : pass == 1 ? 2.6f : .85f;
-            c.line(339.3f, 168, 339.3f, 225, edge, width);
-            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(335.5f, 233.4f),
-                                 c.p(328, 233.4f), edge, width * c.scale, 12);
-        }
-        c.line(23, 233.4f, 328, 233.4f, IM_COL32(72, 16, 30, 145), .7f);
-         
-        const float leftX[] = {29, 189}, rightX[] = {369, 487};
-        const float tileW = 135, miniW = 98, row1 = 76, row2 = 123, row3 = 171;
-        statusTile(c, leftX[0], row1, tileW, "SERVER", "LIVE", Green, -1);
-        statusTile(c, leftX[1], row1, tileW, "EXPIRES", "UNAVAILABLE", Muted, -1);
-        statusTile(c, leftX[0], row2, tileW, "SUBSCRIPTION", "UNAVAILABLE", Muted, Shield);
-        statusTile(c, leftX[1], row2, tileW, "DEVICE LINK", "UNAVAILABLE", Muted, Link);
-        statusTile(c, leftX[0], row3, tileW, "DEVICE", st.device.c_str(), HomeCyan, Phone);
-        statusTile(c, leftX[1], row3, tileW, "KEY", "NOT CONFIGURED", Muted, Calendar);
-         
-        homeText(c, 370, 31, "CONTACT", 17.5f, White, 210);
-        homeAction(c, 370, 76, 210, 44);
-        icon(c, PaperPlane, 386, 87, 21, IM_COL32(25, 198, 224, 255));
-        homeText(c, 424, 90, "TELEGRAM", 15, White, 145);
-        homeAction(c, 370, 128, 210, 44);
-        icon(c, Headset, 386, 139, 21, IM_COL32(236, 18, 52, 255));
-        homeText(c, 424, 142, "SUPPORT", 15, White, 145);
-        if (hit(c, "##cyber_telegram", 370, 76, 210, 44))
-            openChannel();
-        if (hit(c, "##cyber_support", 370, 128, 210, 44))
-            openChannel();
-        c.rect(370, 180, 210, 38, IM_COL32(10, 12, 16, 255), 3);
-        c.dl->AddRect(c.p(370, 180), c.p(580, 218), IM_COL32(43, 15, 25, 200), 3 * c.scale, 0,
-                      .8f * c.scale);
-        c.dl->AddCircleFilled(c.p(387, 199), 6.5f * c.scale, IM_COL32(0, 235, 126, 16), 24);
-        c.dl->AddCircleFilled(c.p(387, 199), 5 * c.scale, IM_COL32(0, 235, 126, 30), 24);
-        c.dl->AddCircleFilled(c.p(387, 199), 3.3f * c.scale, Green, 20);
-        homeText(c, 404, 192, "LIVE", 11.8f, IM_COL32(189, 193, 198, 255), 165, 8.5f);
-         
-        homePanel(c, 12, 249, 254, 111);
-        homePanel(c, 281, 249, 314, 111);
-        homeText(c, 27, 261, "GAME MODE", 15.5f, White, 224);
-        homeText(c, 27, 290, "LOCAL MODE", 11.2f, IM_COL32(223, 225, 229, 255), 224, 8.2f);
-        homeText(c, 27, 305, "NO LICENSE SERVICE", 10.5f, IM_COL32(162, 168, 175, 255), 224, 7.6f);
-        homeAction(c, 27, 323, 134, 27);
-        homeText(c, 94, 331, "OPEN MODE", 11.5f, IM_COL32(228, 230, 234, 255), 120, 8.2f, true);
-        if (hit(c, "##cyber_open_mode", 27, 323, 134, 27, false,
-                "No mode or licensing service is configured")) {
-        }
-        homeText(c, 296, 261, "RAM BOOSTER", 15.5f, White, 284);
-        char app[32], free[32];
-        snprintf(app, sizeof(app), st.appMB >= 0 ? "APP: %.0f MB" : "APP: --", st.appMB);
-        snprintf(free, sizeof(free), st.freeGB >= 0 ? "FREE: %.1f GB" : "FREE: --", st.freeGB);
-        homeText(c, 296, 290, app, 11.2f, IM_COL32(223, 225, 229, 255), 284, 8.2f);
-        homeText(c, 296, 305, free, 10.5f, IM_COL32(162, 168, 175, 255), 284, 7.6f);
-        homeAction(c, 296, 323, 92, 27);
-        homeText(c, 342, 331, "PURGE", 11.5f, IM_COL32(228, 230, 234, 255), 80, 8.2f, true);
-        if (hit(c, "##cyber_purge", 296, 323, 92, 27, false,
-                "The current project has no memory purge operation")) {
-        }
-        homeAction(c, 396, 323, 146, 27);
-        homeText(c, 469, 331, "AUTO-CLEAN: OFF", 11.5f, IM_COL32(228, 230, 234, 255), 134, 8.2f, true);
-        if (hit(c, "##cyber_autoclean", 396, 323, 146, 27, false,
-                "Automatic cleaning is not configured")) {
-        }
-         
-        homePanel(c, 360, 15, 235, 219);
-        homeText(c, 376, 30, "CONTACT", 17.5f, White, 203);
-        homeAction(c, 376, 75, 203, 44);
-        icon(c, PaperPlane, 392, 86, 21, IM_COL32(25, 198, 224, 255));
-        homeText(c, 429, 89, "TELEGRAM", 15, White, 138);
-        homeAction(c, 376, 127, 203, 44);
-        icon(c, Headset, 392, 138, 21, IM_COL32(236, 18, 52, 255));
-        homeText(c, 429, 141, "SUPPORT", 15, White, 138);
-        if (hit(c, "##cyber_telegram_top", 376, 75, 203, 44))
-            openChannel();
-        if (hit(c, "##cyber_support_top", 376, 127, 203, 44))
-            openChannel();
-        c.rect(376, 179, 203, 38, IM_COL32(10, 12, 16, 255), 3);
-        c.dl->AddRect(c.p(376, 179), c.p(579, 217), IM_COL32(43, 15, 25, 200), 3 * c.scale, 0,
-                      .8f * c.scale);
-        c.dl->AddCircleFilled(c.p(393, 198), 6.5f * c.scale, IM_COL32(0, 235, 126, 16), 24);
-        c.dl->AddCircleFilled(c.p(393, 198), 5 * c.scale, IM_COL32(0, 235, 126, 30), 24);
-        c.dl->AddCircleFilled(c.p(393, 198), 3.3f * c.scale, Green, 20);
-        homeText(c, 410, 191, "LIVE", 11.8f, IM_COL32(189, 193, 198, 255), 158, 8.5f);
-        homePanel(c, 360, 249, 235, 111);
-        homeText(c, 376, 261, "PREFERENCES", 15.5f, White, 203);
-        homeAction(c, 376, 290, 96, 27);
-        homeText(c, 424, 298, hideHacker ? "STREAM: ON" : "STREAM: OFF", 11.5f,
-                 IM_COL32(228, 230, 234, 255), 84, 8.2f, true);
-        if (hit(c, "##cyber_stream", 376, 290, 96, 27)) {
-            hideHacker = !hideHacker;
-            notifyFeature("Stream", Eye, hideHacker);
-        }
-        homeAction(c, 480, 290, 99, 27);
-        homeText(c, 529.5f, 298, MenuLocale::languageNames[MenuLocale::language], 11.5f,
-                 IM_COL32(228, 230, 234, 255), 87, 8.2f, true);
-        if (hit(c, "##cyber_language", 480, 290, 99, 27))
-            ImGui::OpenPopup("##cyber_language_popup");
-        if (ImGui::BeginPopup("##cyber_language_popup")) {
-            for (int i = 0; i < 7; ++i)
-                if (MenuLocale::selectable(MenuLocale::languageNames[i], MenuLocale::language == i))
-                    MenuLocale::language = i;
-            ImGui::EndPopup();
-        }
-        homeAction(c, 376, 323, 203, 27);
-        homeText(c, 477.5f, 331, "RESET GUEST", 11.5f, IM_COL32(228, 230, 234, 255), 191, 8.2f, true);
-        if (hit(c, "##cyber_reset_guest", 376, 323, 203, 27))
-            ImGui::OpenPopup("##cyber_reset_guest_popup");
-        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * .5f, ImGui::GetIO().DisplaySize.y * .5f),
-                                ImGuiCond_Appearing, ImVec2(.5f, .5f));
-        if (ImGui::BeginPopupModal("##cyber_reset_guest_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            MenuLocale::text("Reset guest account?");
-            ImGui::Spacing();
-            MenuLocale::text("This deletes local game data, settings and account data.");
-            MenuLocale::text("The game will exit after the reset.");
-            ImGui::Spacing();
-            if (MenuLocale::button("Reset Guest", ImVec2(120, 30))) {
-                ImGui::CloseCurrentPopup();
-                ResetGuestAccount();
-            }
-            ImGui::SameLine();
-            if (MenuLocale::button("Cancel", ImVec2(100, 30)))
-                ImGui::CloseCurrentPopup();
-            ImGui::EndPopup();
-        }
-        c.rect(346, 17, 13, 215, IM_COL32(10, 8, 12, 255));
-        for (int pass = 0; pass < 3; ++pass) {
-            const ImU32 edge = pass == 0   ? IM_COL32(226, 7, 44, 16)
-                               : pass == 1 ? IM_COL32(216, 10, 43, 55)
-                                           : IM_COL32(192, 16, 44, 210);
-            const float width = pass == 0 ? 5.f : pass == 1 ? 2.6f : .85f;
-            c.line(339.3f, 20, 339.3f, 225, edge, width);
-            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(335.5f, 233.4f),
-                                 c.p(328, 233.4f), edge, width * c.scale, 12);
-        }
-         
-        statusTile(c, rightX[0], row1, miniW, "SERVER", "LIVE", Green, -1);
-        statusTile(c, rightX[1], row1, miniW, "OS", st.ios.empty() ? "iOS" : st.ios.c_str(), White,
-                   Gamepad);
-        statusTile(c, rightX[0], row2, miniW, "FPS", fps, st.fps >= 55 ? Green : Cyan, Gauge);
-        statusTile(c, rightX[1], row2, miniW, "RAM",
-                   st.totalGB > 0 ? (std::to_string((int)std::round(st.totalGB)) + " GB").c_str() : "iOS",
-                   Cyan, MemoryChip);
-        statusTile(c, rightX[0], row3, miniW, "TIME", st.time.c_str(), White, Calendar);
-        statusTile(c, rightX[1], row3, miniW, "DATE", st.date.c_str(), White, Calendar);
-        c.rect(346, 17, 13, 215, IM_COL32(10, 8, 12, 255));
-        for (int pass = 0; pass < 3; ++pass) {
-            const ImU32 edge = pass == 0   ? IM_COL32(226, 7, 44, 16)
-                               : pass == 1 ? IM_COL32(216, 10, 43, 55)
-                                           : IM_COL32(192, 16, 44, 210);
-            const float width = pass == 0 ? 5.f : pass == 1 ? 2.6f : .85f;
-            c.line(339.3f, 20, 339.3f, 225, edge, width);
-            c.dl->AddBezierCubic(c.p(339.3f, 225), c.p(339.3f, 232), c.p(335.5f, 233.4f),
-                                 c.p(328, 233.4f), edge, width * c.scale, 12);
-        }
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void visual(const Canvas& c) {
-        if (!c.dl) return;
-        panel(c, 12, 12, 232, 85);
-        c.text(24, 18, "ESP Style", 19, White, 208);
-        static const char* styles[] = {"Basic", "VIP Cyber Vertical"};
-        combo(c, "##cyber_style", &IsStyle, styles, 2, 24, 46, 208, 36);
-        panel(c, 12, 106, 232, 260);
-        heading(c, "Player ESP", 20, 114, 216, Player);
-        toggle(c, "Draw Names", "##cyber_name", &imgui::Name, 24, 151, 208, NameCard);
-        toggle(c, "Draw Weapon", "##cyber_weapon", &imgui::Weapon, 24, 192, 208, Cross);
-        toggle(c, "Game Info", "##cyber_gameinfo", &imgui::GameInfo, 24, 233, 208, Information);
-        toggle(c, "Draw Distance", "##cyber_dist", &imgui::Distance, 24, 274, 208, Ruler);
-        toggle(c, "Draw Health", "##cyber_hp", &imgui::Health, 24, 315, 208, Health);
-        panel(c, 253, 12, 232, 354);
-        toggle(c, "360 Alert", "##cyber_360", &imgui::Alert360, 265, 20, 208, Compass);
-        toggle(c, "Snap Lines", "##cyber_line", &imgui::Line, 265, 61, 208, Box);
-        toggle(c, "Draw Boxes", "##cyber_box", &imgui::Boxes, 265, 102, 208, Box);
-        toggle(c, "Draw Bones", "##cyber_bone", &imgui::Bone, 265, 143, 208, Bone);
-        toggle(c, "Hide Bots", "##cyber_bot", &imgui::HideBot, 265, 184, 208, Robot);
-        toggle(c, "Enemy Count", "##cyber_ecount", &imgui::EnemyCount, 265, 225, 208, Group);
-        toggle(c, "Player Team ID", "##cyber_tid", &imgui::TeamID, 265, 266, 208, Group);
-        toggle(c, "Enemy Aiming", "##cyber_aiming", &imgui::EnemyAiming, 265, 307, 208, Warning);
-        panel(c, 494, 12, 232, 146);
-        toggle(c, "Lootbox", "##cyber_loot", &imgui::Lootbox, 506, 20, 208, Loot);
-        toggle(c, "Items ESP", "##cyber_items", &imgui::Items, 506, 61, 208, Items);
-        toggle(c, "Vehicle ESP", "##cyber_veh", &imgui::Vehicle, 506, 102, 208, Car);
-        panel(c, 494, 167, 232, 199);
-        heading(c, "Existing Display Settings", 502, 175, 216, Gear);
-        c.text(508, 214, "Open additional existing display settings.", 15, Muted, 204);
-        c.rect(508, 256, 204, 42, IM_COL32(28, 11, 18, 255), 4);
-        c.dl->AddRect(c.p(508, 256), c.p(712, 298), Red, 4 * c.scale, 0, 1.3f * c.scale);
-        c.text(552, 267, "ESP Radar", 20, White, 152);
-        if (hit(c, "##cyber_esp_settings", 508, 256, 204, 42))
-            ImGui::OpenPopup("##cyber_esp_settings_popup");
-        if (ImGui::BeginPopup("##cyber_esp_settings_popup")) {
-            MenuLocale::sliderFloat("ESP Distance", &ESPMaxDistance, 50.f, 600.f, "%.0f m");
-            MenuLocale::sliderFloat("HP Scale", &globalHpAlphaF, .5f, 5.f, "%.2f");
-            MenuLocale::sliderFloat("Alert Radius", &AlertRadius, 20.f, 240.f, "%.0f");
-            MenuLocale::sliderFloat("Stroke Width", &strokeIntensity, .5f, 5.f, "%.2f");
-            MenuLocale::checkbox("Text Border", &textBorder);
-            MenuLocale::checkbox("Hide Name", &hideNameKillMsg);
-            ImVec4 distVec = ImGui::ColorConvertU32ToFloat4(COLOR_Distance);
-            float distColor[4] = {distVec.x, distVec.y, distVec.z, distVec.w};
-            if (ImGui::ColorEdit4(MenuLocale::tr("Distance Color"), distColor)) {
-                COLOR_Distance = ImGui::ColorConvertFloat4ToU32(
-                    ImVec4(distColor[0], distColor[1], distColor[2], distColor[3]));
-            }
-            float borderColor[4] = {bgColor.Value.x, bgColor.Value.y, bgColor.Value.z, bgColor.Value.w};
-            if (MenuLocale::colorEdit("Border Color", borderColor)) {
-                bgColor.Value.x = borderColor[0];
-                bgColor.Value.y = borderColor[1];
-                bgColor.Value.z = borderColor[2];
-                bgColor.Value.w = borderColor[3];
-            }
-            ImGui::EndPopup();
-        }
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void aim(const Canvas& c) {
-        if (!c.dl) return;
-        panel(c, 12, 12, 232, 354);
-        heading(c, "Aim Settings", 20, 20, 216, Gear);
-        toggle(c, "Aimbot", "##cyber_aimbot", &Settings::Aimbot::Tick, 24, 57, 208, Target);
-        const bool aimReady = Settings::Aimbot::Tick;
-        const bool silentAllowed = aimReady && Settings::Aimbot::AimMethod != 0;
-        if (!silentAllowed && Enable)
-            Enable = false;
-        toggle(c, "Silent Aim", "##cyber_silent", &Enable, 24, 98, 208, Wand, silentAllowed,
-               "Enable Aimbot and select Risk or Custom to use Silent Aim");
-        bool macro = false;
-        toggle(c, "Macro", "##cyber_macro", &macro, 24, 139, 208, Flame);
-        toggle(c, "Aim Line", "##cyber_aimline", &Settings::Aimbot::SilentAimSettings::AimingLine, 24, 180,
-               208, Bolt);
-        toggle(c, "Auto Fire", "##cyber_autofire", &自动开火, 24, 221, 208, Skull);
-        toggle(c, "Visibility Check", "##cyber_vis", &Settings::isVisibilityCheck, 24, 262, 208, Eye);
-        toggle(c, "Ignore Bots", "##cyber_ibots", &Settings::Aimbot::SilentAimSettings::Highprecisiontracking,
-               24, 303, 208, Robot);
-        panel(c, 253, 12, 232, 354);
-        heading(c, "Aim Control", 261, 20, 216, Target);
-        toggle(c, "Ignore Knocked", "##cyber_iknocked", &Settings::Aimbot::SilentAimSettings::AimKnocked,
-               265, 57, 208, Skull);
-        toggle(c, "Enable FOV", "##cyber_efov", &Settings::Aimbot::SilentAimSettings::EnableFov, 265, 98,
-               208, Fov);
-        c.text(265, 141, "Aim Target", 18, White, 208);
-        static const char* targets[] = {"Head", "Neck", "Body", "Pelvis", "Auto"};
-        combo(c, "##cyber_target", &Settings::Aimbot::SilentAimSettings::Aimpositon, targets, 5, 265, 165,
-              208);
-        c.text(265, 205, "Trigger Mode", 18, White, 208);
-        static const char* triggers[] = {"Fire", "ADS", "Fire + ADS", "Fire or ADS"};
-        int trigger = Settings::Aimbot::TriggerMode.load(std::memory_order_relaxed);
-        if (combo(c, "##cyber_trigger", &trigger, triggers, 4, 265, 229, 208))
-            Settings::Aimbot::TriggerMode.store(trigger, std::memory_order_relaxed);
-        c.text(265, 269, "Aim Target", 18, White, 208);
-        combo(c, "##cyber_target_2", &Settings::Aimbot::SilentAimSettings::Aimpositon, targets, 5, 265, 293,
-              208);
-        panel(c, 494, 12, 232, 354);
-        slider(c, "##cyber_fov", "FOV", &Cross, 30, 300, 502, 20, 216, Fov, aimReady,
-               "Enable Aimbot first");
-        slider(c, "##cyber_dist", "Distance", &SilentAimMaxDistance, 50, 355, 502, 65, 216, Ruler, aimReady,
-               "Enable Aimbot first");
-        slider(c, "##cyber_speed", "Aim Speed", &AimSmooth, 2, 30, 502, 110, 216, Gauge,
-               aimReady && !Enable,
-               aimReady ? "Disable Silent Aim to adjust camera movement" : "Enable Aimbot first");
-        slider(c, "##cyber_prob", "Hit Probability", &追踪概率, 0, 100, 502, 155, 216, Percent,
-               aimReady && Enable,
-               aimReady ? "Enable Silent Aim to adjust hit probability" : "Enable Aimbot first");
-        panel(c, 502, 200, 216, 156);
-        c.text(512, 208, "Mode", 19, White, 196);
-        static const char* modes[] = {"Safe", "Risk", "Custom"};
-        combo(c, "##cyber_mode", &Settings::Aimbot::AimMethod, modes, 3, 512, 234, 196);
-        c.text(512, 274, "Open existing Safe / Risk / Custom modes and additional settings.", 13.5f, Muted,
-               196);
-        c.rect(512, 312, 196, 34, IM_COL32(28, 11, 18, 255), 4);
-        c.dl->AddRect(c.p(512, 312), c.p(708, 346), Red, 4 * c.scale, 0, 1.3f * c.scale);
-        c.text(534, 319, "Aim Settings", 18, White, 152);
-        if (hit(c, "##cyber_aim_settings", 512, 312, 196, 34))
-            ImGui::OpenPopup("##cyber_aim_settings_popup");
-        if (ImGui::BeginPopup("##cyber_aim_settings_popup")) {
-            MenuLocale::checkbox("Prediction", &Settings::Aimbot::SilentAimSettings::Prediction);
-            MenuLocale::sliderFloat("Max Step", &Settings::Aimbot::SilentAimSettings::MaxStepDeg, .3f, 8.f,
-                                    "%.2f deg");
-            MenuLocale::sliderFloat("Magic X", &magicX, -50.f, 50.f, "%.1f");
-            MenuLocale::sliderFloat("Magic Y", &magicY, -50.f, 50.f, "%.1f");
-            MenuLocale::sliderFloat("Magic Z", &magicZ, -50.f, 50.f, "%.1f");
-            ImGui::EndPopup();
-        }
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void memory(const Canvas& c) {
-        if (!c.dl) return;
-        panel(c, 12, 12, 232, 354);
-        bool autoTap = false;
-        toggle(c, "Auto Tap", "##cyber_autotap", &autoTap, 24, 20, 208, Bolt);
-        toggle(c, "Fast Shoot", "##cyber_fastshoot", &IsFastshoot, 24, 61, 208, Bolt);
-        toggle(c, "Fast Scope", "##cyber_fastscope", &MemoryFastScope, 24, 102, 208, Target);
-        toggle(c, "Fast Gun", "##cyber_fastgun", &IsFastSwitch, 24, 143, 208, Gear);
-        toggle(c, "Spin", "##cyber_spin", &isSpinning, 24, 184, 208, Reset);
-        toggle(c, "Zoom", "##cyber_zoom", &MemoryZoom, 24, 225, 208, Fov);
-        toggle(c, "iPad", "##cyber_ipad", &WideView, 24, 266, 208, Globe);
-        toggle(c, "No Recoil", "##cyber_recoil", &IsNorecoil2, 24, 307, 208, Shield);
-        panel(c, 253, 12, 232, 354);
-        toggle(c, "No Shake", "##cyber_shake", &IsNocamerashake, 265, 20, 208, Warning);
-        toggle(c, "HitX", "##cyber_hitx", &HitX, 265, 61, 208, Flame);
-        toggle(c, "Damage", "##cyber_damage", &MemoryDamage, 265, 102, 208, Skull);
-        toggle(c, "Small Cross", "##cyber_smcross", &IsCrossHair, 265, 143, 208, Cross);
-        toggle(c, "Rainbow", "##cyber_rainbow", &MemoryRainbow, 265, 184, 208, Wand);
-        toggle(c, "Cross Spin", "##cyber_crossspin", &MemoryCrossSpin, 265, 225, 208, Reset);
-        toggle(c, "Fast Drop", "##cyber_fastdrop", &IsFastDrop, 265, 266, 208, Bolt);
-        toggle(c, "Super Run", "##cyber_superrun", &chaynhanhv2, 265, 307, 208, Flame);
-        panel(c, 494, 12, 232, 354);
-        slider(c, "##cyber_spinspeed", "Spin Speed", &tocdoquay, 0, 360, 502, 20, 216, Gauge);
-        float wideFloat = (float)WideValue;
-        if (slider(c, "##cyber_ipadview", "iPad View", &wideFloat, 80, 160, 502, 65, 216, Eye))
-            WideValue = (int)std::round(wideFloat);
-        slider(c, "##cyber_crosssize", "Cross Size", &crosshairSizeSlider, 0, 20, 502, 110, 216, Fov);
-        panel(c, 502, 155, 216, 201);
-        c.text(512, 165, "More memory options", 19, White, 196);
-        c.text(512, 194,
-               "Current view, crosshair, fast scope, damage and spin controls are active above.",
-               14.5f, Muted, 196);
-        c.text(512, 250, "Memory", 17.5f, White, 196);
-        c.text(512, 274, "No extra memory sliders are included in this project.", 14.5f, Muted, 196);
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void settings(const Canvas& c) {
-        if (!c.dl) return;
-        panel(c, 12, 12, 354, 354);
-        heading(c, "Preferences", 20, 20, 338, Gear);
-        toggle(c, hideHacker ? "Stream: ON" : "Stream: OFF", "##cyber_set_stream", &hideHacker, 24, 59,
-               330, Eye);
-        c.text(24, 106, "Language", 19, White, 330);
-        combo(c, "##cyber_set_lang", &MenuLocale::language, MenuLocale::languageNames, 7, 24, 132, 330);
-        c.rect(24, 184, 330, 40, IM_COL32(28, 11, 18, 255), 4);
-        c.dl->AddRect(c.p(24, 184), c.p(354, 224), Red, 4 * c.scale, 0, 1.3f * c.scale);
-        c.text(126, 193, "Reset Guest", 20, White, 190);
-        if (hit(c, "##cyber_set_reset", 24, 184, 330, 40))
-            ImGui::OpenPopup("##cyber_set_reset_popup");
-        ImGui::SetNextWindowPos(ImVec2(ImGui::GetIO().DisplaySize.x * .5f, ImGui::GetIO().DisplaySize.y * .5f),
-                                ImGuiCond_Appearing, ImVec2(.5f, .5f));
-        if (ImGui::BeginPopupModal("##cyber_set_reset_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize)) {
-            MenuLocale::text("Reset guest account?");
-            ImGui::Spacing();
-            MenuLocale::text("This deletes local game data, settings and account data.");
-            MenuLocale::text("The game will exit after the reset.");
-            ImGui::Spacing();
-            if (MenuLocale::button("Reset Guest", ImVec2(120, 30))) {
-                ImGui::CloseCurrentPopup();
-                ResetGuestAccount();
-            }
-            ImGui::SameLine();
-            if (MenuLocale::button("Cancel", ImVec2(100, 30)))
-                ImGui::CloseCurrentPopup();
-            ImGui::EndPopup();
-        }
-        panel(c, 375, 12, 351, 354);
-        heading(c, "GAME INFO", 383, 20, 335, Information);
-        const Stats& st = stats();
-        char line[128];
-        snprintf(line, sizeof(line), "DEVICE: %s", st.device.c_str());
-        c.text(387, 62, line, 18, White, 327);
-        snprintf(line, sizeof(line), "OS: iOS %s", st.ios.c_str());
-        c.text(387, 90, line, 18, White, 327);
-        snprintf(line, sizeof(line), "FPS: %.0f", st.fps);
-        c.text(387, 118, line, 18, st.fps >= 55 ? Green : Cyan, 327);
-        snprintf(line, sizeof(line), "APP RAM: %.0f MB", st.appMB);
-        c.text(387, 146, line, 18, White, 327);
-        snprintf(line, sizeof(line), "FREE RAM: %.1f GB", st.freeGB);
-        c.text(387, 174, line, 18, White, 327);
-        snprintf(line, sizeof(line), "TIME: %s", st.time.c_str());
-        c.text(387, 202, line, 18, White, 327);
-        snprintf(line, sizeof(line), "DATE: %s", st.date.c_str());
-        c.text(387, 230, line, 18, White, 327);
-    }
-
-// HMOOD__TG@i_8_f
-
-
-    static void render() {
-        if (!MenDeal || !ImGui::GetCurrentContext())
-            return;
-        MenuLocale::beginFrame();
-        ImFont* activeFont = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
-        if (activeFont) ImGui::PushFont(activeFont);
-        const ImGuiIO& io = ImGui::GetIO();
-        if (io.DisplaySize.x < 1.f || io.DisplaySize.y < 1.f) {
-            if (activeFont) ImGui::PopFont();
+        if (s_badgeTex) {
+            dl->AddImageRounded((ImTextureID)(__bridge void*)s_badgeTex,
+                                ImVec2(center.x - radius, center.y - radius),
+                                ImVec2(center.x + radius, center.y + radius),
+                                ImVec2(0, 0), ImVec2(1, 1), U32(ImVec4(1, 1, 1, 1)), radius);
+            dl->AddCircle(center, radius, U32(g_Accent), 32, 1.5f);
             return;
         }
-        static int page = 0;
-        static PageMotion motion;
-        const float scale = ImMin(io.DisplaySize.x / 1024.f, io.DisplaySize.y / 676.f);
-        const ImVec2 winSize = {1024.f * scale, 676.f * scale};
-        ImGui::SetNextWindowSize(winSize, ImGuiCond_Always);
-        ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - winSize.x) * .5f, (io.DisplaySize.y - winSize.y) * .5f),
-                                ImGuiCond_FirstUseEver);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 0.f);
-        ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-        ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(0, 0, 0, 0));
-        if (ImGui::Begin("##cyber_menu", nullptr,
-                         ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-                             ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar |
-                             ImGuiWindowFlags_NoScrollWithMouse)) {
-            ImDrawList* dl = ImGui::GetWindowDrawList();
-            if (dl) {
-                Canvas c{dl, ImGui::GetWindowPos(), scale};
-                c.animationTime =
-                    std::chrono::duration<double>(std::chrono::steady_clock::now().time_since_epoch()).count();
-                frame(c);
-                if (closeButton(c)) {
-                    [metalbiew showChange:NO];
-                    ImGui::End();
-                    ImGui::PopStyleColor();
-                    ImGui::PopStyleVar(2);
-                    if (activeFont) ImGui::PopFont();
-                    return;
+    }
+    dl->AddCircleFilled(center, radius, U32(RGBA(28, 16, 24, 1.f)), 32);
+    dl->AddCircle(center, radius, U32(g_Accent), 32, 1.5f);
+    ImVec2 tsz = ImGui::CalcTextSize("D");
+    dl->AddText(ImVec2(center.x - tsz.x * 0.5f, center.y - tsz.y * 0.5f), U32(g_TextMain), "D");
+}
+
+static void DrawHomeTab() {
+    State& s = S();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    float availW = ImGui::GetContentRegionAvail().x;
+
+    ImVec2 cardPos = ImGui::GetCursorScreenPos();
+    float cardH = 68.f;
+    dl->AddRectFilled(cardPos, ImVec2(cardPos.x + availW, cardPos.y + cardH), U32(g_BgCard), 6.f);
+    dl->AddRect(cardPos, ImVec2(cardPos.x + availW, cardPos.y + cardH), U32(g_Border), 6.f);
+
+    DrawBadgeIcon(dl, ImVec2(cardPos.x + 34.f, cardPos.y + cardH * 0.5f), 21.f);
+
+    dl->AddText(ImVec2(cardPos.x + 64.f, cardPos.y + 12.f), U32(g_TextMain), "DARKIOS");
+    MenuLocale::drawText("License", ImVec2(cardPos.x + 64.f, cardPos.y + 30.f), U32(g_TextDim), 11.5f);
+    const char* statusTxt = IsLogin ? "Active" : "Inactive";
+    dl->AddText(ImVec2(cardPos.x + 64.f + MenuLocale::measure("License", 11.5f).x + 6.f, cardPos.y + 30.f),
+                IsLogin ? U32(g_Green) : U32(g_Yellow), statusTxt);
+    MenuLocale::drawText("Expires", ImVec2(cardPos.x + 64.f, cardPos.y + 46.f), U32(g_TextMuted), 11.f);
+    dl->AddText(ImVec2(cardPos.x + 64.f + MenuLocale::measure("Expires", 11.f).x + 6.f, cardPos.y + 46.f),
+                U32(g_TextDim), "N/A");
+
+    float badgeW = 54.f, badgeH = 20.f;
+    ImVec2 bMin(cardPos.x + availW - badgeW - 12.f, cardPos.y + 14.f);
+    ImVec2 bMax(bMin.x + badgeW, bMin.y + badgeH);
+    dl->AddRectFilled(bMin, bMax, U32(RGBA(20, 55, 38, 0.9f)), 4.f);
+    dl->AddRect(bMin, bMax, U32(g_Green), 4.f);
+    ImVec2 liveSz = ImGui::CalcTextSize("LIVE");
+    dl->AddText(ImVec2(bMin.x + (badgeW - liveSz.x) * 0.5f, bMin.y + (badgeH - liveSz.y) * 0.5f), U32(g_Green), "LIVE");
+
+    ImGui::Dummy(ImVec2(availW, cardH + 6.f));
+
+    float halfW = (availW - 8.f) * 0.5f;
+    ImVec2 infoPos = ImGui::GetCursorScreenPos();
+    float infoH = 54.f;
+
+    dl->AddRectFilled(infoPos, ImVec2(infoPos.x + halfW, infoPos.y + infoH), U32(g_BgCard), 6.f);
+    dl->AddRect(infoPos, ImVec2(infoPos.x + halfW, infoPos.y + infoH), U32(g_Border), 6.f);
+    MenuLocale::drawText("Device", ImVec2(infoPos.x + 10.f, infoPos.y + 8.f), U32(g_TextMuted), 11.f);
+    struct utsname u; uname(&u);
+    char devBuf[48]; snprintf(devBuf, sizeof(devBuf), "%s", u.machine);
+    dl->AddText(ImVec2(infoPos.x + 10.f, infoPos.y + 22.f), U32(g_TextMain), devBuf);
+    MenuLocale::drawText("OS", ImVec2(infoPos.x + 10.f, infoPos.y + 37.f), U32(g_TextMuted), 10.5f);
+    dl->AddText(ImVec2(infoPos.x + 10.f + MenuLocale::measure("OS", 10.5f).x + 5.f, infoPos.y + 37.f),
+                U32(g_TextDim), [[UIDevice currentDevice] systemVersion].UTF8String);
+
+    ImVec2 rPos(infoPos.x + halfW + 8.f, infoPos.y);
+    dl->AddRectFilled(rPos, ImVec2(rPos.x + halfW, rPos.y + infoH), U32(g_BgCard), 6.f);
+    dl->AddRect(rPos, ImVec2(rPos.x + halfW, rPos.y + infoH), U32(g_Border), 6.f);
+    MenuLocale::drawText("Key", ImVec2(rPos.x + 10.f, rPos.y + 8.f), U32(g_TextMuted), 11.f);
+    MenuLocale::drawText("Not configured", ImVec2(rPos.x + 10.f, rPos.y + 23.f), U32(g_TextDim), 11.5f);
+    MenuLocale::drawText("RAM", ImVec2(rPos.x + 10.f, rPos.y + 38.f), U32(g_TextMuted), 10.5f);
+
+    mach_port_t host = mach_host_self();
+    vm_size_t pageSize = 0;
+    host_page_size(host, &pageSize);
+    vm_statistics64_data_t vmStats;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    float freeMB = 0.f;
+    if (host_statistics64(host, HOST_VM_INFO64, (host_info64_t)&vmStats, &count) == KERN_SUCCESS) {
+        freeMB = (float)((uint64_t)vmStats.free_count * (uint64_t)pageSize) / (1024.f * 1024.f);
+    }
+    char ramBuf[32]; snprintf(ramBuf, sizeof(ramBuf), "%.0f MB free", freeMB);
+    dl->AddText(ImVec2(rPos.x + 10.f + MenuLocale::measure("RAM", 10.5f).x + 5.f, rPos.y + 38.f),
+                U32(g_Cyan), ramBuf);
+
+    ImGui::Dummy(ImVec2(availW, infoH + 6.f));
+
+    ImVec2 modePos = ImGui::GetCursorScreenPos();
+    float modeH = 44.f;
+    dl->AddRectFilled(modePos, ImVec2(modePos.x + availW, modePos.y + modeH), U32(g_BgCard), 6.f);
+    dl->AddRect(modePos, ImVec2(modePos.x + availW, modePos.y + modeH), U32(g_Border), 6.f);
+    MenuLocale::drawText("Game Mode", ImVec2(modePos.x + 12.f, modePos.y + 7.f), U32(g_TextMain), 12.f);
+    MenuLocale::drawText("Local mode", ImVec2(modePos.x + 12.f, modePos.y + 23.f), U32(g_TextDim), 11.f);
+
+    float mBtnW = 90.f, mBtnH = 24.f;
+    ImGui::SetCursorScreenPos(ImVec2(modePos.x + availW - mBtnW - 10.f, modePos.y + (modeH - mBtnH) * 0.5f));
+    if (DrawCyberButton("Open Mode", ImVec2(mBtnW, mBtnH))) {
+        Toast("No mode or licensing service is configured", g_Yellow);
+    }
+    ImGui::SetCursorScreenPos(ImVec2(modePos.x, modePos.y + modeH + 6.f));
+
+    SectionHeader("Subscription");
+    ImVec2 subPos = ImGui::GetCursorScreenPos();
+    float subH = 44.f;
+    dl->AddRectFilled(subPos, ImVec2(subPos.x + availW, subPos.y + subH), U32(g_BgCard), 6.f);
+    dl->AddRect(subPos, ImVec2(subPos.x + availW, subPos.y + subH), U32(g_Border), 6.f);
+    MenuLocale::drawText("Device Link", ImVec2(subPos.x + 12.f, subPos.y + 7.f), U32(g_TextMain), 12.f);
+    MenuLocale::drawText("No license service", ImVec2(subPos.x + 12.f, subPos.y + 23.f), U32(g_TextDim), 11.f);
+
+    ImGui::SetCursorScreenPos(ImVec2(subPos.x, subPos.y + subH + 6.f));
+
+    SectionHeader("Contact");
+    float cBtnW = (availW - 8.f) * 0.5f;
+    if (DrawCyberButton("Telegram", ImVec2(cBtnW, 28.f))) {
+        Toast("No contact link is configured in this project", g_TextDim);
+    }
+    ImGui::SameLine(0.f, 8.f);
+    if (DrawCyberButton("Support", ImVec2(cBtnW, 28.f))) {
+        Toast("No support link is configured in this project", g_TextDim);
+    }
+
+    (void)s;
+}
+
+static void DrawEspTab() {
+    State& s = S();
+    const char* subLabels[] = {"ESP Style", "Player ESP", "Existing Display Settings"};
+    SubTabBar(subLabels, 3, &s.espSubTab);
+
+    if (s.espSubTab == 0) {
+        SectionHeader("ESP Style");
+        const char* styles[] = {"Basic", "VIP Cyber Vertical"};
+        for (int i = 0; i < 2; ++i) {
+            bool sel = (s.espStyle == i);
+            ImGui::PushStyleColor(ImGuiCol_Button, sel ? RGBA(35, 16, 24, 1.f) : g_BgCard);
+            ImGui::PushStyleColor(ImGuiCol_ButtonHovered, g_BgHover);
+            ImGui::PushStyleColor(ImGuiCol_ButtonActive, g_Accent);
+            if (DrawCyberButton(styles[i], ImVec2(-1.f, 34.f))) {
+                s.espStyle = i;
+                SyncToGlobals();
+                Toast(styles[i], g_Green);
+            }
+            ImGui::PopStyleColor(3);
+            ImGui::Spacing();
+        }
+    } else if (s.espSubTab == 1) {
+        float availW = ImGui::GetContentRegionAvail().x;
+        float colW = (availW - 8.f) * 0.5f;
+
+        ImGui::BeginGroup();
+        ImGui::PushItemWidth(colW);
+        SwitchRow("Player ESP", &s.espPlayer);
+        SwitchRow("Draw Names", &s.espName);
+        SwitchRow("Draw Weapon", &s.espWeapon);
+        SwitchRow("Game Info", &s.espGameInfo);
+        SwitchRow("Draw Distance", &s.espDist);
+        SwitchRow("Draw Health", &s.espHealth);
+        SwitchRow("360 Alert", &s.esp360);
+        SwitchRow("Snap Lines", &s.espLine);
+        SwitchRow("Draw Boxes", &s.espBox);
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+
+        ImGui::SameLine(0.f, 8.f);
+
+        ImGui::BeginGroup();
+        ImGui::PushItemWidth(colW);
+        SwitchRow("Draw Bones", &s.espBone);
+        SwitchRow("Hide Bots", &s.espIgnoreBot);
+        SwitchRow("Enemy Count", &s.espEnemyCount);
+        SwitchRow("Player Team ID", &s.espTeamId);
+        SwitchRow("Enemy Aiming", &s.espEnemyAim);
+        SwitchRow("Lootbox", &s.espLootBox);
+        SwitchRow("Items ESP", &s.espItems);
+        SwitchRow("Vehicle ESP", &s.espVehicle);
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+    } else {
+        SliderRow("ESP Distance", &s.espDistMax, 50.f, 500.f, "%.0fm");
+        SliderRow("HP Scale", &s.espHpScale, 0.5f, 2.0f, "%.2fx");
+        SliderRow("Alert Radius", &s.esp360Radius, 30.f, 220.f, "%.0fpx");
+        SliderRow("Stroke Width", &s.espStroke, 0.5f, 3.0f, "%.2f");
+        SwitchRow("Text Border", &s.espTextBorder);
+        SwitchRow("Hide Name", &s.espHideName);
+
+        SectionHeader("Distance Color");
+        if (ImGui::ColorEdit4("##distcol", s.espDistCol, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) {
+            SyncToGlobals();
+        }
+        SectionHeader("Border Color");
+        if (ImGui::ColorEdit4("##bordcol", s.espBorderCol, ImGuiColorEditFlags_NoInputs | ImGuiColorEditFlags_AlphaBar)) {
+            SyncToGlobals();
+        }
+    }
+}
+
+static void DrawAimTab() {
+    State& s = S();
+    const char* subLabels[] = {"Aim Settings", "Aim Control"};
+    SubTabBar(subLabels, 2, &s.aimSubTab);
+
+    if (s.aimSubTab == 0) {
+        float availW = ImGui::GetContentRegionAvail().x;
+        float colW = (availW - 8.f) * 0.5f;
+
+        ImGui::BeginGroup();
+        ImGui::PushItemWidth(colW);
+        SwitchRow("Aimbot", &s.aimEnable);
+        SwitchRow("Silent Aim", &s.aimSilent);
+        SwitchRow("Macro", &s.aimMacro);
+        SwitchRow("Aim Line", &s.aimLine);
+        SwitchRow("Auto Fire", &s.aimAutoFire);
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+
+        ImGui::SameLine(0.f, 8.f);
+
+        ImGui::BeginGroup();
+        ImGui::PushItemWidth(colW);
+        SwitchRow("Visibility Check", &s.aimVisCheck);
+        SwitchRow("Ignore Bots", &s.aimIgnoreBot);
+        SwitchRow("Ignore Knocked", &s.aimIgnoreKnocked);
+        SwitchRow("Enable FOV", &s.aimShowFov);
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+
+        ImGui::Spacing();
+        const char* targets[] = {"Head", "Neck", "Body", "Pelvis"};
+        MenuLocale::text("Aim Target");
+        ImGui::SetNextItemWidth(-1.f);
+        if (ImGui::BeginCombo("##cyber_target", MenuLocale::tr(targets[ImClamp(s.aimTarget, 0, 3)]))) {
+            for (int i = 0; i < 4; ++i) {
+                if (DrawCyberSelectable(targets[i], s.aimTarget == i)) {
+                    s.aimTarget = i;
+                    SyncToGlobals();
                 }
-                navigation(c, page);
-                motion.update(page);
-                headerSweep(c, motion.age);
-                Canvas content = c;
-                content.origin = c.p(251 + motion.offset(), 150);
-                content.scale = c.scale * (419.f / 373.f);
-                content.stretchX = (738.f / 604.f) / (419.f / 373.f);
-                content.stretchY = 1.f;
-                content.switchReveal = motion.switches();
-                const int first = dl->VtxBuffer.Size;
-                switch (page) {
-                    case 0:
-                        home(c);
-                        break;
-                    case 1:
-                        visual(content);
-                        break;
-                    case 2:
-                        aim(content);
-                        break;
-                    case 3:
-                        memory(content);
-                        break;
-                    case 4:
-                        settings(content);
-                        break;
+            }
+            ImGui::EndCombo();
+        }
+
+        const char* triggers[] = {"Fire", "ADS", "Fire + ADS", "Fire or ADS"};
+        MenuLocale::text("Auto");
+        ImGui::SetNextItemWidth(-1.f);
+        if (ImGui::BeginCombo("##cyber_trigger", MenuLocale::tr(triggers[ImClamp(s.aimTrigger, 0, 3)]))) {
+            for (int i = 0; i < 4; ++i) {
+                if (DrawCyberSelectable(triggers[i], s.aimTrigger == i)) {
+                    s.aimTrigger = i;
+                    SyncToGlobals();
                 }
-                fadeContent(dl, first, motion.opacity());
-                dl->AddRect(c.p(10, 10), c.p(1014, 666), IM_COL32(7, 8, 11, 255), 14 * c.scale, 0,
-                            6 * c.scale);
+            }
+            ImGui::EndCombo();
+        }
+
+        SliderRow("FOV", &s.aimFov, 10.f, 360.f, "%.0fpx");
+        SliderRow("Distance", &s.aimDist, 30.f, 450.f, "%.0fm");
+        SliderRow("Aim Speed", &s.aimSpeed, 1.f, 30.f, "%.1f");
+        SliderRow("Hit Probability", &s.aimHitProb, 0.f, 100.f, "%.0f%%");
+    } else {
+        SectionHeader("Mode");
+        const char* modes[] = {"Safe", "Risk", "Custom"};
+        SubTabBar(modes, 3, &s.aimMode);
+        SyncToGlobals();
+
+        SwitchRow("Prediction", &s.aimPredict);
+        SliderRow("Max Step", &s.aimMaxStep, 0.5f, 15.f, "%.1f°");
+
+        MenuLocale::text("Aim Target");
+        const char* targets[] = {"Head", "Neck", "Body", "Pelvis"};
+        ImGui::SetNextItemWidth(-1.f);
+        if (ImGui::BeginCombo("##cyber_target_2", MenuLocale::tr(targets[ImClamp(s.aimTarget, 0, 3)]))) {
+            for (int i = 0; i < 4; ++i) {
+                if (DrawCyberSelectable(targets[i], s.aimTarget == i)) {
+                    s.aimTarget = i;
+                    SyncToGlobals();
+                }
+            }
+            ImGui::EndCombo();
+        }
+
+        SectionHeader("More Memory Options");
+        SliderRow("Magic X", &s.magicX, -50.f, 50.f, "%.1f");
+        SliderRow("Magic Y", &s.magicY, -50.f, 50.f, "%.1f");
+        SliderRow("Magic Z", &s.magicZ, -50.f, 50.f, "%.1f");
+    }
+}
+
+static void DrawMemTab() {
+    State& s = S();
+    const char* subLabels[] = {"Memory", "More Memory Options"};
+    SubTabBar(subLabels, 2, &s.memSubTab);
+
+    if (s.memSubTab == 0) {
+        float availW = ImGui::GetContentRegionAvail().x;
+        float colW = (availW - 8.f) * 0.5f;
+
+        ImGui::BeginGroup();
+        ImGui::PushItemWidth(colW);
+        SwitchRow("Auto Tap", &s.memAutoTap);
+        SwitchRow("Fast Shoot", &s.memFastShoot);
+        SwitchRow("Fast Scope", &s.memFastScope);
+        SwitchRow("Fast Gun", &s.memFastGun);
+        SwitchRow("Spin", &s.memSpin);
+        SwitchRow("Zoom", &s.memZoom);
+        SwitchRow("iPad", &s.memIpad);
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+
+        ImGui::SameLine(0.f, 8.f);
+
+        ImGui::BeginGroup();
+        ImGui::PushItemWidth(colW);
+        SwitchRow("No Recoil", &s.memNoRecoil);
+        SwitchRow("No Shake", &s.memNoShake);
+        SwitchRow("HitX", &s.memHitX);
+        SwitchRow("Damage", &s.memDamage);
+        SwitchRow("Small Cross", &s.memSmallCross);
+        SwitchRow("Rainbow", &s.memRainbow);
+        SwitchRow("Cross Spin", &s.memCrossSpin);
+        ImGui::PopItemWidth();
+        ImGui::EndGroup();
+    } else {
+        SwitchRow("Fast Drop", &s.memFastDrop);
+        SwitchRow("Super Run", &s.memSuperRun);
+        SliderRow("Spin Speed", &s.memSpinSpeed, 1.f, 50.f, "%.1f");
+        SliderRow("iPad View", &s.memIpadVal, 80.f, 160.f, "%.0f");
+        SliderRow("Cross Size", &s.memCrossSize, 1.f, 20.f, "%.1f");
+    }
+}
+
+static void DrawSetTab() {
+    State& s = S();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    float availW = ImGui::GetContentRegionAvail().x;
+
+    SectionHeader("RAM Booster");
+    ImVec2 ramPos = ImGui::GetCursorScreenPos();
+    float ramH = 52.f;
+    dl->AddRectFilled(ramPos, ImVec2(ramPos.x + availW, ramPos.y + ramH), U32(g_BgCard), 6.f);
+    dl->AddRect(ramPos, ImVec2(ramPos.x + availW, ramPos.y + ramH), U32(g_Border), 6.f);
+
+    mach_port_t host = mach_host_self();
+    vm_size_t pageSize = 0;
+    host_page_size(host, &pageSize);
+    vm_statistics64_data_t vmStats;
+    mach_msg_type_number_t count = HOST_VM_INFO64_COUNT;
+    float freeMB = 0.f;
+    if (host_statistics64(host, HOST_VM_INFO64, (host_info64_t)&vmStats, &count) == KERN_SUCCESS) {
+        freeMB = (float)((uint64_t)vmStats.free_count * (uint64_t)pageSize) / (1024.f * 1024.f);
+    }
+
+    task_vm_info_data_t vmInfo;
+    mach_msg_type_number_t vmCount = TASK_VM_INFO_COUNT;
+    float appMB = 0.f;
+    if (task_info(mach_task_self(), TASK_VM_INFO, (task_info_t)&vmInfo, &vmCount) == KERN_SUCCESS) {
+        appMB = (float)vmInfo.phys_footprint / (1024.f * 1024.f);
+    }
+
+    char appStr[32], freeStr[32];
+    snprintf(appStr, sizeof(appStr), "%.0f MB", appMB);
+    snprintf(freeStr, sizeof(freeStr), "%.0f MB", freeMB);
+
+    MenuLocale::drawText("App", ImVec2(ramPos.x + 12.f, ramPos.y + 8.f), U32(g_TextMuted), 10.5f);
+    dl->AddText(ImVec2(ramPos.x + 12.f, ramPos.y + 22.f), U32(g_TextMain), appStr);
+
+    MenuLocale::drawText("Free", ImVec2(ramPos.x + 95.f, ramPos.y + 8.f), U32(g_TextMuted), 10.5f);
+    dl->AddText(ImVec2(ramPos.x + 95.f, ramPos.y + 22.f), U32(g_Green), freeStr);
+
+    float pW = 72.f, pH = 24.f;
+    ImGui::SetCursorScreenPos(ImVec2(ramPos.x + availW - pW - 10.f, ramPos.y + 8.f));
+    if (DrawCyberButton("Purge", ImVec2(pW, pH))) {
+        Toast("The current project has no memory purge operation", g_Yellow);
+    }
+    ImGui::SetCursorScreenPos(ImVec2(ramPos.x + availW - 115.f, ramPos.y + 35.f));
+    MenuLocale::drawText("Auto-Clean: OFF", ImGui::GetCursorScreenPos(), U32(g_TextMuted), 10.f);
+
+    ImGui::SetCursorScreenPos(ImVec2(ramPos.x, ramPos.y + ramH + 6.f));
+
+    SectionHeader("Preferences");
+    SwitchRow(s.setStreamHide ? "Stream: ON" : "Stream: OFF", &s.setStreamHide);
+
+    MenuLocale::text("Language");
+    ImGui::SetNextItemWidth(-1.f);
+    if (ImGui::BeginCombo("##cyber_lang", MenuLocale::languageNames[ImClamp(s.setLang, 0, 6)])) {
+        for (int i = 0; i < 7; ++i) {
+            if (ImGui::Selectable(MenuLocale::languageNames[i], s.setLang == i)) {
+                s.setLang = i;
+                MenuLocale::language = i;
+                Toast("Language", g_Green);
             }
         }
-        ImGui::End();
+        ImGui::EndCombo();
+    }
+
+    ImGui::Spacing();
+    ImGui::PushStyleColor(ImGuiCol_Button, RGBA(55, 16, 22, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, RGBA(85, 22, 30, 1.f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonActive, g_Accent);
+    ImGui::PushStyleColor(ImGuiCol_Text, g_Red);
+    if (DrawCyberButton("Reset Guest", ImVec2(-1.f, 30.f))) {
+        s.confirmGuestReset = true;
+    }
+    ImGui::PopStyleColor(4);
+
+    if (s.confirmGuestReset) {
+        ImGui::OpenPopup("##guest_reset_popup");
+        s.confirmGuestReset = false;
+    }
+    if (ImGui::BeginPopupModal("##guest_reset_popup", nullptr, ImGuiWindowFlags_AlwaysAutoResize | ImGuiWindowFlags_NoTitleBar)) {
+        MenuLocale::text("Reset guest account?");
+        ImGui::Spacing();
+        MenuLocale::textDisabled("This deletes local game data, settings and account data.", 260.f);
+        MenuLocale::textDisabled("The game will exit after the reset.", 260.f);
+        ImGui::Spacing();
+        if (DrawCyberButton("Cancel", ImVec2(110.f, 26.f))) {
+            ImGui::CloseCurrentPopup();
+        }
+        ImGui::SameLine(0.f, 8.f);
+        ImGui::PushStyleColor(ImGuiCol_Button, g_Accent);
+        if (DrawCyberButton("Reset Guest", ImVec2(110.f, 26.f))) {
+            ImGui::CloseCurrentPopup();
+            ResetGuestAccount();
+        }
         ImGui::PopStyleColor();
+        ImGui::EndPopup();
+    }
+}
+
+static void DrawToast() {
+    State& s = S();
+    if (s.toastTimer <= 0.f || s.toast[0] == '\0') return;
+    s.toastTimer -= ImGui::GetIO().DeltaTime;
+
+    ImGuiWindow* win = ImGui::GetCurrentWindow();
+    ImVec2 wMin = win->Pos;
+    float wW = win->Size.x;
+
+    float alpha = ImClamp(s.toastTimer / 0.4f, 0.f, 1.f);
+    ImVec4 bg = g_BgPanel; bg.w *= alpha;
+    ImVec4 col = s.toastCol; col.w *= alpha;
+
+    ImVec2 tsz = MenuLocale::measure(s.toast, 11.5f);
+    float pw = tsz.x + 24.f, ph = 24.f;
+    float px = wMin.x + (wW - pw) * 0.5f;
+    float py = wMin.y + 42.f;
+
+    ImDrawList* dl = ImGui::GetWindowDrawList();
+    dl->AddRectFilled(ImVec2(px, py), ImVec2(px + pw, py + ph), U32(bg), 5.f);
+    dl->AddRect(ImVec2(px, py), ImVec2(px + pw, py + ph), U32(col), 5.f);
+    MenuLocale::drawText(s.toast, ImVec2(px + 12.f, py + (ph - tsz.y) * 0.5f), U32(col), 11.5f);
+}
+
+static void RenderWindow() {
+    State& s = S();
+    static bool syncedOnce = false;
+    if (!syncedOnce) {
+        SyncFromGlobals();
+        syncedOnce = true;
+    }
+
+    ImGui::SetNextWindowSize(ImVec2(450.f, 330.f), ImGuiCond_FirstUseEver);
+    ImGui::PushStyleColor(ImGuiCol_WindowBg, g_BgMain);
+    ImGui::PushStyleColor(ImGuiCol_Border, g_Border);
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
+    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 8.f);
+
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse;
+    if (!ImGui::Begin("##DarkosCyberMenu", nullptr, flags)) {
+        ImGui::End();
         ImGui::PopStyleVar(2);
-        if (activeFont) ImGui::PopFont();
-    }
-
-} // namespace CyberMenu
-
-// HMOOD__TG@i_8_f
-
-
-static void RenderLicenseGate() {
-    if (!MenDeal || !ImGui::GetCurrentContext())
-        return;
-
-    MenuLocale::beginFrame();
-    ImFont* activeFont = cyberMenuFont ? cyberMenuFont : SafeMenuFont();
-    if (activeFont) ImGui::PushFont(activeFont);
-
-    const ImGuiIO& io = ImGui::GetIO();
-    if (io.DisplaySize.x < 1.f || io.DisplaySize.y < 1.f) {
-        if (activeFont) ImGui::PopFont();
+        ImGui::PopStyleColor(2);
         return;
     }
 
-    static char keyInputBuf[128] = {0};
-    static bool keyLoaded = false;
-    static std::string statusMessage = "";
-    static bool statusError = false;
-    static bool isVerifying = false;
+    ImVec2 wPos = ImGui::GetWindowPos();
+    ImVec2 wSize = ImGui::GetWindowSize();
+    ImDrawList* dl = ImGui::GetWindowDrawList();
 
-    if (!keyLoaded) {
-        keyLoaded = true;
-        NSString* savedKey = [[NSUserDefaults standardUserDefaults] stringForKey:@"DarkosSavedLicenseKey"];
-        if (savedKey.length > 0) {
-            snprintf(keyInputBuf, sizeof(keyInputBuf), "%s", savedKey.UTF8String);
+    float headerH = 34.f;
+    dl->AddRectFilled(wPos, ImVec2(wPos.x + wSize.x, wPos.y + headerH), U32(g_BgPanel), 8.f, ImDrawFlags_RoundCornersTop);
+    dl->AddLine(ImVec2(wPos.x, wPos.y + headerH), ImVec2(wPos.x + wSize.x, wPos.y + headerH), U32(g_Border), 1.f);
+
+    DrawBadgeIcon(dl, ImVec2(wPos.x + 20.f, wPos.y + headerH * 0.5f), 9.f);
+    dl->AddText(ImVec2(wPos.x + 34.f, wPos.y + 10.f), U32(g_TextMain), "DARKIOS");
+
+    float closeSz = 20.f;
+    ImGui::SetCursorScreenPos(ImVec2(wPos.x + wSize.x - closeSz - 8.f, wPos.y + (headerH - closeSz) * 0.5f));
+    ImGui::PushStyleColor(ImGuiCol_Button, RGBA(35, 16, 22, 0.9f));
+    ImGui::PushStyleColor(ImGuiCol_ButtonHovered, g_Accent);
+    if (ImGui::Button("X##close_cyber", ImVec2(closeSz, closeSz))) {
+        [metalbiew showChange:NO];
+    }
+    ImGui::PopStyleColor(2);
+
+    float navW = 114.f;
+    float bodyY = wPos.y + headerH;
+    float bodyH = wSize.y - headerH;
+
+    dl->AddRectFilled(ImVec2(wPos.x, bodyY), ImVec2(wPos.x + navW, bodyY + bodyH), U32(g_BgPanel), 8.f, ImDrawFlags_RoundCornersBottomLeft);
+    dl->AddLine(ImVec2(wPos.x + navW, bodyY), ImVec2(wPos.x + navW, bodyY + bodyH), U32(g_Border), 1.f);
+
+    const char* navItems[] = {"Home", "ESP Radar", "Aimbot", "Memory", "Settings"};
+    float navItemH = 30.f;
+    for (int i = 0; i < 5; ++i) {
+        float iy = bodyY + 8.f + i * (navItemH + 3.f);
+        ImVec2 iMin(wPos.x + 6.f, iy);
+        ImVec2 iMax(wPos.x + navW - 6.f, iy + navItemH);
+        bool sel = (s.tab == i);
+        bool hov = ImGui::IsMouseHoveringRect(iMin, iMax);
+
+        if (sel) {
+            dl->AddRectFilled(iMin, iMax, U32(RGBA(35, 15, 22, 1.f)), 5.f);
+            dl->AddRectFilled(ImVec2(iMin.x, iy + 5.f), ImVec2(iMin.x + 3.f, iy + navItemH - 5.f), U32(g_Accent), 1.5f);
+        } else if (hov) {
+            dl->AddRectFilled(iMin, iMax, U32(g_BgHover), 5.f);
+        }
+
+        if (hov && ImGui::IsMouseClicked(0)) {
+            s.tab = i;
+        }
+
+        float ty = iy + (navItemH - MenuLocale::measure(navItems[i]).y) * 0.5f;
+        if (MenuLocale::rtl()) {
+            MenuLocale::drawText(navItems[i], ImVec2(iMax.x - 10.f, ty), sel ? U32(g_TextMain) : U32(g_TextDim));
+        } else {
+            MenuLocale::drawText(navItems[i], ImVec2(iMin.x + 12.f, ty), sel ? U32(g_TextMain) : U32(g_TextDim));
         }
     }
 
-    const float scale = ImClamp(ImMin(io.DisplaySize.x / 520.f, io.DisplaySize.y / 320.f), 0.85f, 1.35f);
-    const ImVec2 winSize = ImVec2(480.f * scale, 265.f * scale);
+    float contentX = wPos.x + navW + 10.f;
+    float contentW = wSize.x - navW - 20.f;
+    ImGui::SetCursorScreenPos(ImVec2(contentX, bodyY + 8.f));
+    ImGui::BeginChild("##cyber_content", ImVec2(contentW, bodyH - 16.f), false, ImGuiWindowFlags_None);
 
-    ImGui::SetNextWindowSize(winSize, ImGuiCond_Always);
-    ImGui::SetNextWindowPos(ImVec2((io.DisplaySize.x - winSize.x) * 0.5f,
-                                   (io.DisplaySize.y - winSize.y) * 0.5f),
-                           ImGuiCond_FirstUseEver);
-
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowRounding, 10.f * scale);
-    ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 1.2f * scale);
-    ImGui::PushStyleColor(ImGuiCol_WindowBg, IM_COL32(10, 11, 16, 250));
-    ImGui::PushStyleColor(ImGuiCol_Border, IM_COL32(195, 12, 41, 220));
-
-    if (ImGui::Begin("##darkos_key_login", nullptr,
-                     ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse |
-                         ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoScrollbar)) {
-        ImDrawList* dl = ImGui::GetWindowDrawList();
-        const ImVec2 pos = ImGui::GetWindowPos();
-        const ImVec2 size = ImGui::GetWindowSize();
-
-        // Başlıq paneli
-        dl->AddRectFilled(pos, ImVec2(pos.x + size.x, pos.y + 44.f * scale),
-                          IM_COL32(22, 9, 15, 255), 10.f * scale, ImDrawCornerFlags_Top);
-        dl->AddLine(ImVec2(pos.x, pos.y + 44.f * scale),
-                    ImVec2(pos.x + size.x, pos.y + 44.f * scale),
-                    IM_COL32(195, 12, 41, 180), 1.2f * scale);
-
-        const float titleFontSize = 18.f * scale;
-        dl->AddText(activeFont, titleFontSize,
-                    ImVec2(pos.x + 18.f * scale, pos.y + 12.f * scale),
-                    IM_COL32(245, 245, 248, 255), "KEY LOGIN");
-
-        // Sağ yuxarı bağlama düyməsi
-        const float closeSize = 26.f * scale;
-        const ImVec2 closePos = ImVec2(pos.x + size.x - closeSize - 10.f * scale, pos.y + 9.f * scale);
-        ImGui::SetCursorScreenPos(closePos);
-        if (ImGui::InvisibleButton("##key_gate_close", ImVec2(closeSize, closeSize))) {
-            [metalbiew showChange:NO];
-        }
-        const bool closeHovered = ImGui::IsItemHovered();
-        dl->AddRectFilled(closePos, ImVec2(closePos.x + closeSize, closePos.y + closeSize),
-                          closeHovered ? IM_COL32(195, 12, 41, 240) : IM_COL32(45, 12, 20, 220),
-                          4.f * scale);
-        dl->AddText(activeFont, 15.f * scale,
-                    ImVec2(closePos.x + 8.f * scale, closePos.y + 5.f * scale),
-                    IM_COL32(255, 255, 255, 255), "X");
-
-        // Key daxiletmə yeri + Paste düyməsi
-        const float padX = 18.f * scale;
-        const float inputY = pos.y + 66.f * scale;
-        const float inputH = 38.f * scale;
-        const float pasteW = 84.f * scale;
-        const float gap = 8.f * scale;
-        const float inputW = size.x - padX * 2.f - pasteW - gap;
-
-        dl->AddText(activeFont, 13.f * scale,
-                    ImVec2(pos.x + padX, inputY - 18.f * scale),
-                    IM_COL32(165, 170, 182, 255), "License Key");
-
-        ImGui::SetCursorScreenPos(ImVec2(pos.x + padX, inputY));
-        ImGui::PushStyleColor(ImGuiCol_FrameBg, IM_COL32(18, 20, 28, 255));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgHovered, IM_COL32(24, 27, 38, 255));
-        ImGui::PushStyleColor(ImGuiCol_FrameBgActive, IM_COL32(28, 31, 44, 255));
-        ImGui::PushStyleVar(ImGuiStyleVar_FrameRounding, 5.f * scale);
-        ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(10.f * scale, 9.f * scale));
-        ImGui::SetNextItemWidth(inputW);
-        ImGui::InputText("##darkos_key_field", keyInputBuf, sizeof(keyInputBuf));
-        ImGui::PopStyleVar(2);
-        ImGui::PopStyleColor(3);
-
-        // Paste düyməsi
-        const ImVec2 pastePos = ImVec2(pos.x + padX + inputW + gap, inputY);
-        ImGui::SetCursorScreenPos(pastePos);
-        if (ImGui::InvisibleButton("##darkos_paste_btn", ImVec2(pasteW, inputH))) {
-            NSString* clip = [UIPasteboard generalPasteboard].string;
-            if (clip.length > 0) {
-                NSString* trimmed = [clip stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-                snprintf(keyInputBuf, sizeof(keyInputBuf), "%s", trimmed.UTF8String);
-                statusMessage = "Key pasted from clipboard.";
-                statusError = false;
-            } else {
-                statusMessage = "Clipboard is empty.";
-                statusError = true;
-            }
-        }
-        const bool pasteHovered = ImGui::IsItemHovered();
-        dl->AddRectFilled(pastePos, ImVec2(pastePos.x + pasteW, pastePos.y + inputH),
-                          pasteHovered ? IM_COL32(42, 47, 64, 255) : IM_COL32(26, 30, 42, 255),
-                          5.f * scale);
-        dl->AddRect(pastePos, ImVec2(pastePos.x + pasteW, pastePos.y + inputH),
-                    IM_COL32(195, 12, 41, 160), 5.f * scale, 0, 1.f * scale);
-        dl->AddText(activeFont, 14.f * scale,
-                    ImVec2(pastePos.x + 22.f * scale, pastePos.y + 11.f * scale),
-                    IM_COL32(235, 238, 245, 255), "Paste");
-
-        // Login düyməsi (key yerinin altında)
-        const float loginY = inputY + inputH + 14.f * scale;
-        const float loginH = 40.f * scale;
-        const float fullW = size.x - padX * 2.f;
-        const ImVec2 loginPos = ImVec2(pos.x + padX, loginY);
-
-        ImGui::SetCursorScreenPos(loginPos);
-        ImGui::BeginDisabled(isVerifying);
-        const bool loginClicked = ImGui::InvisibleButton("##darkos_login_btn", ImVec2(fullW, loginH));
-        const bool loginHovered = ImGui::IsItemHovered();
-        ImGui::EndDisabled();
-
-        if (loginClicked && !isVerifying) {
-            NSString* entered = [[NSString stringWithUTF8String:keyInputBuf]
-                stringByTrimmingCharactersInSet:[NSCharacterSet whitespaceAndNewlineCharacterSet]];
-            if (entered.length == 0) {
-                statusMessage = "Please enter a license key.";
-                statusError = true;
-            } else {
-                isVerifying = true;
-                statusMessage = "Verifying key...";
-                statusError = false;
-                [[NSUserDefaults standardUserDefaults] setObject:entered forKey:@"DarkosSavedLicenseKey"];
-                [[NSUserDefaults standardUserDefaults] synchronize];
-
-                // DarkosLicenseAuth yoxlaması
-                BOOL ok = [[DarkosLicenseAuth sharedManager] verifyLicenseKey:entered errorMessage:nil];
-                if (!ok) {
-                    // Fallback: DarkosLicenseAuth-da verifyLicenseKey yoxdursa və ya false qaytarırsa,
-                    // yadda saxlanılan/aktiv tokeni yoxlayır
-                    ok = [DarkosLicenseAuth sharedManager].isAuthenticated;
-                }
-
-                isVerifying = false;
-                if (ok) {
-                    IsLogin = true;
-                    statusMessage = "Login successful!";
-                    statusError = false;
-                } else {
-                    IsLogin = false;
-                    statusMessage = "Invalid or expired key.";
-                    statusError = true;
-                }
-            }
-        }
-
-        dl->AddRectFilled(loginPos, ImVec2(loginPos.x + fullW, loginPos.y + loginH),
-                          isVerifying ? IM_COL32(110, 12, 28, 255)
-                                      : (loginHovered ? IM_COL32(220, 18, 50, 255) : IM_COL32(195, 12, 41, 255)),
-                          6.f * scale);
-        dl->AddText(activeFont, 15.f * scale,
-                    ImVec2(loginPos.x + fullW * 0.5f - 18.f * scale, loginPos.y + 12.f * scale),
-                    IM_COL32(255, 255, 255, 255), isVerifying ? "..." : "Login");
-
-        // Status mesajı
-        if (!statusMessage.empty()) {
-            dl->AddText(activeFont, 12.5f * scale,
-                        ImVec2(pos.x + padX, loginY + loginH + 8.f * scale),
-                        statusError ? IM_COL32(255, 72, 95, 255) : IM_COL32(37, 216, 125, 255),
-                        statusMessage.c_str());
-        }
-
-        // Sol alt küncdə Buy Key düyməsi -> https://t.me/DylibSafe
-        const float buyW = 104.f * scale;
-        const float buyH = 30.f * scale;
-        const ImVec2 buyPos = ImVec2(pos.x + padX, pos.y + size.y - buyH - 14.f * scale);
-        ImGui::SetCursorScreenPos(buyPos);
-        if (ImGui::InvisibleButton("##darkos_buy_key_btn", ImVec2(buyW, buyH))) {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSURL* url = [NSURL URLWithString:@"https://t.me/DylibSafe"];
-                UIApplication* app = [UIApplication sharedApplication];
-                if (url && app) {
-                    [app openURL:url options:@{} completionHandler:nil];
-                }
-            });
-        }
-        const bool buyHovered = ImGui::IsItemHovered();
-        dl->AddRectFilled(buyPos, ImVec2(buyPos.x + buyW, buyPos.y + buyH),
-                          buyHovered ? IM_COL32(24, 58, 76, 255) : IM_COL32(15, 34, 48, 255),
-                          5.f * scale);
-        dl->AddRect(buyPos, ImVec2(buyPos.x + buyW, buyPos.y + buyH),
-                    IM_COL32(27, 205, 223, 210), 5.f * scale, 0, 1.f * scale);
-        dl->AddText(activeFont, 13.5f * scale,
-                    ImVec2(buyPos.x + 22.f * scale, buyPos.y + 8.f * scale),
-                    IM_COL32(130, 238, 250, 255), "Buy Key");
+    switch (s.tab) {
+        case 0: DrawHomeTab(); break;
+        case 1: DrawEspTab(); break;
+        case 2: DrawAimTab(); break;
+        case 3: DrawMemTab(); break;
+        case 4: DrawSetTab(); break;
+        default: DrawHomeTab(); break;
     }
+
+    ImGui::EndChild();
+    DrawToast();
 
     ImGui::End();
-    ImGui::PopStyleColor(2);
     ImGui::PopStyleVar(2);
-    if (activeFont) ImGui::PopFont();
+    ImGui::PopStyleColor(2);
+}
+
 }
 
 void RenderMenu() {
-    if (!MenDeal || !ImGui::GetCurrentContext())
-        return;
+    MenuLocale::beginFrame();
+    if (!MenDeal) return;
 
     if (!IsLogin) {
-        RenderLicenseGate();
-        return;
+        if (DarkosLicenseAuth::IsAuthenticated()) {
+            IsLogin = true;
+        } else {
+            DarkosLicenseAuth::RenderLoginWindow(&IsLogin);
+            return;
+        }
     }
 
-    CyberMenu::render();
-    CyberMenu::renderNotices();
+    CyberMenu::RenderWindow();
 }
