@@ -1,7 +1,7 @@
 TARGET := iphone:clang:latest:15.0
 INSTALL_TARGET_PROCESSES = ShadowTrackerExtra
-
 ARCHS = arm64 arm64e
+SUBSTRATE = 0
 
 include $(THEOS)/makefiles/common.mk
 
@@ -31,7 +31,10 @@ $(TWEAK_NAME)_FILES = \
 
 $(TWEAK_NAME)_CFLAGS = -fobjc-arc -w -I. -Isrc -IESP -IESP/imgui -ISDK
 $(TWEAK_NAME)_CCFLAGS = -std=c++17 -fobjc-arc -w -I. -Isrc -IESP -IESP/imgui -ISDK
-$(TWEAK_NAME)_LDFLAGS = -Wl,-w
+$(TWEAK_NAME)_LDFLAGS = -Wl,-w -Wl,-U,_MSHookFunction -Wl,-U,_MSHookMessageEx
 $(TWEAK_NAME)_FRAMEWORKS = UIKit Foundation CoreGraphics Metal MetalKit QuartzCore Security WebKit
 
 include $(THEOS_MAKE_PATH)/tweak.mk
+
+after-clean::
+	rm -rf .theos obj packages
