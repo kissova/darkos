@@ -1,22 +1,27 @@
-// HMOOD__TG@i_8_f
-
 #import "Engine.h"
 #include "menu.h"
 #include "esp.h"
 #import "mahoa.h"
-#include "sys/mman.h"
-#include "Tools.h"
-#include <stdio.h>
-#include <stdint.h>
-#import <sys/utsname.h>
-#include <string>
-#include <vector>
-#include <locale>
-#include <codecvt>
+#import "Tools.h"
+#import "HideFunsion.h"
+#import "UE4.h"
+#import "PubgLoad.h"
+#include "imgui.h"
+#import "ESP/HeeNoScreenShotView.h"
+#import "ini_rw.h"
+#include "Vector3.hpp"
+#include "Vector2.hpp"
+
+#include <sys/mman.h>
+#include <sys/utsname.h>
 #include <sys/sysctl.h>
-#include <signal.h>
-#include <unistd.h>
-#include <math.h>
+#include <libkern/OSCacheControl.h>
+#import <Foundation/Foundation.h>
+
+#include <cstdio>
+#include <cstdint>
+#include <cstring>
+#include <cstdlib>
 #include <cmath>
 #include <cfloat>
 #include <limits>
@@ -25,31 +30,29 @@
 #include <map>
 #include <mutex>
 #include <atomic>
+#include <vector>
+#include <string>
+#include <locale>
+#include <codecvt>
+#include <algorithm>
+#include <signal.h>
+#include <unistd.h>
 #include <dlfcn.h>
-#include <stdlib.h>
 #include <filesystem>
-#import "HideFunsion.h"
 
-#include <string.h>
-#include "Vector3.hpp"
-#include "Vector2.hpp"
-#import <Foundation/Foundation.h>
-#import "UE4.h"
-#import "PubgLoad.h"
-#include "imgui.h"
-#import "ESP/HeeNoScreenShotView.h"
-#import "ini_rw.h"
-#import <libkern/OSCacheControl.h>
-
+#ifndef ImClamp
 #define ImClamp(X, MIN, MAX) ((X) < (MIN) ? (MIN) : ((X) > (MAX) ? (MAX) : (X)))
-#define kWidth  [UIScreen mainScreen].bounds.size.width
-#define kHeight [UIScreen mainScreen].bounds.size.height
-#define timer(sec) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)(sec * NSEC_PER_SEC)), dispatch_get_main_queue(), ^
+#endif
+
+#define kWidth  ([UIScreen mainScreen].bounds.size.width)
+#define kHeight ([UIScreen mainScreen].bounds.size.height)
+#define timer(sec) dispatch_after(dispatch_time(DISPATCH_TIME_NOW, (int64_t)((sec) * NSEC_PER_SEC)), dispatch_get_main_queue(), ^
 
 #define ICON_FA_EXCLAMATION_TRIANGLE "\xef\x81\xb1"
 #define E(str) _xor_(str).c_str()
 
-#define iPhone8P ([UIScreen instancesRespondToSelector:@selector(currentMode)] ? CGSizeEqualToSize(CGSizeMake(1242, 2208), [[UIScreen mainScreen] currentMode].size) : NO)
+#define iPhone8P (([UIScreen instancesRespondToSelector:@selector(currentMode)] && \
+    CGSizeEqualToSize(CGSizeMake(1242, 2208), [[UIScreen mainScreen] currentMode].size)) ? YES : NO)
 
 #define HMOOD_METALBIEW_IMPLEMENTATION
 #include "ESP/Engine_2.h"
@@ -168,25 +171,24 @@ static std::atomic<bool> g_RtlHooked{false};
 
 static metalbiew *g_MetalOverlayVC = nil;
 
-ASTExtraPlayerController* g_LocalController = nullptr;
-ASTExtraPlayerController* localPlayerController = nullptr;
+extern ASTExtraPlayerController* g_LocalController;
+extern ASTExtraPlayerController* localPlayerController;
 INI* config = nullptr;
 
 static bool IsSafeFiniteFloat(float v) {
-    return std::isfinite(v) && fabsf(v) < 1.e9f;
+    return std::isfinite(v) && std::fabs(v) < 1.e9f;
 }
 
 static bool IsSafeFiniteVec(const FVector& v) {
     return IsSafeFiniteFloat(v.X) && IsSafeFiniteFloat(v.Y) && IsSafeFiniteFloat(v.Z);
 }
 
-// HMOOD__TG@i_8_f
 bool isObjectInvalid(UObject *obj) {
     if (!Tools::IsPtrValid(obj)) {
         return true;
     }
 
-    uintptr_t rawObj = (uintptr_t)obj;
+    uintptr_t rawObj = reinterpret_cast<uintptr_t>(obj);
     if ((rawObj % sizeof(uintptr_t)) != 0x0 && (rawObj % sizeof(uintptr_t)) != 0x4) {
         return true;
     }
@@ -203,19 +205,17 @@ bool isObjectInvalid(UObject *obj) {
         return true;
     }
 
-    if (std::any_of(trapRegions.begin(), trapRegions.end(), [obj](const sRegion& region) {
-            return ((uintptr_t)obj) >= region.start && ((uintptr_t)obj) <= region.end;
-        }) ||
-        std::any_of(trapRegions.begin(), trapRegions.end(), [obj](const sRegion& region) {
-            return ((uintptr_t)obj->ClassPrivate) >= region.start && ((uintptr_t)obj->ClassPrivate) <= region.end;
-        })) {
-        return true;
-    }
+    const uintptr_t objAddr = reinterpret_cast<uintptr_t>(obj);
+    const uintptr_t clsAddr = reinterpret_cast<uintptr_t>(obj->ClassPrivate);
 
-    return false;
+    const bool inTrap = std::any_of(trapRegions.begin(), trapRegions.end(), [objAddr, clsAddr](const sRegion& region) {
+        return (objAddr >= region.start && objAddr <= region.end) ||
+               (clsAddr >= region.start && clsAddr <= region.end);
+    });
+
+    return inTrap;
 }
 
-// HMOOD__TG@i_8_f
 static bool SafeWriteVTableSlot(void **vtable, int index, void *newFunc, void **outOldFunc) {
     if (!vtable || index < 0 || index > 4096 || !newFunc) return false;
     if (!Tools::IsPtrValid(vtable)) return false;
@@ -224,7 +224,7 @@ static bool SafeWriteVTableSlot(void **vtable, int index, void *newFunc, void **
     if (!Tools::IsPtrValid(slotPtr)) return false;
 
     void *currentVal = *slotPtr;
-    if (!IsValidAddress((kaddr)currentVal)) return false;
+    if (!IsValidAddress(reinterpret_cast<kaddr>(currentVal))) return false;
 
     if (currentVal == newFunc) {
         if (outOldFunc && !*outOldFunc) {
@@ -235,27 +235,27 @@ static bool SafeWriteVTableSlot(void **vtable, int index, void *newFunc, void **
 
     long page_size = sysconf(_SC_PAGESIZE);
     if (page_size <= 0) page_size = 16384;
-    uintptr_t start = ((uintptr_t)slotPtr) & ~((uintptr_t)page_size - 1);
-    uintptr_t end = (((uintptr_t)slotPtr + sizeof(void *)) + (uintptr_t)page_size - 1) & ~((uintptr_t)page_size - 1);
+    uintptr_t start = reinterpret_cast<uintptr_t>(slotPtr) & ~(static_cast<uintptr_t>(page_size) - 1);
+    uintptr_t end = (reinterpret_cast<uintptr_t>(slotPtr) + sizeof(void *) + static_cast<uintptr_t>(page_size) - 1) &
+                    ~(static_cast<uintptr_t>(page_size) - 1);
     size_t len = end - start;
 
-    if (mprotect((void *)start, len, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
-        if (mprotect((void *)start, len, PROT_READ | PROT_WRITE) != 0) {
+    if (mprotect(reinterpret_cast<void *>(start), len, PROT_READ | PROT_WRITE | PROT_EXEC) != 0) {
+        if (mprotect(reinterpret_cast<void *>(start), len, PROT_READ | PROT_WRITE) != 0) {
             return false;
         }
     }
 
+    *slotPtr = newFunc;
     if (outOldFunc && !*outOldFunc) {
         *outOldFunc = currentVal;
     }
-    *slotPtr = newFunc;
-    sys_icache_invalidate((void *)slotPtr, sizeof(void *));
+    sys_icache_invalidate(reinterpret_cast<void *>(slotPtr), sizeof(void *));
     return true;
 }
 
-// HMOOD__TG@i_8_f
 static bool IsAimTriggerActive(const ASTExtraPlayerCharacter* player) {
-    if (isObjectInvalid((UObject*)player)) return false;
+    if (isObjectInvalid(reinterpret_cast<UObject*>(const_cast<ASTExtraPlayerCharacter*>(player)))) return false;
     const bool fire = player->bIsWeaponFiring;
     const bool ads = player->bIsGunADS;
     switch (Settings::Aimbot::TriggerMode.load(std::memory_order_relaxed)) {
